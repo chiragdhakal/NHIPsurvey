@@ -5,6 +5,7 @@ cat("\014")
 library(haven)
 library(tidyverse)
 library(openxlsx)
+library(writexl)
 
 section0 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet")
 section1a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 1")
@@ -51,13 +52,82 @@ section13a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 41")
 section13b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 42")
 section13c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 43")
 
+#MAKING PSU AND HHID UNIQUE 
+section0 <- read.xlsx("dataset/section0.xlsx")
+section2b <- read.xlsx("dataset/section2b.xlsx")
 
-##############CHECKING FOR CELLS WITH INCONSISTENT DATATYPE##################
+
+section0 <- section0 %>%
+  mutate(
+  enrollment = as.integer(enrollment),
+  psu = case_when(
+    enrollment == 2 & psu %in% c(
+      1101:1112, 2101:2110, 3101:3115, 4101:4109, 5101:5111, 6101:6108, 7101:7109
+    ) ~ psu + 100, 
+    enrollment == 1 & psu %in% c(
+      1201:1212, 2201:2210, 3201:3215, 4201:4209, 5201:5211, 6201:6208, 7201:7209
+    ) ~ psu - 100,
+    TRUE ~ psu
+  )
+  ) %>%
+  group_by(psu) %>%
+  mutate(
+    hhld = row_number(),
+    uniq_id = paste0(psu, "-", hhld), 
+    uniq_id1 = paste0(ID, "-", enrollment, "-", palika),
+  ) %>% 
+  ungroup()
+
+psu_counts <- section0 %>%
+  group_by(psu) %>%
+  summarise(n_hhlds = n()) %>%
+  ungroup()
+
+any(duplicated(section0$uniq_id))
+section0[duplicated(section0$uniq_id), "uniq_id"]
+section0[duplicated(section0$uniq_id), "uniq_id1"]
+
+#CHECKING FOR ANY MISALLOCATED PSU 
+psu_counts1 <- section0 %>%
+  group_by(psu) %>%
+  summarise(n_hhlds = n()) %>%
+  ungroup()
+
+psu_counts <- merge.data.frame(psu_counts, psu_counts1, by.x = "psu", by.y = "psu", all = TRUE)
+
+psu_issues <- psu_counts %>%
+  filter(n_hhlds != 20)
+
+section0_issues <- section0 %>%
+  filter(psu %in% psu_issues$psu) %>%
+  select(version, verified, ID, enrollment, psu, province, district, palika, ward, hhld, interview_date, Name.of.enumerator)
+
+duplicates <- section0 %>%
+  filter(duplicated(uniq_id) | duplicated(uniq_id, fromLast = TRUE)) %>%
+  arrange(uniq_id)
+
+duplicates <- duplicates %>% 
+  select(uniq_id, ID, enrollment, psu, province, district, palika, ward, hhld, Name.of.enumerator, interview_date, version)
+
+write_xlsx(duplicates, "duplicated_hhld.xlsx")
+write_xlsx(psu_counts, "psu_counts.xlsx")
+write_xlsx(section0_issues, "section0_issues.xlsx")
+
+#CHECKING FOR PALIKA ERROR 
+
+
+
+#CHECKING FOR CELLS WITH INCONSISTENT DATATYPE
 keep_rows_with_commas <- function(df, skip_cols = NULL) {
   cols <- setdiff(names(df), skip_cols)
   df %>% 
   filter(if_any(all_of(cols), ~ grepl(",", .)))
 }
+
+section0_multi <- keep_rows_with_commas(
+  section0, 
+  skip_cols = NULL
+)
 
 section1b_multi <- keep_rows_with_commas(
   section1b, 
@@ -81,7 +151,7 @@ section2a3_multi <- keep_rows_with_commas(
 
 section2b_multi <- keep_rows_with_commas(
   section2b, 
-  skip_cols = NULL  # you can add skipped columns if needed
+  skip_cols = NULL 
 )
 
 section2c_multi <- keep_rows_with_commas(
@@ -91,16 +161,15 @@ section2c_multi <- keep_rows_with_commas(
 
 section3a_multi <- keep_rows_with_commas(
   section3a, 
-  skip_cols = NULL  # or add columns to skip if necessary
+  skip_cols = NULL  
 )
 
 section3b_multi <- keep_rows_with_commas(
   section3b, 
-  skip_cols = NULL  # or add columns to skip if necessary
+  skip_cols = NULL 
 )
 
-
-################CHECKING EDUCATION DATA CONSISTENCY####################
+#CHECKING EDUCATION DATA CONSISTENCY
 section1a_edu <- section1a %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101), 
@@ -166,7 +235,7 @@ nrow(education_consistent)
 
 
 
-#############REMITTANCE CONSISTENCY CHECK############
+#REMITTANCE CONSISTENCY CHECK
 section1a_remit <- section1a %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101), 
@@ -198,7 +267,7 @@ missing_remit <- anti_join(
 )
 
 
-############ HEALTH EXPENDITURE AND OUT OF POCKET EXPENDITURE RATIO ###############
+#HEALTH EXPENDITURE AND OUT OF POCKET EXPENDITURE RATIO 
 section2b_hexpense <- section2b %>%
   mutate(
     v249 = as.double(v249)
@@ -249,5 +318,39 @@ healthexp_oop_inconsistent <- healthexp_oop %>%
       is.na(v249) & !is.na(v662) ~ "v249 missing"
     )
   )
+
+#CHECKING MISMATCHES WHILE SELECTING HOUSEHOLDS 
+
+section0 <- read.xlsx("/home/sobaakun/Downloads/2025-08-27/cover page.xlsx")
+section2b <- read.xlsx("/home/sobaakun/Downloads/2025-08-27/Section 2_2_ National health insurence.xlsx")
+
+section0_mismatch <- merge.data.frame(section0, section2b,
+by.x = "ID",
+by.y = "ID",
+all = FALSE)
+
+section0_mismatch <- section0_mismatch %>%
+  select(ID, psu.x, enrollment, province, district, palika.x, ward.x, hhld.x, v228, v229)
+
+section0_mismatch <- section0_mismatch %>% 
+  mutate(
+    enrollment = as.integer(enrollment),
+    v228 = as.integer(v228),
+    v229 = as.integer(v229)
+  ) %>%
+  filter(
+    (enrollment %in% c(1, 3) & v228 == 2) |
+    (enrollment %in% c(2, 4) & v228 == 1 & v229 %in% c(1, 2)) 
+  )
+
+section0_mismatch <- section0_mismatch %>%
+  filter(is.na(v228)) %>%
+  mutate(enrollment = as.integer(enrollment)) %>%
+  filter(enrollment == 1)
+  
+  
+
+
+
 
 

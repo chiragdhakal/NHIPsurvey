@@ -6,59 +6,21 @@ library(haven)
 library(tidyverse)
 library(openxlsx)
 
-#importing all the datasets
-section0 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet")
-section1a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 1")
-section1b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 2")
-section2a1 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 3")
-section2a2 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 4")
-section2a3 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 5")
-section2b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 6")
-section2c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 7")
-section3a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 8")
-section3b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 9")
-section4a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 10")
-section4b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 11")
-section4c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 12")
-section4d <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 13")
-section5 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 14")
-section6a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 15")
-section6b1 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 16")
-section6b2 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 17")
-section6b3 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 18")
-section6b4 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 19")
-section6b5 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 20")
-section6c1 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 21")
-section6c2 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 22")
-section6c3 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 23")
-section6d <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 24")
-section7a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 25")
-section7b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 26")
-section8 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 27")
-section9a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 28")
-section9b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 29")
-section9c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 30")
-section9d <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 31")
-section9e <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 32")
-section9f1 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 33")
-section9f2 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 34")
-section10 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 35")
-section11a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 36")
-section11b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 37")
-section11c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 38")
-section12a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 39")
-section12b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 40")
-section13a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 41")
-section13b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 42")
-section13c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 43")
-
 #SECTION0
 
+section0 <- read.xlsx("dataset/cover page.xlsx")
+
 #labelling section-0
+
 section0 <- section0 %>%
+  rename(
+    nhip_enrollment_date = Health.Insurence.Program,
+    ssf_enrollment_date = Social.Health.Insurence,
+    employer_name = name
+  ) %>%
   mutate(
-  id = labelled(
-    id, 
+  ID = labelled(
+    ID, 
     label = "system id code"
   ), 
   enrollment = labelled(
@@ -285,7 +247,12 @@ section0 <- section0 %>%
 
 
 #SECTION 1 - HOUSEHOLD ROSTER
+
+section1a <- read.xlsx("dataset/section 1.xlsx")
+section1b <- read.xlsx("dataset/Part 1_1 Household Roster-1.xlsx")
+
 #Section1a
+
 section1a <- section1a %>%
   mutate(
     v105 = case_when(
@@ -384,8 +351,9 @@ section1a <- section1a %>%
   )
 
 
-#section1b
-for (i in setdiff(1:ncol(section1b), c(8, 18, 19, 20, 24, 26, 28))) {
+#Section1b
+
+for (i in setdiff(1:ncol(section1b), c(6, 7, 20, 21, 22))) {
   section1b[[i]] <- as.integer(section1b[[i]])
 }
 
@@ -510,14 +478,17 @@ section1b <- section1b %>%
   )
 
 #SECTION 2 (Household Characteristics)
+section2a1 <- read.xlsx("dataset/Household Characteristics.xlsx")
+section2a2 <- read.xlsx("dataset/Section 2_1 Housing Expenses.xlsx")
+section2a3 <- read.xlsx("dataset/Utilities and Amenities.xlsx")
+section2b <- read.xlsx("dataset/Section 2_2_ National health insurence.xlsx")
+section2c <- read.xlsx("dataset/PART 2_3_ Mortality (Death) Information.xlsx")
 
 #Part 2.1 - Housing
 
 #Part 2.1.1 - Type of dwelling
 
-section2a1 <- read.xlsx("dataset/section2a1.xlsx")as
-
-for (i in setdiff(1:ncol(section2a1), c(9, 11, 13, 15, 16))) {
+for (i in setdiff(1:ncol(section2a1), c(6, 7, 9, 12, 14, 16, 18))) {
   section2a1[[i]] <- as.integer(section2a1[[i]])
 }
 
@@ -592,7 +563,7 @@ section2a1 <- section2a1 %>%
 
 #Part 2.1.2 - Housing Expenses
 
-for (i in setdiff(1:ncol(section2a2), c(7, 12))) {
+for (i in setdiff(1:ncol(section2a2), c(6, 7, 15))) {
   section2a2[[i]] <- as.integer(section2a2[[i]])
 }
 
@@ -657,7 +628,7 @@ section2a2 <- section2a2 %>%
 
 #Part 2.1.3 - Utilities and Amenities
 
-for (i in setdiff(1:ncol(section2a3), c(7, 10, 20, 29))) {
+for (i in setdiff(1:ncol(section2a3), c(6, 7, 10, 13, 23, 32))) {
   section2a3[[i]] <- as.integer(section2a3[[i]])
 }
 
@@ -798,7 +769,6 @@ section2a3 <- section2a3 %>%
 )
 
 #Part 2.2 - Awarebess about and Affiliation with Health Insurance Program
-section2b <- read.xlsx("dataset/section2b.xlsx")
 
 section2b <- section2b %>% 
   rename(
@@ -820,7 +790,7 @@ section2b <- section2b %>%
   ) %>%
   select(-v227h_1, everything(), v227h_1)
 
-for (i in setdiff(1:ncol(section2b), c(19, 31, 41, 78))) {
+for (i in setdiff(1:ncol(section2b), c(6, 7, 22, 34, 44, 81))) {
   section2b[[i]] <- as.integer(section2b[[i]])
 }
 
@@ -916,10 +886,6 @@ section_2b <- section2b %>%
     label = "Are you aware that the annual NHIP premium is NPR 3,500 and the benefit package is NPR 100,000 per household per year?",
     labels = c(Yes = 1, No = 2)
   ), 
-  v232 = labelled(
-    v232, 
-    label = "What is your main reason for not enrolling? (MCQ - up to three applicable)",
-  ), 
   v232a = labelled(
     v232a, 
     label = "Cannot afford to pay the insurance premium or contribution"
@@ -963,10 +929,6 @@ section_2b <- section2b %>%
   v232k = labelled(
     v232k, 
     label = "Other (please specify)"
-  ), 
-  v233 = labelled(
-    v233, 
-    label = "What is your primary reason for enrolling? (MCQ - up to three applicable)"
   ), 
   v233a = labelled(
     v233a, 
@@ -1138,7 +1100,7 @@ section_2b <- section2b %>%
 
 #Part 2.3 - Mortality (Death) Information
 
-for (i in setdiff(1:ncol(section2c), c(9, 13, 15))) {
+for (i in setdiff(1:ncol(section2c), c(6, 7, 12, 16, 17, 18))) {
   section2c[[i]] <- as.integer(section2c[[i]])
 }
 
@@ -1204,7 +1166,7 @@ section2c <- section2c %>%
     v260a, 
     label = "Others (specify)"
   ), 
-  v261a = labelled(
+  v261 = labelled(
     v261a, 
     label = "If the deceased was a woman aged 15 to 49, what was her condition at the time of death?",
     labels = c(
@@ -1213,8 +1175,8 @@ section2c <- section2c %>%
       "Postpartum (<= 6 weeks after childbirth)" = 3, 
       Other = 4)
   ), 
-  v261b = labelled(
-    v261b, 
+  v261a = labelled(
+    v261a, 
     label = "Other (specify)"
   ), 
   v262a = labelled(
@@ -1245,9 +1207,12 @@ section2c <- section2c %>%
 
 #SECTION 3: FOOD CONSUMPTION
 
+section3a <- read.xlsx("dataset/Section 3_ Consumption of Food.xlsx")
+section3b <- read.xlsx("dataset/Part 3_1_ Food away from home.xlsx")
+
 #Part 3.1: Food at Home
 
-for (i in (1:ncol(section3a))) {
+for (i in setdiff(1:ncol(section3a), c(6, 7))) {
   section3a[[i]] <- as.integer(section3a[[i]])
 }
 
@@ -1287,7 +1252,8 @@ section3a <- section3a %>%
       "Non-alcoholic beverages" = 12, 
       "Alcoholic Beverages (local or imported)" = 13, 
       "Tobacco and Tobacco produces" = 14, 
-      "Prepared food products" = 15)
+      "Prepared food products" = 15
+    )
   ), 
   v302 = labelled(
     v302, 
@@ -1361,6 +1327,11 @@ section3b <- section3b %>%
 )
 
 #SECTION 4: NON-FOOD EXPENDITURE AND INVENTORY OF DURABLE GOODS 
+
+section4a <- read.xlsx("dataset/section 4.xlsx")
+section4b <- read.xlsx("dataset/Part 4_2_ Expenditure Abroad.xlsx")
+section4c <- read.xlsx("dataset/Part 4_3_ Inventory of Durable Goods.xlsx")
+section4d <- read.xlsx("dataset/Part 4_4_ Own Account Consumption of Goods.xlsx")
 
 #Part 4.1 - Non-Food Expenditures
 for (i in (1:ncol(section4a))) {
@@ -1623,6 +1594,8 @@ section4d <- section4d %>%
 
 #SECTION 5: EXPENSE IN EDUCATION
 
+section5 <- read.xlsx("dataset/Section 5_ Expense in Education.xlsx")
+
 for (i in (1:ncol(section5))) {
   section5[[i]] <- as.integer(section5[[i]])
 }
@@ -1701,6 +1674,18 @@ section5 <- section5 %>%
 
 
 #SECTION 6:EXPENSES IN HEALTH
+
+section6a <- read.xlsx("dataset/section 6.xlsx")
+section6b1 <- read.xlsx("dataset/Part 6_2_1_ Chronic Illness and Health Seeking Behaviour.xlsx")
+section6b2 <- read.xlsx("dataset/Part 6_2_2_ Chronic Illness and Expenditure Tracking.xlsx")
+section6b3 <- read.xlsx("dataset/Part 6_2_3_ Chronic Illness and Expenditure Tracking – Outpatient (Regular Checkups).xlsx")
+section6b4 <- read.xlsx("dataset/Part 6_2_4_ Chronic Illness and Expenditure Tracking – Inpatient.xlsx")
+section6b5 <- read.xlsx("dataset/section 6_2_5.xlsx")
+section6c1 <- read.xlsx("dataset/Part 6_3_1_ Acute Illness and health seeking behaviour.xlsx")
+section6c2 <- read.xlsx("dataset/Part 6.3.2_ Acute illness and health screening.xlsx")
+section6c3 <- read.xlsx("dataset/Part 6_3_3_ Acute Illness health seeking and expenditure tracking.xlsx")
+section6c4 <- read.xlsx("dataset/Part 6_3_4_ Acute Illness health seeking and expenditure tracking.xlsx")
+section6d <- read.xlsx("dataset/PART 6_4_ Household Health Care Seeking.xlsx")
 
 #Part 6.1 - Screening for General Health Status 
 
@@ -3525,5 +3510,1622 @@ section6d <- section6d %>%
         "Neutral" = 2, 
         "Not satisfied" = 3
       )
+    )
+  )
+
+#SECTION 7: LABOUR AND EMPLOYMENT
+
+section7 <- read.xlsx("dataset/Swction 7_ Labor and Employment.xlsx")
+
+section7 <- section7 %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v101 = labelled(
+      v101,
+      label = "Identification code"
+    ),
+    v702 = labelled(
+      v702,
+      label = "During the last 7 days, did you do any work for a wage, salary, commission, tips or any other pay, even if only for one hour?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v703 = labelled(
+      v703,
+      label = "During the last 7 days, did you run or do any kind of business, farming or other activity to generate income, even if only for one hour?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v704 = labelled(
+      v704,
+      label = "During the last 7 days, did you help unpaid in a business owned by a household member, even if only for one hour?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v705 = labelled(
+      v705,
+      label = "During the last 7 days, did you have a paid job or a business from which you were temporary absent and to which you expect to return?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v706 = labelled(
+      v706,
+      label = "Including the time that you have been absent, when will you return to that same job/business that you had?",
+      labels = c(
+        "<= 3 months" = 1, 
+        "After 3 months" = 2, 
+        "Not sure when" = 3
+      )
+    ),
+    v707 = labelled(
+      v707,
+      label = "Do you continue receiving an income or other returns from a job or business during this absence?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v708 = labelled(
+      v708,
+      label = "In the main job/business that you had during the last days (occupation)?"
+    ),
+    v709a = labelled(
+      v709a,
+      label = "Description of main tasks or duties"
+    ),
+    v709b = labelled(
+      v709b,
+      label = "NSCO Code (Occupation)",
+      labels = c(
+        "Legislators, Officials & Managers" = 1, 
+        "Professionals" = 2, 
+        "Technicians and Associate Professionals" = 3, 
+        "Clerical Support Workers" = 4, 
+        "Services and Sales Workers" = 5, 
+        "Skilled, Agricultural, Forestry and Fishery Workers" = 6, 
+        "Craft and Related Trades Workers" = 7, 
+        "Plant and Machine Operators and Assemblers" = 8, 
+        "Elementary Occupations" = 9, 
+        "Armed Forces Occupations" = 10
+      )
+    ),
+    v710a = labelled(
+      v710a,
+      label = "In this job, what is the status of your involvement?",
+      labels = c(
+        Employee = 1, 
+        "Paid apprentice/Intern" = 2, 
+        "Employer (with regular employees)" = 3, 
+        "Own-account worker (without regular employees)" = 4,
+        "Contributing family worker (Helping without pay)" = 5, 
+        "Others" = 6
+      )
+    ),
+    v710b = labelled(
+      v710b,
+      label = "Others (specify)"
+    ),
+    v711 = labelled(
+      v711,
+      label = "Does your employer pay contributions for social security (insurance, provident fund, etc.) On your behalf?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v712 = labelled(
+      v712,
+      label = "Do you get paid annual leave or payment for leave not taken?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v713 = labelled(
+      v713,
+      label = "Do you get paid sick leave or compensation in case of illness or injury?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v714a = labelled(
+      v714a,
+      label = "What are the main goods or services produced at your place of work or its main function (Description)?"
+    ),
+    v714b = labelled(
+      v714b,
+      label = "NSIC Code (Economic Sector)", 
+      labels = c(
+        "Agriculture, forestry and fishing" = 1, 
+        "Mining and quarrying" = 2, 
+        "Manufacturing" = 3, 
+        "Electricty, gas, steam and air conditioning supply" = 4, 
+        "Water supply, sewerage, waste management and remediation activities" = 5,
+        "Construction" = 6, 
+        "Wholesale and retail trade" = 7, 
+        "Transportation and storage" = 8, 
+        "Accomodation and food service activities" = 9, 
+        "Publishing, broadcasting, and content production and distribution activities" = 10,
+        "Telecommunications, computer programming, consultancy, computing infrastructure, and other information service activities" = 11, 
+        "Financial and insurance activities" = 12, 
+        "Real estate activities" = 13, 
+        "Professional, scientific and technical activities" = 14,
+        "Administrative and support service activities" = 15, 
+        "Public administration and defence; compulsory social security" = 16, 
+        "Education" = 17, 
+        "Human health and social work activities" = 18, 
+        "Arts, sports and recreation" = 19, 
+        "Other service activities" = 20, 
+        "Activities of households as employers" = 21, 
+        "Activities of extraterritorial organizations and bodies" = 22
+      )
+    ),
+    v715 = labelled(
+      v715,
+      label = "What kind of sector was your main activity carried out in?",
+      labels = c(
+        "Government" = 1, 
+        "Govt. Financial Institution" = 2, 
+        "Govt. Non-financial Institution" = 3, 
+        "Govt. Non-Profit Making Institution" = 4, 
+        "Private Financial Institution" = 5, 
+        "Private Non-Financial Institution" = 6, 
+        "Non-Govt., Non-Profit Making Institution" = 7, 
+        "Household Sector" = 8, 
+        "Other" = 9
+      )
+    ),
+    v716 = labelled(
+      v716,
+      label = "What is the type of enterprise/business where you work?", 
+      labels = c(
+        "An incorporated company" = 1, 
+        "Private sector" = 2
+      )
+    ),
+    v717 = labelled(
+      v717,
+      label = "Is the business registered with (relevant authority)?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v718 = labelled(
+      v718,
+      label = "During the last 30 days, did you look for any kind of paid job or try to start any kind of business?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v719 = labelled(
+      v719,
+      label = "Have you already found a job or arranged to start a business in the near future?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v720 = labelled(
+      v720,
+      label = "What did you do in the last 30 days to find a job or start a business?",
+      labels = c(
+        "Applied to prospective employers" = 1, 
+        "Placed/answered job advertisements" = 2, 
+        "Registered with employment centre" = 3, 
+        "Regsitered with private recruitment offices" = 4, 
+        "Took a test or an interview" = 5, 
+        "Sought help from relatives, friends, others" = 6, 
+        "Checked at factories, work sites" = 7, 
+        "Waited on the streets to be recruited" = 8, 
+        "Sought financial help to start a business" = 9, 
+        "Looked for land, building, etc. to start a business" = 10, 
+        "Applied for permit/license to start a business" = 11, 
+        "Other" = 12
+      )
+    ),
+    v721 = labelled(
+      v721,
+      label = "Would you want to work if a job or business opportunity became available?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v722 = labelled(
+      v722,
+      label = "If (a/the) job or business opportunity became available, when could you start working or have started working?", 
+      labels = c(
+        "During the last 7 days" = 1, 
+        "Within the next 15 days" = 2, 
+        "Not available" = 3 
+      )
+    )
+  )
+
+#SECTION 8 : WAGE JOBS
+
+section8 <- read.xlsx("dataset/Section 8_ Wage Jobs.xlsx")
+
+section8 <- section8 %>% 
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v101 = labelled(
+      v101,
+      label = "Identification code"
+    ),
+    v801 = labelled(
+      v801,
+      label = "Id code from household roster"
+    ),
+    v802 = labelled(
+      v802,
+      label = "Did you work for salary or wages in the past 12 months?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v803a = labelled(
+      v803a,
+      label = "Job ID"
+    ),
+    v803b = labelled(
+      v803b,
+      label = "Description of main tasks or duties"
+    ),
+    v803c = labelled(
+      v803c,
+      label = "NSCO Code (Occupation)",
+      labels = c(
+        "Legislators, Officials & Managers" = 1, 
+        "Professionals" = 2, 
+        "Technicians and Associate Professionals" = 3, 
+        "Clerical Support Workers" = 4, 
+        "Services and Sales Workers" = 5, 
+        "Skilled, Agricultural, Forestry and Fishery Workers" = 6, 
+        "Craft and Related Trades Workers" = 7, 
+        "Plant and Machine Operators and Assemblers" = 8, 
+        "Elementary Occupations" = 9, 
+        "Armed Forces Occupations" = 10
+      )
+    ),
+    v804 = labelled(
+      v804,
+      label = "On what basis are you working/worked in this job?",
+      labels = c(
+        "Daily basis" = 1, 
+        "Long term basis" = 2, 
+        "Contract/Piece-rate" = 3
+      )
+    ),
+    v805 = labelled(
+      v805,
+      label = "How long did you work for daily wages in the last 12 months (in days)?"
+    ),
+    v806 = labelled(
+      v806,
+      label = "How much did you get in cash per day for this job (in NPR)?"
+    ),
+    v807 = labelled(
+      v807,
+      label = "What was the value of what you received per day in-kind for this job? NPR Per Day"
+    ),
+    v808a = labelled(
+      v808a,
+      label = "How much did you get for this job? Take-home pay or Salary"
+    ),
+    v808b = labelled(
+      v808b,
+      label = "Transportation allowance"
+    ),
+    v808c = labelled(
+      v808c,
+      label = "Bonuses, tips, festival allowances"
+    ),
+    v808d = labelled(
+      v808d,
+      label = "Uniform / clothing"
+    ),
+    v808e = labelled(
+      v808e,
+      label = "Other allowances"
+    ),
+    v809 = labelled(
+      v809,
+      label = "What was the value of what you received in kind in the past 12 months?"
+    ),
+    v810a = labelled(
+      v810a,
+      label = "During the past 12 months, having worked on a contract, how much did you receive in cash?"
+    ),
+    v810b = labelled(
+      v810b,
+      label = "During the past 12 months, having worked on a contract, how much did you receive in-kind (value)?"
+    )
+  )
+
+#SECTION 9: FARMING AND LIVESTOCK
+
+section9a <- read.xlsx("dataset/section 9.xlsx")
+section9b <- read.xlsx("dataset/Part 9_2_ Landholding  Increase Decrease.xlsx")
+section9c <- read.xlsx("dataset/Part 9_3_ Production and Uses.xlsx")
+section9d <- read.xlsx("dataset/Part 9_4_ Expenditure.xlsx")
+section9e <- read.xlsx("dataset/Part 9_5_ Livestock.xlsx")
+section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure (1).xlsx")
+section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure.xlsx")
+
+#Part 9.1: Land Holding 
+
+section9a <- section9a %>% 
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v901 = labelled(
+      v901,
+      label = "Do you or does any of your household member (even if absent) own or share cropped in/out any agricultural land?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v902a = labelled(
+      v902a,
+      label = "Parcel ID"
+    ),
+    v902b = labelled(
+      v902b,
+      label = "Name of parcels of agricultural land that the household/family member operates"
+    ),
+    v903 = labelled(
+      v903,
+      label = "Over the past agricultural year what did you do with the [parcel]?",
+      labels = c(
+        "Owned and cropped yourself" = 1, 
+        "Sharecropped out" = 2, 
+        "Fixed rent out" = 3, 
+        "Mortgaged-out" = 4, 
+        "Left fallow" = 5, 
+        "Sharecropped-in" = 6, 
+        "Rented-in" = 7, 
+        "Mortgaged-in" = 8
+      )
+    ),
+    v904a = labelled(
+      v904a,
+      label = "Unit of [parcel] area",
+      labels = c(Ropani = 1, Bigha = 2)
+    ),
+    v904b = labelled(
+      v904b,
+      label = "Area of the [parcel] - Ropani/Bigha"
+    ),
+    v904c = labelled(
+      v904c,
+      label = "Area of the [parcel] - Aana/Kattha"
+    ),
+    v904d = labelled(
+      v904d,
+      label = "Area of the [parcel] - Paisa/Dhur"
+    ),
+    v905 = labelled(
+      v905,
+      label = "Where is this [parcel] located (district)?"
+    ),
+    v906 = labelled(
+      v906,
+      label = "If you wanted to buy/sell a [parcel] exactly like this, how much would it cost/fetch you?"
+    ),
+    v907a = labelled(
+      v907a,
+      label = "For the parcels which you did not crop yourself, what net rent did you receive/pay from/to the tenant? (In cash NPR)"
+    ),
+    v907b = labelled(
+      v907b,
+      label = "For the parcels which you did not crop yourself, what net rent did you receive/pay from/to the tenant? (In-Kind NPR)"
+    )
+  )
+
+#Part 9.2 - Landholding - Increase/Decrease
+
+section9b <- section9b %>% 
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v908 = labelled(
+      v908,
+      label = "Did your household sell/transfer any farmland over the past 12 months?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v909 = labelled(
+      v909,
+      label = "How much land did your household sell/transfer?"
+    ),
+    v909a = labelled(
+      v909a,
+      label = "Unit of land sell/transfer", 
+      labels = c(Ropani = 1, Bigha = 2)
+    ),
+    v909b = labelled(
+      v909b,
+      label = "Area of land sell/transfer - Ropani/Bigha"
+    ),
+    v909c = labelled(
+      v909c,
+      label = "Area of land sell/transfer - Aana/Kattha"
+    ),
+    v909d = labelled(
+      v909d,
+      label = "Area of land sell/transfer - Paisa/Dhur"
+    ),
+    v910 = labelled(
+      v910,
+      label = "How much did your household receive from the sales?"
+    ),
+    v911 = labelled(
+      v911,
+      label = "Did your household buy/get any agricultural land over the past 12 months?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v912a = labelled(
+      v912a,
+      label = "Unit of land buy/get",
+      labels = c(Ropani = 1, Bigha = 2)
+    ),
+    v912b = labelled(
+      v912b,
+      label = "Area of land buy/get - Ropani/Bigha"
+    ),
+    v912c = labelled(
+      v912c,
+      label = "Area of land buy/get - Aana/Kattha"
+    ),
+    v912d = labelled(
+      v912d,
+      label = "Area of land buy/get - Paisa/Dhur"
+    ),
+    v913 = labelled(
+      v913,
+      label = "How much did your household pay for this land?"
+    )
+  )
+
+#Part 9.3 - Production and Uses
+
+section9c <- section9c %>% 
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v914a = labelled(
+      v914a,
+      label = "Crop description"
+    ),
+    v914b = labelled(
+      v914b,
+      label = "Crop code",
+      labels = c(
+        "Early Paddy" = 1, 
+        "Main Paddy" = 2, 
+        "Upland Paddy" = 3, 
+        "Wheat" = 4, 
+        "Spring/Winter Maize" = 5, 
+        "Summer Maize" = 6, 
+        "Millet" = 7, 
+        "Barley" = 8, 
+        "Buckwheat" = 9, 
+        "Other cereals" = 10,
+        "Soybeans" = 11, 
+        "Black Gram" = 12, 
+        "Red Gram" = 13, 
+        "Grass Pea" = 14, 
+        "Lentil" = 15, 
+        "Gram" = 16, 
+        "Pea" = 17, 
+        "Green Gram" = 18, 
+        "Coarse Gram" = 19, 
+        "Cow Pea" = 20, 
+        "Other legumes" = 21, 
+        "Winter Potato" = 22, 
+        "Summer Potato" = 23,
+        "Sweet Potato" = 24, 
+        "Colocasia" = 25, 
+        "Other tubers" = 26, 
+        "Mustard" = 27, 
+        "Ground nut" = 28, 
+        "Linseed" = 29, 
+        "Sesame" = 30, 
+        "Other oilseed" = 31, 
+        "Sugarcane" = 32, 
+        "Jute" = 33, 
+        "Tobacco" = 34, 
+        "Other cash crop" = 35,
+        "Chillies" = 36, 
+        "Onions" = 37, 
+        "Garlic" = 38, 
+        "Ginger" = 39, 
+        "Turmeric" = 40, 
+        "Cardamom" = 41, 
+        "Coriander seed" = 42, 
+        "Other Spices" = 43, 
+        "Winter vegetables" = 44, 
+        "Summer vegetables" = 45, 
+        "Orange" = 46, 
+        "Lemon" = 47, 
+        "Lime" = 48, 
+        "Sweet Lime" = 49, 
+        "Other citrus" = 50, 
+        "Mango" = 51, 
+        "Banana" = 52, 
+        "Guava" = 53, 
+        "Jackfruit" = 54, 
+        "Pineapple" = 55, 
+        "Lichee" = 56, 
+        "Pear" = 57, 
+        "Apple" = 58, 
+        "Plum" = 59, 
+        "Papaya" = 60,
+        "Pomegranate" = 61, 
+        "Other Fruit" = 62, 
+        "Tea" = 63, 
+        "Straw/Grass" = 64, 
+        "Fodder Trees" = 65, 
+        "Bamboo" = 66, 
+        "Other trees" = 67, 
+        "Floriculture" = 68, 
+        "Seed production" = 69, 
+        "Plant/Saplings" = 70
+      )
+    ),
+    v915 = labelled(
+      v915,
+      label = "What is the main purpose of cultivation [crop]?",
+      labels = c(
+        "Own consumption" = 1, 
+        "For sale" = 2
+      )
+    ),
+    v916 = labelled(
+      v916,
+      label = "Did you use an improved variety of seed of [crop]?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v917a = labelled(
+      v917a,
+      label = "Unit of production of [crop]",
+      labels = c(
+        "Kilogram" = 1, 
+        "Maund" = 2, 
+        "Muri" = 3, 
+        "Quintal" = 4, 
+        "Gota (Piece)" = 5
+      )
+    ),
+    v917b = labelled(
+      v917b,
+      label = "Total Quantity Harvested"
+    ),
+    v917c = labelled(
+      v917c,
+      label = "Quantity given to landlord"
+    ),
+    v917d = labelled(
+      v917d,
+      label = "Quantity sold (or expected to sell)"
+    ),
+    v918a = labelled(
+      v918a,
+      label = "Unit of sales reported for [crop]",
+      labels = c(
+        "Kilogram" = 1, 
+        "Maund" = 2, 
+        "Muri" = 3, 
+        "Quintal" = 4, 
+        "Gota (Piece)" = 5
+      )
+    ),
+    v918b = labelled(
+      v918b,
+      label = "Total Quantity sold"
+    ),
+    v918c = labelled(
+      v918c,
+      label = "Price per unit in NPR"
+    ),
+    v918d = labelled(
+      v918d,
+      label = "Total Sales (NPR)"
+    )
+  )
+
+#Part 9.4 - Expenditure on Agriculture 
+
+section9d <- section9d %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v919 = labelled(
+      v919,
+      label = "Did you purchase or receive any seeds or young plants over the past agriculture year?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v920 = labelled(
+      v920,
+      label = "How much did you spend on buying seeds or young plants?"
+    ),
+    v921 = labelled(
+      v921,
+      label = "How much did you spend on transportation costs for seeds/young plants?"
+    ),
+    v922 = labelled(
+      v922,
+      label = "Did you use any fertilizers or insecticides you purchased/received over the past agriculture year?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v923 = labelled(
+      v923,
+      label = "How much did you spend on buying fertilizers or insecticides?"
+    ),
+    v924 = labelled(
+      v924,
+      label = "How much did you spend on transportation costs for fertilizers/insecticides?"
+    ),
+    v925 = labelled(
+      v925,
+      label = "Did you hire/exchange any casual farm workers over the past agriculture year?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v926 = labelled(
+      v926,
+      label = "How many such workers (including permanent farm workers) did you hire in total over the past agriculture year (total man-days)?"
+    ),
+    v927 = labelled(
+      v927,
+      label = "Total expenditure on hiring farm labour"
+    ),
+    v928 = labelled(
+      v928,
+      label = "Irrigation charges/maintenance of water source, etc."
+    ),
+    v929 = labelled(
+      v929,
+      label = "Improvements on land or buildings"
+    ),
+    v930 = labelled(
+      v930,
+      label = "Repair and maintenance of equipment"
+    ),
+    v931 = labelled(
+      v931,
+      label = "Crop insurance (premium)"
+    ),
+    v932a = labelled(
+      v932a,
+      label = "Expenditure on renting in: Draft animals, carts, etc."
+    ),
+    v932b = labelled(
+      v932b,
+      label = "Expenditure on renting in: Tractor/power tiller/combined harvester"
+    ),
+    v932c = labelled(
+      v932c,
+      label = "Expenditure on renting in: Thrasher/other machinery"
+    ),
+    v932d = labelled(
+      v932d,
+      label = "Expenditure on renting in: Other expenditure"
+    )
+  )
+
+#Part 9.5 -  Livestock - Ownership 
+
+section9e <- section9e %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v933 = labelled(
+      v933,
+      label = "Has your household owned any livestock over the past 12 months?", 
+      labels = c(Yes = 1, No = 2)
+    ),
+    v934a = labelled(
+      v934a,
+      label = "Livestock code", 
+      labels = c(
+        "Bullocks/Cows" = 1, 
+        "He/she Buffaloes" = 2, 
+        "Goats/Mountain goats" = 3, 
+        "He/She sheep" = 4, 
+        "Yaks/Naks" = 5, 
+        "Pigs/Boards" = 6, 
+        "Horses/Donkeys/Mules" = 7, 
+        "Poultry/Ducks/Pigeons" = 8, 
+        "Other livestock" = 9, 
+        "Fish" = 10
+      )
+    ),
+    v934 = labelled(
+      v934,
+      label = "Did you own any ..[animals].. over the past 12 months?"
+    ),
+    v935 = labelled(
+      v935,
+      label = "What is the main purpose of raising livestock?", 
+      labels = c(
+        "Own consumption" = 1, 
+        "For Sale" = 2
+      )
+    ),
+    v936a = labelled(
+      v936a,
+      label = "How many do you own now? (Number)"
+    ),
+    v936b = labelled(
+      v936b,
+      label = "For how much could you buy them all today? (NPR)"
+    ),
+    v937a = labelled(
+      v937a,
+      label = "How many did you have 12 months ago? (Number)"
+    ),
+    v937b = labelled(
+      v937b,
+      label = "For how much could you have bought them all then? (NPR)"
+    ),
+    v938a = labelled(
+      v938a,
+      label = "How many did you sell over the past 12 months? (Number)"
+    ),
+    v938b = labelled(
+      v938b,
+      label = "How much did you sell them for? (NPR)"
+    ),
+    v939a = labelled(
+      v939a,
+      label = "How many did you buy over the past 12 months? (Number)"
+    ),
+    v939b = labelled(
+      v939b,
+      label = "How much did you pay for them? (NPR)"
+    )
+  )
+
+#Part 9.6.1 - Livestock Income
+
+section9f1 <- section9f1 %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v940 = labelled(
+      v940, 
+      label = "Livestock code",
+      labels = c(
+        "Bullocks/Cows" = 1, 
+        "He/she Buffaloes" = 2, 
+        "Goats/Mountain goats" = 3, 
+        "He/She sheep" = 4, 
+        "Yaks/Naks" = 5, 
+        "Pigs/Boards" = 6, 
+        "Horses/Donkeys/Mules" = 7, 
+        "Poultry/Ducks/Pigeons" = 8, 
+        "Other livestock" = 9, 
+        "Fish" = 10
+      )
+    ), 
+    v941 = labelled(
+      v941, 
+      label = "Total income over past 12 months (NPR)"
+    )
+  )
+
+#Part 9.6.2 - Livestock Expenditure
+
+section9f2 <- section9f2 %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v942 = labelled(
+      v942, 
+      label = "Livestock code",
+      labels = c(
+        "Bullocks/Cows" = 1, 
+        "He/she Buffaloes" = 2, 
+        "Goats/Mountain goats" = 3, 
+        "He/She sheep" = 4, 
+        "Yaks/Naks" = 5, 
+        "Pigs/Boards" = 6, 
+        "Horses/Donkeys/Mules" = 7, 
+        "Poultry/Ducks/Pigeons" = 8, 
+        "Other livestock" = 9, 
+        "Fish" = 10
+      )
+    ), 
+    v943 = labelled(
+      v943, 
+      label = "Total expenditure over past 12 months (NPR)"
+    )
+  )
+
+#SECTION 10 : INCOME FROM NON-AGRICULTURAL ENTERPRISES
+
+section10 <- read.xlsx("dataset/Income from Non - Agricultural Enterprises.xlsx")
+
+section10 <- section10 %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v1001 = labelled(
+      v1001,
+      label = "Did you or your family operate any non-agricultural enterprise in the past 12 months?"
+    ),
+    v1002a = labelled(
+      v1002a,
+      label = "Description"
+    ),
+    v1002b = labelled(
+      v1002b,
+      label = "ISIC"
+    ),
+    v1002c = labelled(
+      v1002c,
+      label = "Produced goods/services"
+    ),
+    v1003 = labelled(
+      v1003,
+      label = "What is the ownership of these enterprises?", 
+      labels = c(
+        Own = 1, 
+        Joint = 2
+      )
+    ),
+    v1004 = labelled(
+      v1004,
+      label = "What share of the profits is kept by your household?"
+    ),
+    v1005 = labelled(
+      v1005,
+      label = "Gross revenues over the past 12 months (from sales)"
+    ),
+    v1006 = labelled(
+      v1006,
+      label = "Did you hire on salary/ wage anyone over the past 12 months?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1007 = labelled(
+      v1007,
+      label = "Expenditures on wages / salary both cash and in-kind"
+    ),
+    v1008 = labelled(
+      v1008,
+      label = "Expenditure on fuel (kerosene, electricity, coal, firewood, etc.)"
+    ),
+    v1009a = labelled(
+      v1009a,
+      label = "Expenditure on raw materials: Cash (NPR)"
+    ),
+    v1009b = labelled(
+      v1009b,
+      label = "Expenditure on raw materials: In-kind (NPR)"
+    ),
+    v1010 = labelled(
+      v1010,
+      label = "Other operating expenses (NPR)"
+    ),
+    v1011 = labelled(
+      v1011,
+      label = "Net revenues over past 12 months (NPR)"
+    ),
+    v1012 = labelled(
+      v1012,
+      label = "Expenditure on capital goods over past 12 months (NPR)"
+    ),
+    v1013 = labelled(
+      v1013,
+      label = "Sale of assets over past 12 months (NPR)"
+    ),
+    v1014 = labelled(
+      v1014,
+      label = "If someone wanted to buy this enterprise today, how much would s/he have to pay? (NPR)"
+    ),
+    v1015 = labelled(
+      v1015,
+      label = "If someone was to buy this business a year ago, how much would s/he had to pay? (NPR)"
+    )
+  )
+
+#SECTION 11 : CREDIT AND SAVINGS
+
+section11a <- read.xlsx("dataset/section 11.xlsx")
+section11b <- read.xlsx("dataset/Part 11_2_ Lending and Outstanding Loans.xlsx")
+section11c <- read.xlsx("dataset/Part 11_3_ Other Assets.xlsx")
+
+#Part 11.1 - Borrowing and Outstanding Loans
+
+section11 <- section11 %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v1101 = labelled(
+      v1101,
+      label = "Does anyone in your household currently have loans, or have you taken out any loans in the past 12 months (even if repaid)?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1102 = labelled(
+      v1102,
+      label = "Description of household loan"
+    ),
+    v1103 = labelled(
+      v1103,
+      label = "ID Code of primary borrower"
+    ),
+    v1104a = labelled(
+      v1104a,
+      label = "When did you get the loan (in months)?"
+    ),
+    v1104b = labelled(
+      v1104b,
+      label = "When did you get the loan (in years)?"
+    ),
+    v1105 = labelled(
+      v1105,
+      label = "From whom did you obtain the loan?",
+      labels = c(
+        "Commercial Bank" = 1, 
+        "Development Bank" = 2, 
+        "Financial Company" = 3, 
+        "Micro-Finance" = 4, 
+        "Cooperatives" = 5, 
+        "Employees Provident Fund" = 6, 
+        "Citizens' Investment Trust" = 7, 
+        "NGO or Relief Agency" = 8, 
+        "Landlord/Employer" = 9, 
+        "Shopkeeper/Money Lender" = 10, 
+        "Relatives/Friends/Neighbours" = 11, 
+        "Other" = 12
+      )
+    ),
+    v1106 = labelled(
+      v1106,
+      label = "How much in total did you borrow?"
+    ),
+    v1107a = labelled(
+      v1107a,
+      label = "What is/was the interest on the loan? (NPR)"
+    ),
+    v1107b = labelled(
+      v1107b,
+      label = "What is/was the interest rate on the loan? (percent per year)"
+    ),
+    v1108a = labelled(
+      v1108a,
+      label = "By when did / do you have to pay the loan? - Month"
+    ),
+    v1108b = labelled(
+      v1108b,
+      label = "By when did / do you have to pay the loan? - Year"
+    ),
+    v1109 = labelled(
+      v1109,
+      label = "Have you repaid the loan over the last 12 months?",
+      labels = c(
+        "Fully Paid" = 1, 
+        "Partly Paid" = 2, 
+        "Not Paid At All" = 3 
+      )
+    ),
+    v1110 = labelled(
+      v1110,
+      label = "How much have you repaid in principal and interest? (NPR)"
+    )
+  )
+
+#Part 11.2 - Lending and Outstanding Loans 
+
+section11b <- section11b %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward #"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household #"
+    ),
+    v1111 = labelled(
+      v1111,
+      label = "Does anyone outside your household currently owe money to your household, or have they repaid any loans to you in the past 12 months?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1112 = labelled(
+      v1112,
+      label = "Description of Loan"
+    ),
+    v1113 = labelled(
+      v1113,
+      label = "ID Code of the primary lender"
+    ),
+    v1114a = labelled(
+      v1114a,
+      label = "When was the loan made? (Month)"
+    ),
+    v1114b = labelled(
+      v1114b,
+      label = "When was the loan made? (Year)"
+    ),
+    v1115 = labelled(
+      v1115,
+      label = "What is the relationship of the borrower to the primary lender?",
+      labels = c(
+        "Employee or Tenant Farmer" = 1, 
+        "Business Customer" = 2, 
+        "Other Business Associate" = 3, 
+        "Friend/Neighbour" = 4, 
+        "Relative" = 5, 
+        "Other" = 6
+      )
+    ),
+    v1116 = labelled(
+      v1116,
+      label = "How much in total did you lend? (NPR)"
+    ),
+    v1117a = labelled(
+      v1117a,
+      label = "What is/was the interest on the loan? (NPR)"
+    ),
+    v1117b = labelled(
+      v1117b,
+      label = "What is/was the interest rate on the loan? (percent per year)"
+    ),
+    v1118a = labelled(
+      v1118a,
+      label = "When is/was the borrower scheduled to finish repaying the loan? (Month)"
+    ),
+    v1118b = labelled(
+      v1118b,
+      label = "When is/was the borrower scheduled to finish repaying the loan? (Year)"
+    ),
+    v1119 = labelled(
+      v1119,
+      label = "Has the borrower finished repaying the loan?",
+       labels = c(
+        "Fully Paid" = 1, 
+        "Partly Paid" = 2, 
+        "Not Paid At All" = 3 
+      )
+    ),
+    v1120 = labelled(
+      v1120,
+      label = "How much in total has been repaid on the loan? (NPR)"
+    )
+  )
+
+#Part 11.3 - Other Assets 
+
+section11c <- section11c %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward #"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household #"
+    ),
+    v1121 = labelled(
+      v1121,
+      label = "Does your household own any land or property (dwelling)?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1122 = labelled(
+      v1122,
+      label = "How much money would it cost to buy property owned by your household?"
+    ),
+    v1123 = labelled(
+      v1123,
+      label = "How much money would it have cost a year ago to buy the property that your household now owns?"
+    ),
+    v1124 = labelled(
+      v1124,
+      label = "How much did your household spend in total over the past 12 months purchasing property?"
+    ),
+    v1125 = labelled(
+      v1125,
+      label = "How much did your household receive in total over the past 12 months from selling property?"
+    ),
+    v1126 = labelled(
+      v1126,
+      label = "How much did your household receive in total over the past 12 months from renting out property?"
+    ),
+    v1127 = labelled(
+      v1127,
+      label = "Does your household own any other real assets other than land and dwellings?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1128 = labelled(
+      v1128,
+      label = "How much money would it cost to buy assets owned by your household?"
+    ),
+    v1129 = labelled(
+      v1129,
+      label = "How much money would it have cost a year ago to buy the assets that your household now owns?"
+    ),
+    v1130 = labelled(
+      v1130,
+      label = "How much did your household spend in total over the past 12 months in purchasing these assets?"
+    ),
+    v1131 = labelled(
+      v1131,
+      label = "How much did your household receive in total over the past 12 months from selling these assets?"
+    ),
+    v1132 = labelled(
+      v1132,
+      label = "How much did your household receive in total over the past 12 months from renting these assets to others?"
+    )
+  )
+
+#SECTION 12: REMITTANCES AND TRANSFER
+
+section12a <- read.xlsx("dataset/Remittance and transfer.xlsx")
+section12b <- read.xlsx("dataset/Part 12_2. Other Remittances.xlsx")
+
+#Part 12.1 - Remittances and Transfer Income Received and Sent
+
+section12a <- section12a %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v101 = labelled(
+      v101,
+      label = "Identification code"
+    ),
+    v1201 = labelled(
+      v1201,
+      label = "Are any former household members expected to rejoin your household?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1202 = labelled(
+      v1202,
+      label = "Name of Absentee"
+    ),
+    v1203 = labelled(
+      v1203,
+      label = "How old was the .. [PERSON].. when they last left the household?"
+    ),
+    v1204 = labelled(
+      v1204,
+      label = "How many years ago did ..[PERSON].. leave this household?"
+    ),
+    v1205 = labelled(
+      v1205,
+      label = "What was the main reason ..[PERSON].. left this household?",
+      labels = c(
+        "Together with family/relatives" = 1, 
+        "Education" = 2, 
+        "Looking for work" = 3, 
+        "Start new job" = 4, 
+        "Start new business" = 5, 
+        "Other" = 6
+      )
+    ),
+    v1206 = labelled(
+      v1206,
+      label = "Where does ..[PERSON].. live now?"
+    ),
+    v1207 = labelled(
+      v1207,
+      label = "What is ..[PERSON]'s primary occupation or activity now?",
+      labels = c(
+        "Wage job" = 1, 
+        "Self-employed" = 2, 
+        "Household work" = 3, 
+        "Student" = 4, 
+        "Not working" = 5
+      )
+    ),
+    v1208 = labelled(
+      v1208,
+      label = "During the past 12 months, have the members of this household received money or goods from ..[PERSON]..?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1209 = labelled(
+      v1209,
+      label = "How many times did the members of this household receive money or goods from ..[PERSON].. during the past 12 months?"
+    ),
+    v1210 = labelled(
+      v1210,
+      label = "How much money did the household members receive from ..[PERSON].. during the past 12 months?"
+    ),
+    v1211 = labelled(
+      v1211,
+      label = "What is the value of all goods received by the household members from ..[PERSON].. during the past 12 months?"
+    ),
+    v1212 = labelled(
+      v1212,
+      label = "How much in total has been sent (cash & in-kind) by the household members to ..[PERSON].. during the past 12 months?"
+    )
+  )
+
+#Part 12.2 - Other Remittances 
+
+section12b <- section12b %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v1213 = labelled(
+      v1213, 
+      label = "During the past 12 months, did you or any member of your household send money or other in-kind gifts to other than absent members?"
+    ),
+    v1214 = labelled(
+      v1214, 
+      label = "During the past 12 months, have you received any money or in-kind gifts from any person who is not an absentee member of your household?"
+    )
+  )
+
+#SECTION 13: TRANSFERS, SOCIAL ASSISTANCE AND OTHER INCOME 
+
+section13a <- read.xlsx("dataset/section 13.xlsx")
+section13b <- read.xlsx("dataset/Part 13_2_ Social Assistance.xlsx")
+section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
+
+#Part 13.1 - Cash Transfer Programs
+
+section13a <- section13a %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward #"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household #"
+    ),
+    v1301 = labelled(
+      v1301,
+      label = "Cash transfer programmes",
+      labels = c(
+        "Senior citizen allowance" = 1, 
+        "Single woman allowance" = 2, 
+        "Full disability allowance" = 3, 
+        "Partial disability allowance" = 4, 
+        "Endangered ethnicities allowance" = 5, 
+        "Child grant" = 6, 
+        "Aama Surakshya Programme" = 7, 
+        "Martyr's family benefits" = 8, 
+        "Conflict victims' benefits" = 9, 
+        "Unemployment benefits" = 10, 
+        "Earthquake disaster relief" = 11, 
+        "Flood/landslide disaster relief" = 12, 
+        "Other disaster relief" = 13, 
+        "Agricultural Subsidy (cash)" = 14, 
+        "Other cash assistance" = 15
+      )
+    ),
+    v1302 = labelled(
+      v1302,
+      label = "Did any of the household members receive payment from ..[SOURCE].. during the past 12 months?",
+      labels = c(
+        Yes = 1, 
+        No = 2, 
+        "Not Applicable" = 3
+      )
+    ),
+    v1303 = labelled(
+      v1303,
+      label = "How many household members are receiving the payments from ..[SOURCE]..?"
+    ),
+    v1304a = labelled(
+      v1304a,
+      label = "Which household members? - IDCODE1"
+    ),
+    v1304b = labelled(
+      v1304b,
+      label = "Which household members? - IDCODE2"
+    ),
+    v1304c = labelled(
+      v1304c,
+      label = "Which household members? - IDCODE3"
+    ),
+    v1304d = labelled(
+      v1304d,
+      label = "Which household members? - IDCODE4"
+    ),
+    v1305 = labelled(
+      v1305,
+      label = "Amount received by the household members in last 12 months"
+    ),
+    v1306 = labelled(
+      v1306,
+      label = "What was the mode of payment for ..[SOURCE]..?",
+      labels = c(
+        "Paid Cash" = 1, 
+        "Bank Deposit" = 2
+      )
+    ),
+    v1307 = labelled(
+      v1307,
+      label = "What was the source of the benefit? (for sources 11-14 and 15 only)",
+      labels = c(
+        "Government" = 1, 
+        "Non-Profit (I/NGO)" = 2, 
+        "Private" = 3, 
+        "Don't know" = 4
+      )
+    )
+  )
+
+#Part 13.2 - Social Assistance
+
+section13b <- section13b %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v1308 = labelled(
+      v1308, 
+      label = "In-kind transfer programs",
+      labels = c(
+        "Public Food Distribution System" = 1, 
+        "Nutritional Supplement program for children" = 2, 
+        "Nutritional supplement program for mothers" = 3, 
+        "Midday meals" = 4, 
+        "Earthquake disaster relief" = 5, 
+        "Flood/landslide victims' relief" = 6, 
+        "Other disaster relief" = 7, 
+        "Agriculture subsidy (in-kind)" = 8, 
+        "Other in-kind assistance" = 9,
+        "Prime Minister's Employment Program (PMEP)" = 10, 
+        "Other public works program" = 11
+      )
+    ), 
+    v1309 = labelled(
+      v1309, 
+      label = "Did any of the household members participate in or receive any benefits from ..[PROGRAM].. during the past 12 months?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1310 = labelled(
+      v1310, 
+      label = "What was the source of the benefits program?",
+      labels = c(
+        "Government" = 1, 
+        "Non-Profit (I/NGO)" = 2, 
+        "Private" = 3, 
+        "Don't know" = 4 
+      )
+    )
+  )
+
+#Part 13.3 - Other Income
+
+section13c <- section13c %>%
+  mutate(
+    psu = labelled(
+      psu,
+      label = "PSU number"
+    ),
+    palika = labelled(
+      palika,
+      label = "Local level"
+    ),
+    ward = labelled(
+      ward,
+      label = "Ward number"
+    ),
+    hhld = labelled(
+      hhld,
+      label = "Household number"
+    ),
+    v1311a = labelled(
+      v1311a, 
+      label = "Income source",
+      labels = c(
+        "Savings account" = 1, 
+        "Fixed deposit account" = 2, 
+        "Stocks, shares, treasury bills, etc." = 3, 
+        "Employee provident fund/citizen investment trust" = 4, 
+        "Pension received from within country" = 5, 
+        "Pension received from abroad" = 6, 
+        "Commission fee, royalties, etc." = 7,
+        "Gratuity, separation payment, retirement benefits" = 8, 
+        "Insurance (life and non-life) income" = 9, 
+        "Income from rent of property (equipment/machinery)" = 10, 
+        "Other income" = 11
+      )
+    ),
+    v1311b = labelled(
+      v1311b, 
+      label = "Does any of your household member has income ..[ITEM].. source?",
+      labels = c(Yes = 1, No = 2)
+    ),
+    v1312 = labelled(
+      v1312, 
+      label = "How much has the household received from ..[ITEM].. in the past 12 months?"
     )
   )
