@@ -488,7 +488,7 @@ section2c <- read.xlsx("dataset/PART 2_3_ Mortality (Death) Information.xlsx")
 
 #Part 2.1.1 - Type of dwelling
 
-for (i in setdiff(1:ncol(section2a1), c(6, 7, 9, 12, 14, 16, 18))) {
+for (i in setdiff(1:ncol(section2a1), c(6, 7, 12, 14, 16, 18))) {
   section2a1[[i]] <- as.integer(section2a1[[i]])
 }
 
@@ -1276,7 +1276,7 @@ section3a <- section3a %>%
 
 #Part 3.2: Food Away from Home
 
-for (i in (1:ncol(section3b))) {
+for (i in setdiff(1:ncol(section3b), c(6, 7))) {
   section3b[[i]] <- as.integer(section3b[[i]])
 }
 
@@ -1334,7 +1334,7 @@ section4c <- read.xlsx("dataset/Part 4_3_ Inventory of Durable Goods.xlsx")
 section4d <- read.xlsx("dataset/Part 4_4_ Own Account Consumption of Goods.xlsx")
 
 #Part 4.1 - Non-Food Expenditures
-for (i in (1:ncol(section4a))) {
+for (i in setdiff(1:ncol(section4a), c(6, 7))) {
   section4a[[i]] <- as.integer(section4a[[i]])
 }
 
@@ -1378,7 +1378,7 @@ section4a <- section4a %>%
         "Music and Entertainment Related Goods" = 16, 
         "Sports and Hobby Related Expenses" = 17, 
         "Amusement and Cultural Services" = 18, 
-        "Books, Magazines and Stationery" - 19, 
+        "Books, Magazines and Stationery" = 19, 
         "Domestic Holiday Package" = 20, 
         "Education Expenses" = 21, 
         "Preventive Health Care Expenses" = 22, 
@@ -1408,7 +1408,7 @@ section4a <- section4a %>%
 
 #Part 4.2: Expenditure Abroad
 
-for (i in (1:ncol(section4b))) {
+for (i in setdiff(1:ncol(section4b), c(6, 7))) {
   section4b[[i]] <- as.integer(section4b[[i]])
 }
 
@@ -1432,11 +1432,24 @@ section4b <- section4b %>%
     ), 
     v404 = labelled(
       v404,
-      label = "Did you or any of the household members travel to a foreign country in the past 12 months?"
+      label = "Did you or any of the household members travel to a foreign country in the past 12 months?",
+      labels = c(Yes = 1, No = 2)
     ), 
     v405 = labelled(
       v405,
-      label = "Tourism expenditure items"
+      label = "Tourism expenditure items",
+      labels = c(
+        "Tour packages" = 1, 
+        "Food & Beverages" = 2, 
+        "Accomodation" = 3, 
+        "Transportation" = 4, 
+        "Health-related expenses" = 5, 
+        "Leisure & entertainment activities" = 6, 
+        "Shopping and goods" = 7, 
+        "Travel essentials" = 8, 
+        "Services & Fees" = 9, 
+        "Other expenses" = 10
+      )
     ), 
     v406 = labelled(
       v406,
@@ -1455,7 +1468,7 @@ section4b <- section4b %>%
 
 #Part 4.3 - Inventory of Durable Goods
 
-for (i in (1:ncol(section4c))) {
+for (i in setdiff(1:ncol(section4c), c(6, 7))) {
   section4c[[i]] <- as.integer(section4c[[i]])
 }
 
@@ -1471,11 +1484,11 @@ section4c <- section4c %>%
     ),
     ward = labelled(
       ward,
-      label = "Ward #"
+      label = "Ward number"
     ),
     hhld = labelled(
       hhld,
-      label = "Household #"
+      label = "Household number"
     ),
     v408 = labelled(
       v408,
@@ -1542,7 +1555,7 @@ section4c <- section4c %>%
 
 #Part 4.4 - Own Account Consumption of Goods
 
-for (i in (1:ncol(section4d))) {
+for (i in setdiff(1:ncol(section4d), c(6, 7))) {
   section4d[[i]] <- as.integer(section4d[[i]])
 }
 
@@ -1596,7 +1609,7 @@ section4d <- section4d %>%
 
 section5 <- read.xlsx("dataset/Section 5_ Expense in Education.xlsx")
 
-for (i in (1:ncol(section5))) {
+for (i in setdiff(1:ncol(section5), c(6, 7))) {
   section5[[i]] <- as.integer(section5[[i]])
 }
 
@@ -1689,7 +1702,7 @@ section6d <- read.xlsx("dataset/PART 6_4_ Household Health Care Seeking.xlsx")
 
 #Part 6.1 - Screening for General Health Status 
 
-for (i in (1:ncol(section6a))) {
+for (i in setdiff(1:ncol(section6a), c(6, 7))) {
   section6a[[i]] <- as.integer(section6a[[i]])
 }
 
@@ -1774,7 +1787,60 @@ section6a <- section6a %>%
 
 #Part 6.2.1 - Chronic Illness and Health Seeking Behavior 
 
-for (i in (1:ncol(section6b1))) {
+section6b1 <- section6b1 %>%
+  mutate(v610 = v610a) %>%
+  rename(
+    v610n_1 = v610b
+  ) %>%
+  mutate(
+    v610_new = ifelse(grepl("\\b1\\b", v610a), 1, 0), 
+    v610b = ifelse(grepl("\\b2\\b", v610a), 1, 0),
+    v610c = ifelse(grepl("\\b3\\b", v610a), 1, 0),
+    v610d = ifelse(grepl("\\b4\\b", v610a), 1, 0),
+    v610e = ifelse(grepl("\\b5\\b", v610a), 1, 0),
+    v610f = ifelse(grepl("\\b6\\b", v610a), 1, 0),
+    v610g = ifelse(grepl("\\b7\\b", v610a), 1, 0),
+    v610h = ifelse(grepl("\\b8\\b", v610a), 1, 0), 
+    v610i = ifelse(grepl("\\b9\\b", v610a), 1, 0),
+    v610j = ifelse(grepl("\\b10\\b", v610a), 1, 0), 
+    v610k = ifelse(grepl("\\b11\\b", v610a), 1, 0), 
+    v610l = ifelse(grepl("\\b12\\b", v610a), 1, 0),
+    v610m = ifelse(grepl("\\b13\\b", v610a), 1, 0), 
+    v610n = ifelse(grepl("\\b14\\b", v610a), 1, 0)
+  ) %>%
+  select(-v610a) %>%
+  rename(
+    v610a = v610_new
+  )
+
+section6b1 <- section6b1 %>% 
+  mutate(v611_1 = v611) %>%
+  rename(
+  v611m_1 = v611a
+  ) %>%
+  mutate(
+  v611_new = ifelse(grepl("\\b1\\b", v611), 1, 0),
+  v611b = ifelse(grepl("\\b2\\b", v611), 1, 0),
+  v611c = ifelse(grepl("\\b3\\b", v611), 1, 0),
+  v611d = ifelse(grepl("\\b4\\b", v611), 1, 0),
+  v611e = ifelse(grepl("\\b5\\b", v611), 1, 0),
+  v611f = ifelse(grepl("\\b6\\b", v611), 1, 0),
+  v611g = ifelse(grepl("\\b7\\b", v611), 1, 0),
+  v611h = ifelse(grepl("\\b8\\b", v611), 1, 0), 
+  v611i = ifelse(grepl("\\b9\\b", v611), 1, 0),
+  v611j = ifelse(grepl("\\b10\\b", v611), 1, 0), 
+  v611k = ifelse(grepl("\\b11\\b", v611), 1, 0), 
+  v611l = ifelse(grepl("\\b12\\b", v611), 1, 0),
+  v611m = ifelse(grepl("\\b13\\b", v611), 1, 0),
+  v604 = as.integer(trimws(v604)) 
+  ) %>%
+  select(-v611) %>%
+  rename(
+  v611a = v611_new,
+  v611 = v611_1
+  )
+
+for (i in setdiff(1:ncol(section6b1), c(6, 7, 12, 13, 20, 21, 22, 37))) {
   section6b1[[i]] <- as.integer(section6b1[[i]])
 }
 
@@ -1874,49 +1940,135 @@ section6b1 <- section6b1 %>%
         "5000 cash support" = 13, 
         Others = 14)
     ),
-    v610a = labelled(
-      v610a,
+    v610 = labelled(
+      v610,
       label = "If no, why are you not currently receiving treatment?",
-      labels = c(
-        "Cannot afford lifelong medications (eg. diabetes/hypertension drugs" = 1, 
-        "Essential medicines frequently out of stock at local health facilities" = 2, 
-        "Costs too high for regular hospital visits" = 3, 
-        "No family member available to assist with clinic visits" = 4, 
-        "Treatment showed no noticeable improvement over time" = 5, 
-        "Local health centre lacks chronic disease specialists/services" = 6, 
-        "Fear of side effects from long-term medication use" = 7, 
-        "Long queues discourage repeat visit" = 8, 
-        "Stopped treatment after consultation" = 9, 
-      )
+    ),
+    v610a = labelled(
+      v610a, 
+      label = "Cannot afford lifelong medications (eg. diabetes/hypertension drugs"
     ),
     v610b = labelled(
-      v610b,
+      v610b, 
+      label = "Essential medicines frequently out of stock at local health facilities"
+    ),
+    v610c = labelled(
+      v610c, 
+      label = "Costs too high for regular hospital visits"
+    ),
+    v610d = labelled(
+      v610d, 
+      label = "No family member available to assist with clinic visits"
+    ),
+    v610e = labelled(
+      v610e, 
+      label = "Treatment showed no noticeable improvement over time"
+    ),
+    v610f = labelled(
+      v610f, 
+      label = "Local health centre lacks chronic disease specialists/services"
+    ),
+    v610g = labelled(
+      v610g, 
+      label = "Fear of side effects from long-term medication use"
+    ),
+    v610h = labelled(
+      v610h, 
+      label = "Long queues discourage repeat visit"
+    ),
+    v610i = labelled(
+      v610i, 
+      label = "Stopped treatment after consultation"
+    ),
+    v610j = labelled(
+      v610j, 
+      label = "Never sought formal treatment"
+    ),
+    v610k = labelled(
+      v610k, 
+      label = "Switched to alternate/traditional care"
+    ),
+    v610l = labelled(
+      v610l, 
+      label = "Ashamed to discuss illness (eg. mental health)"
+    ),
+    v610m = labelled(
+      v610m, 
+      label = "Clinic hours conflict with work"
+    ),
+    v610n = labelled(
+      v610n, 
+      label = "Others"
+    ),
+    v610n_1 = labelled(
+      v610n_1,
       label = "Others (specify)"
     ),
     v611 = labelled(
       v611,
       label = "Where do you usually go for consultation in relation to this illness?",
-      labels = c(
-        "Health Post" = 1, 
-        "Primary Health Centre" = 2, 
-        "Governmental Hospital" = 3, 
-        "Government Outreach Clinic" = 4, 
-        "Government Ayurveda Centre" = 5, 
-        "Pharmacy/Drug Seller" = 6, 
-        "Private Clinic" = 7, 
-        "Private/Community Hospital" = 8, 
-        "Private Ayurveda Centre" = 9, 
-        "Health Worker's Home" = 10, 
-        "Alternative/Traditional Healer" = 11, 
-        "Abroad (India/Other)" = 12, 
-        "Others" = 13
-      )
+    ), 
+    v611a = labelled(
+      v611a, 
+      label = "Health Post"
+    ), 
+    v611b = labelled(
+      v611b, 
+      label = "Primary health centre"
+    ),
+    v611c = labelled(
+      v611c,
+      label = "Govermental hospital"
+    ), 
+    v611d = labelled(
+      v611d, 
+      label = "Government outreach clinic"
+    ), 
+    v611e = labelled(
+      v611e, 
+      label = "Government ayurveda clinic"
+    ), 
+    v611f = labelled(
+      v611f, 
+      label = "Pharmacy/Drug seller"
+    ), 
+    v611g = labelled(
+      v611g, 
+      label = "Private clinic"
+    ), 
+    v611h = labelled(
+      v611h, 
+      label = "Private/Community hospital"
+    ), 
+    v611i = labelled(
+      v611i, 
+      label = "Private Ayurveda Centre"
+    ),
+    v611j = labelled(
+      v611j, 
+      label = "Health worker's home"
+    ), 
+    v611k = labelled(
+      v611k, 
+      label = "Alternative/Traditional Healer"
+    ),
+    v611l = labelled(
+      v611l, 
+      label = "Abroad (India/Other)"
+    ),
+    v611m = labelled(
+      v611m, 
+      label= "Others"
+    ),
+    v611m_1 = labelled(
+      v611m, 
+      label = "Others (specify)"
     )
   )
 
 #Part 6.2.2 - Chronic Illness and Medication Use
 
-for (i in (1:ncol(section6b2))) {
+for (i in setdiff(1:ncol(section6b2), c(6, 7, 12, 13, 20, 21, 22, 37))) {
   section6b2[[i]] <- as.integer(section6b2[[i]])
 }
 

@@ -7,55 +7,57 @@ library(tidyverse)
 library(openxlsx)
 library(writexl)
 
-section0 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet")
-section1a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 1")
-section1b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 2")
-section2a1 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 3")
-section2a2 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 4")
-section2a3 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 5")
-section2b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 6")
-section2c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 7")
-section3a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 8")
-section3b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 9")
-section4a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 10")
-section4b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 11")
-section4c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 12")
-section4d <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 13")
-section5 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 14")
-section6a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 15")
-section6b1 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 16")
-section6b2 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 17")
-section6b3 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 18")
-section6b4 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 19")
-section6b5 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 20")
-section6c1 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 21")
-section6c2 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 22")
-section6c3 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 23")
-section6d <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 24")
-section7a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 25")
-section7b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 26")
-section8 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 27")
-section9a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 28")
-section9b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 29")
-section9c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 30")
-section9d <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 31")
-section9e <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 32")
-section9f1 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 33")
-section9f2 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 34")
-section10 <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 35")
-section11a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 36")
-section11b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 37")
-section11c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 38")
-section12a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 39")
-section12b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 40")
-section13a <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 41")
-section13b <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 42")
-section13c <- read.xlsx("dataset/compileddataset.xlsx", sheet = "Worksheet 43")
+section0 <- read.xlsx("dataset/cover page.xlsx")
+section1a <- read.xlsx("dataset/section 1.xlsx")
+section1b <- read.xlsx("dataset/Part 1_1 Household Roster-1.xlsx")
+section2a1 <- read.xlsx("dataset/Household Characteristics.xlsx")
+section2a2 <- read.xlsx("dataset/Section 2_1 Housing Expenses.xlsx")
+section2a3 <- read.xlsx("dataset/Utilities and Amenities.xlsx")
+section2b <- read.xlsx("dataset/Section 2_2_ National health insurence.xlsx")
+section2c <- read.xlsx("dataset/PART 2_3_ Mortality (Death) Information.xlsx")
+section3a <- read.xlsx("dataset/Section 3_ Consumption of Food.xlsx")
+section3b <- read.xlsx("dataset/Part 3_1_ Food away from home.xlsx")
+section4a <- read.xlsx("dataset/section 4.xlsx")
+section4b <- read.xlsx("dataset/Part 4_2_ Expenditure Abroad.xlsx")
+section4c <- read.xlsx("dataset/Part 4_3_ Inventory of Durable Goods.xlsx")
+section4d <- read.xlsx("dataset/Part 4_4_ Own Account Consumption of Goods.xlsx")
+section5 <- read.xlsx("dataset/Section 5_ Expense in Education.xlsx")
+section6a <- read.xlsx("dataset/section 6.xlsx")
+section6b1 <- read.xlsx("dataset/Part 6_2_1_ Chronic Illness and Health Seeking Behaviour.xlsx")
+section6b2 <- read.xlsx("dataset/Part 6_2_2_ Chronic Illness and Expenditure Tracking.xlsx")
+section6b3 <- read.xlsx("dataset/Part 6_2_3_ Chronic Illness and Expenditure Tracking – Outpatient (Regular Checkups).xlsx")
+section6b4 <- read.xlsx("dataset/Part 6_2_4_ Chronic Illness and Expenditure Tracking – Inpatient.xlsx")
+section6b5 <- read.xlsx("dataset/section 6_2_5.xlsx")
+section6c1 <- read.xlsx("dataset/Part 6_3_1_ Acute Illness and health seeking behaviour.xlsx")
+section6c2 <- read.xlsx("dataset/Part 6.3.2_ Acute illness and health screening.xlsx")
+section6c3 <- read.xlsx("dataset/Part 6_3_3_ Acute Illness health seeking and expenditure tracking.xlsx")
+section6c4 <- read.xlsx("dataset/Part 6_3_4_ Acute Illness health seeking and expenditure tracking.xlsx")
+section6d <- read.xlsx("dataset/PART 6_4_ Household Health Care Seeking.xlsx")
+section7 <- read.xlsx("dataset/Swction 7_ Labor and Employment.xlsx")
+section8 <- read.xlsx("dataset/Section 8_ Wage Jobs.xlsx")
+section9a <- read.xlsx("dataset/section 9.xlsx")
+section9b <- read.xlsx("dataset/Part 9_2_ Landholding  Increase Decrease.xlsx")
+section9c <- read.xlsx("dataset/Part 9_3_ Production and Uses.xlsx")
+section9d <- read.xlsx("dataset/Part 9_4_ Expenditure.xlsx")
+section9e <- read.xlsx("dataset/Part 9_5_ Livestock.xlsx")
+section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock  Expenditure.xlsx")
+section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income.xlsx")
+section10 <- read.xlsx("dataset/Income from Non - Agricultural Enterprises.xlsx")
+section11a <- read.xlsx("dataset/section 11.xlsx")
+section11b <- read.xlsx("dataset/Part 11_2_ Lending and Outstanding Loans.xlsx")
+section11c <- read.xlsx("dataset/Part 11_3_ Other Assets.xlsx")
+section12a <- read.xlsx("dataset/Remittance and transfer.xlsx")
+section12b <- read.xlsx("dataset/Part 12_2. Other Remittances.xlsx")
+section13a <- read.xlsx("dataset/section 13.xlsx")
+section13b <- read.xlsx("dataset/Part 13_2_ Social Assistance.xlsx")
+section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
 
 #MAKING PSU AND HHID UNIQUE 
-section0 <- read.xlsx("dataset/section0.xlsx")
-section2b <- read.xlsx("dataset/section2b.xlsx")
 
+psu_counts <- section0 %>%
+  group_by(psu) %>%
+  summarise(n_hhlds = n()) %>%
+  ungroup()
 
 section0 <- section0 %>%
   mutate(
@@ -94,9 +96,6 @@ psu_counts1 <- section0 %>%
   ungroup()
 
 psu_counts <- merge.data.frame(psu_counts, psu_counts1, by.x = "psu", by.y = "psu", all = TRUE)
-
-psu_issues <- psu_counts %>%
-  filter(n_hhlds != 20)
 
 section0_issues <- section0 %>%
   filter(psu %in% psu_issues$psu) %>%
@@ -321,9 +320,6 @@ healthexp_oop_inconsistent <- healthexp_oop %>%
 
 #CHECKING MISMATCHES WHILE SELECTING HOUSEHOLDS 
 
-section0 <- read.xlsx("/home/sobaakun/Downloads/2025-08-27/cover page.xlsx")
-section2b <- read.xlsx("/home/sobaakun/Downloads/2025-08-27/Section 2_2_ National health insurence.xlsx")
-
 section0_mismatch <- merge.data.frame(section0, section2b,
 by.x = "ID",
 by.y = "ID",
@@ -348,7 +344,84 @@ section0_mismatch <- section0_mismatch %>%
   mutate(enrollment = as.integer(enrollment)) %>%
   filter(enrollment == 1)
   
-  
+#CHECKING FOR NUMBER OF ACUTE AND CHRONIC ILLNESS IN THE SAMPLE
+
+section6b1 <- read.xlsx("dataset/Part 6_2_1_ Chronic Illness and Health Seeking Behaviour.xlsx")
+section6c1 <- read.xlsx("dataset/Part 6_3_1_ Acute Illness and health seeking behaviour.xlsx")
+
+sum(is.na(section6b1$v603))
+sum(is.na(section6c1$v629))
+
+chronic_na <- section6b1 %>%
+  filter(is.na(v603)) 
+
+write.csv(chronic_na, "v603_na.csv")
+
+acute_na <- section6c1 %>%
+  filter(is.na(v629))
+
+write.csv(acute_na, "v629_na.csv")
+
+
+section6b1 <- section6b1 %>%
+  mutate(v603 = as.integer(v603)) %>%
+  filter(!is.na(v603))
+
+section6c1 <- section6c1 %>%
+  mutate(v629 = as.integer(v629)) %>%
+  filter(!is.na(v629))
+
+sum(section6b1$v603 == 1, na.rm = TRUE)
+sum(section6b1$v603 == 2, na.rm = TRUE)
+sum(section6c1$v629 == 1, na.rm = TRUE)
+sum(section6c1$v629 == 2, na.rm = TRUE)
+
+#HOUSEHOLDS WITH ACUTE ILLNESS
+acute <- section6b1 %>%
+  group_by(ID) %>%
+  filter(all(v603 == 1)) %>%
+  distinct(ID)
+
+
+#HOUSEHOLDS WITH CHRONIC ILLNESS
+chronic <- section6c1 %>%
+  group_by(ID) %>%
+  filter(all(v629 == 1)) %>%
+  distinct(ID)
+
+#NO ACUTE ILLNESS HOUSEHOLDS
+no_acute <- section6b1 %>%
+  group_by(ID) %>%
+  filter(all(v603 == 2)) %>%
+  distinct(ID)
+
+#NO CHRONIC ILLNESS HOUSEHOLDS
+no_chronic <- section6c1 %>%
+  group_by(ID) %>%
+  filter(all(v629 == 2)) %>%
+  distinct(ID)
+
+#HOUSEHOLDS WITH NO CHRONIC AND NO ACUTE ILLNESSES
+common_id <- intersect(acute$ID, chronic$ID)
+
+common_id
+
+#CHECKING FOR DUPLICATES IN ACUTE DISEASE LIST
+acute_duplicates <- section6b1 %>%
+  filter(duplicated(paste(personid, v604)) | duplicated(paste(personid, v604), fromLast = TRUE)) %>%
+  select(ID, psu, palika, ward, hhld, version, verified, interviewer_id, v101, v603, personid, v604) 
+
+write.csv(acute_duplicates, "acute_duplicates.csv")
+
+
+#CHECKING FOR DUPLICATES IN 
+chronic_duplicates <- section6c1 %>%
+  filter(duplicated(paste(personid, v630)) | duplicated(paste(personid, v630), fromLast = TRUE)) %>%
+  select(ID, psu, palika, ward, hhld, version, verified, interviewer_id, v101, v629, personid, v630)
+
+write.csv(chronic_duplicates, "chronic_duplicates.csv")
+
+
 
 
 
