@@ -686,6 +686,8 @@ section1a_chronic_qualified <- section1a %>%
 section6b1_missing <-  section1a_chronic_qualified %>%
   anti_join(section6b1, by = "personid")
 
+write.csv(section6b1_missing, "section6b1_missing.csv")
+
 #CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.2.2
 
 section6b1_chronic_checks <- section6b1 %>%
@@ -697,6 +699,8 @@ section6b1_chronic_checks[duplicated(section6b1_chronic_checks$personid), "perso
 
 section6b2_qualified_missing <- section6b1_chronic_checks %>%
   anti_join(section6b2, by = "personid")
+
+write.csv(section6b2_qualified_missing, "section6b2_missing.csv")
 
 #CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.2.3
 
@@ -710,9 +714,158 @@ section6b1_chronic_inpatients <- section6b1 %>%
 section6b3_qualified_missing <- section6b1_chronic_inpatients %>%
   anti_join(section6b3, by = "personid")
 
+write.csv(section6b3_qualified_missing, "section6b3_missing.csv")
+
 #CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.2.4
 
+section6b1_inpatients <- section6b1 %>%
+  mutate(v605b = as.integer(v605b)) %>%
+  filter(trimws(v605b) > 0)
 
+section6b4_missing <- section6b1_inpatients %>%
+  anti_join(section6b4, by = "personid")
+
+write.csv(section6b4_missing, "completeness checks/section6b4_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.2.5 
+
+section1a_olderthan5 <- section1a %>%
+  mutate(
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109) 
+  ) %>%
+  filter(v104a > 5) %>%
+  filter(v109 %in% c(1,2))
+
+section6b1_chronic <- section6b1 %>%
+  mutate(v603 = as.integer(v603)) %>%
+  group_by(ID) %>%
+  filter(any(v603 == 1, na.rm = TRUE)) %>%
+  ungroup() %>%
+  select(personid, v603)
+
+section6b5_qualify <- merge.data.frame(section1a_olderthan5, section6b1_chronic, by.x = "personid", by.y = "personid")
+
+section6b5_missing <- section6b5_qualify %>%
+  anti_join(section6b5, by = "personid")
+
+write.csv(section6b5_missing, "section6b5_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION 6.3.1
+
+section1a_acute_qualified <- section1a %>%
+  mutate(v109 = as.integer(v109)) %>%
+  filter(
+    v109 %in% c(1, 2)
+  )
+
+section6c1_missing <-  section1a_acute_qualified %>%
+  anti_join(section6c1, by = "personid")
+
+write.csv(section6c1_missing, "section6c1_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.3.2
+
+section6c1_acute_checks <- section6c1 %>%
+  mutate(v629 = as.integer(v629)) %>%
+  filter(v629 == "1"
+  )
+
+section6c1_acute_checks[duplicated(section6c1_acute_checks$personid), "personid"]
+
+section6c2_qualified_missing <- section6c1_acute_checks %>%
+  anti_join(section6c2, by = "personid")
+
+write.csv(section6c2_missing, "section6c2_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.3.3
+
+section6c3_qualified_missing <- section6c1_acute_checks %>%
+  anti_join(section6c3, by = "personid")
+
+write.csv(section6c3_missing, "section6c3_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.3.4
+
+section6c4_qualified_missing <- section6c1_acute_checks %>%
+  anti_join(section6c4, by = "personid")
+
+write.csv(section6c4_missing, "section6c4_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.3.5 
+
+section6c5_qualified_missing <- section6c1_acute_checks %>%
+  anti_join(section6c5, by = "personid")
+
+write.csv(section6c5_missing, "section6c5_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION 7 
+
+section7_qualified <- section1a %>%
+  mutate(
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109)
+  ) %>%
+  filter(
+    v104a > 10, 
+    v109 %in% c(1, 2)
+  )
+
+section7_missing <- section7_qualified %>%
+  anti_join(section7, by = "personid")
+
+write.csv(section7_missing, "section7_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION 8 
+
+section8_qualified <- section1a %>%
+  mutate(
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109)
+  ) %>%
+  filter(
+    v104a > 10, 
+    v109 %in% c(1, 2)
+  )
+
+section8_missing <- section8_qualified %>%
+  anti_join(section8, by = "personid")
+
+write.csv(section8_missing, "section8_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION11A 
+
+section11a_qualified <- section1a %>%
+  mutate(
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109)
+  ) %>%
+  filter(
+    v104a > 10, 
+    v109 %in% c(1, 2)
+  )
+
+section11a_missing <- section11a_qualified %>%
+  anti_join(section11a, by = "personid")
+
+write.csv(section11a_missing, "section11a_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION12A
+
+section12a_qualified <- section1a %>%
+  mutate(
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109)
+  ) %>%
+  filter(
+    v104a > 10, 
+    v109 %in% c(3, 4)
+  )
+
+section12a_missing <- section12a_qualified %>%
+  anti_join(section12a, by = "personid")
+
+write.csv(section12a_missing, "section12a_missing.csv")
 
 #CHECKING FOR HOUSEHOLDS WITH NO HEALTH EXPENDITURE
 
