@@ -177,10 +177,10 @@ section1a_edu <- section1a %>%
   ) %>%
   filter(v109 == 1) %>%
   filter(verified == "Y")
-any(duplicated(section1a_edu$uniq_id))
-any(duplicated(section1a_edu$uniq_id1))
-section1a_edu[duplicated(section1a_edu$uniq_id), "uniq_id"]
-section1a_edu[duplicated(section1a_edu$uniq_id1), "uniq_id1"]
+any(duplicated(section1a_edu$personid))
+any(duplicated(section1a_edu$personid))
+section1a_edu[duplicated(section1a_edu$personid), "personid"]
+section1a_edu[duplicated(section1a_edu$personid), "personid"]
 
   
 section1b_edu <- section1b %>%
@@ -206,15 +206,13 @@ edu_running <- merge.data.frame(
 )
 
 section5 <- section5 %>%
-  mutate(
-    uniq_id = paste0(psu, "-", hhld, "-", v101), 
-    uniq_id1 = paste0(ID, "-", v101)
-  ) %>% 
   filter(verified == "Y")
-any(duplicated(section5$uniq_id))
-any(duplicated(section5$uniq_id1))
-section5[duplicated(section5$uniq_id), "uniq_id"]
-section5[duplicated(section5$uniq_id1), "uniq_id1"]
+any(duplicated(section5$personid))
+section5[duplicated(section5$personid), "personid"]
+
+section5 <- section5 %>%
+  filter(personid %in% c(13734, 13735, 13737, 13738, 14801, 15258))
+
 
 edu_consistent <- merge.data.frame(
   edu_running, section5,
@@ -421,7 +419,47 @@ chronic_duplicates <- section6c1 %>%
 
 write.csv(chronic_duplicates, "chronic_duplicates.csv")
 
+#ENUMERATOR WISE NUMBERS OF NO HEALTH RECORDS 
 
+chronic_households <- section6b1 %>% 
+  mutate(v603 = as.integer(v603)) %>%
+  group_by(ID) %>%
+  summarise(
+    hh_has_sick = any(v603 == 1),
+    .groups = "drop"
+  )
+
+chronic_households <- merge.data.frame(chronic_households, section0, by.x = "ID", by.y = "ID")
+
+chronic_households <- chronic_households %>%
+  select(ID, hh_has_sick, Name.of.enumerator) %>%
+  group_by(hh_has_sick, Name.of.enumerator) %>%
+  summarise(
+    n_households = n(),
+    .groups = "drop"
+  )
+
+write.csv(chronic_households, "chronic_counts.csv")
+
+acute_households <- section6c1 %>% 
+  mutate(v629 = as.integer(v629)) %>%
+  group_by(ID) %>%
+  summarise(
+    hh_has_sick = any(v629 == 1),
+    .groups = "drop"
+  )
+
+acute_households <- merge.data.frame(acute_households, section0, by.x = "ID", by.y = "ID")
+
+acute_households <- acute_households %>%
+  select(ID, hh_has_sick, Name.of.enumerator) %>%
+  group_by(hh_has_sick, Name.of.enumerator) %>%
+  summarise(
+    n_households = n(),
+    .groups = "drop"
+  )
+
+write.csv(acute_households, "acute_counts.csv")
 
 
 
