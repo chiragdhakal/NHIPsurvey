@@ -643,7 +643,7 @@ section1b[duplicated(section1b$personid), "personid"]
 section1b_hhstatus <- merge.data.frame(section1b, section1a_v109, by.x = "personid", by.y = "personid", all = FALSE)
 
 section1b_miscategorized <- section1b_hhstatus %>%
-  filter(trimws(v109) %in% c(3, 4))
+  filter(trimws(v109) %in% c(4))
 
 write.csv(section1b_miscategorized, "completeness checks/section1b_miscategorized.csv")
 
