@@ -654,6 +654,12 @@ section1b_education <- section1b %>%
     trimws(v115) == 3
   )
 
+section1b_education <- merge.data.frame(section1b_education, section1a_v109, by.x = "personid", by.y = "personid")
+
+section1b_education <- section1b_education %>%
+  mutate(v109 = as.integer(v109)) %>%
+  filter(v109 == 1)
+
 section1b_education[duplicated(section1b_education$personid), "personid"]
 
 section5[duplicated(section5$personid), "personid"]
@@ -951,5 +957,171 @@ lines(xrange, dens_v662, col = "blue", lwd = 2)
 legend("topright", legend = c("v249", "v662"), col = c("red", "blue"), lwd = 2)
 
 #INCOME AND EXPENDITURE CONSISTENCY CHECK
+
+#CHECKING FOR COMMAS IN SECTION 8
+
+section1a_commas <- section1a %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section1a_commas, "commas check/section1a_commas.csv", row.names = FALSE)
+
+section1b_commas <- section1b %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section1b_commas, "commas check/section1b_commas.csv", row.names = FALSE)
+
+section2a1_commas <- section2a1 %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section2a1_commas, "commas check/section2a1_commas.csv", row.names = FALSE)
+
+section2a2_commas <- section2a2 %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section2a2_commas, "commas check/section2a2_commas.csv", row.names = FALSE)
+
+section2a3_commas <- section2a3 %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section2a3_commas, "commas check/section2a3_commas.csv", row.names = FALSE)
+
+section2b_commas <- section2b %>%
+  select(ID, 50:74) %>%
+  filter(if_any(everything(), ~ grepl(",", .))) 
+
+write.csv(section2b_commas, "commas check/section2b_commas.csv", row.names = FALSE)
+
+section3a_commas <- section3a %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section3a_commas, "commas check/section3a_commas.csv", row.names = FALSE)
+
+section3b_commas <- section3b %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section3b_commas, "commas check/section3b_commas.csv", row.names = FALSE)
+
+section4a_commas <- section4a %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section4a_commas, "commas check/section4a_commas.csv", row.names = FALSE)
+
+section4b_commas <- section4b %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section4b_commas, "commas check/section4b_commas.csv", row.names = FALSE)
+
+section5_commas <- section5 %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section5_commas, "commas check/section5_commas.csv", row.names = FALSE)
+
+section6a_commas <- section6a %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section6a_commas, "commas check/section6a_commas.csv", row.names = FALSE)
+
+section6b3_commas <- section6b3 %>%
+  select(-v614) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section6b4_commas <- section6b4 %>%
+  select(-v604) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section6b5_commas <- section6b5 %>%
+  select(-v624, -v626) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section6b5_commas, "commas check/section6b5_commas.csv", row.names = FALSE)
+
+section6c4_commas <- section6c4 %>%
+  select(-v630, -v652, -v658) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section6c4_commas, "commas check/section6c4_commas.csv", row.names = FALSE)
+
+section6d_commas <- section6d %>%
+  select(-v668h, -v665) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section6d_commas, "commas check/section6d_commas.csv", row.names = FALSE)
+
+section7_commas <- section7 %>%
+  select(-v709a, -v710b, -v714a, -v716) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section7_commas, "commas check/section7_commas.csv", row.names = FALSE)
+
+section8_commas <- section8 %>%
+  select(-v803, -v803b ) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section8_commas, "commas check/section8_commas.csv", row.names = FALSE)
+
+section9a_commas <- section9a %>%
+  select(-v902b) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section9a_commas, "commas check/section9a_commas.csv", row.names = FALSE)
+
+section9b_commas <- section9b %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section9b_commas, "commas check/section9b_commas.csv", row.names = FALSE)
+
+section9c_commas <- section9c %>%
+  select(-v914b_1) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section9d_commas <- section9d %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section9d_commas, "commas check/section9d_commas.csv", row.names = FALSE)
+
+section9e_commas <- section9e %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section9f1_commas <- section9f1 %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section9f2_commas <- section9f2 %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section10_commas <- section10 %>%
+  select(ID, 15:28) %>%
+  filter(if_any(everything(), ~ grepl(",", .))) 
+
+write.csv(section10_commas, "commas check/section10_commas.csv", row.names = FALSE)
+
+section11a_commas <- section11a %>%
+  select(-v1102, -v1105, -v1108a) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section11b_commas <- section11b %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section11c_commas <- section11c %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section11c_commas, "commas check/section11c_commas.csv", row.names = FALSE)
+
+section12a_commas <- section12a %>%
+  select(-v1205, -v1206) %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section12b_commas <- section12b %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+write.csv(section12b_commas, "commas check/section12b_commas.csv", row.names = FALSE)
+
+section13a_commas <- section13a %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section13b_commas <- section13b %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
+
+section13c_commas <- section13c %>%
+  filter(if_any(everything(), ~ grepl(",", .)))
 
 
