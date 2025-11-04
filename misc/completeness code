@@ -1,0 +1,752 @@
+#MAKING HHID AND UNIQUE ID IN ALL SECTIONS 
+
+section0 <- section0 %>%
+  mutate(hhid = paste0(psu, "-", hhld))   
+
+section1b <- section1b %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", v101)
+  )
+
+#COMPLETENESS CHECKS
+
+#CHECKING FOR NAs IN AGE
+
+section1a_age <- section1a %>%
+  mutate(v104a = as.integer(v104a)) %>%
+  filter(is.na(v104a))
+
+write.csv(section1a_age, "completeness checks/ageNA.csv")
+
+#CHECKING WHETHER THERE ARE ALL HOUSEHOLD RESIDENTS IN SECTION1B
+
+section1a_v109 <- section1a %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  ) %>%
+  select(hhid, uniq_id, v104a, v104b, v109)
+  
+section1a_hhresident <- section1a %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  ) %>%
+  filter(
+    trimws(v109) %in% c(1, 2)  
+  ) 
+
+section1b <- section1b %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
+section1b_hhstatus <- merge.data.frame(section1b, section1a_v109, by.x = "uniq_id", by.y = "uniq_id", all = FALSE)
+
+section1b_miscategorized <- section1b_hhstatus %>%
+  filter(trimws(v109) %in% c(4))
+
+section1b <- section1b %>%
+  filter(!uniq_id %in% section1b_miscategorized$uniq_id)
+
+#CHECKING FOR EDUCATION CONSISTENCY
+
+section1b_education <- section1b %>%
+  filter(
+    trimws(v115) == 3
+  )
+
+section1b_education <- merge.data.frame(section1b_education, section1a_v109, by.x = "uniq_id", by.y = "uniq_id")
+
+section1b_education <- section1b_education %>%
+  mutate(v109 = as.integer(v109)) %>%
+  filter(v109 == 1)
+
+section5 <- section5 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
+section5_missing <- section1b_education %>%
+  anti_join(section5, by = "uniq_id")
+
+#CHECKING FOR AGE <= 5 IN SECTION 6.1
+
+section6a <- section6a %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101)) 
+
+missing_6.1 <- section1a %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101)) %>%
+  filter(v104a > 5) %>%
+  filter(v109 %in% c(1,2)) %>%
+  anti_join(section6a, by = "uniq_id")
+
+#CHECKING FOR ALL PEOPLE IN SECTION 6.2.1
+
+section1a_chronic_qualified <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v109 = as.numeric(v109), 
+    v104a = as.numeric(v104a)
+  ) %>%
+  filter(
+    v109 %in% c(1, 2)
+  )
+
+section6b1 <- section6b1 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6b1_missing <-  section1a_chronic_qualified %>%
+  anti_join(section6b1, by = "uniq_id")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.2.2
+
+section6b1_chronic_checks <- section6b1 %>%
+  mutate(
+    v603 = as.integer(v603),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  ) %>%
+  filter(v603 == "1"
+  )
+
+sectionb2 <- sectionb2 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6b2_qualified_missing <- section6b1_chronic_checks %>%
+  anti_join(section6b2, by = "uniq_id")
+
+write.csv(section6b2_qualified_missing, "section6b2_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.2.3
+
+section6b1_chronic_inpatients <- section6b1 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v603 = as.integer(v603)) %>%
+  filter(
+    v603 == 1, 
+    v605a > 0
+  )
+
+section6b3 <- section6b3 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6b3_qualified_missing <- section6b1_chronic_inpatients %>%
+  anti_join(section6b3, by = "uniq_id")
+
+write.csv(section6b3_qualified_missing, "section6b3_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.2.4
+
+section6b1_inpatients <- section6b1 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v605b = as.integer(v605b)) %>%
+  filter(trimws(v605b) > 0)
+
+sectionb4 <- sectionb4 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6b4_missing <- section6b1_inpatients %>%
+  anti_join(section6b4, by = "uniq_id")
+
+write.csv(section6b4_missing, "completeness checks/section6b4_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.2.5 
+
+section1a_olderthan5 <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109) 
+  ) %>%
+  filter(v104a > 5) %>%
+  filter(v109 %in% c(1,2))
+
+section6b1_chronic <- section6b1 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    hhid = paste0(psu, "-", hhid),
+    v603 = as.integer(v603)) %>%
+  group_by(hhid) %>%
+  filter(any(v603 == 1, na.rm = TRUE)) %>%
+  ungroup() %>%
+  select(uniq_id, v603)
+
+section6b5_qualify <- merge.data.frame(section1a_olderthan5, section6b1_chronic, by.x = "uniq_id", by.y = "uniq_id")
+
+sectionb5 <- sectionb5 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6b5_missing <- section6b5_qualify %>%
+  anti_join(section6b5, by = "uniq_id")
+
+write.csv(section6b5_missing, "section6b5_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION 6.3.1
+
+section1a_acute_qualified <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101), 
+    v109 = as.integer(v109)) %>%
+  filter(
+    v109 %in% c(1, 2)
+  )
+
+sectionc1 <- sectionc1 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6c1_missing <-  section1a_acute_qualified %>%
+  anti_join(section6c1, by = "uniq_id")
+
+write.csv(section6c1_missing, "section6c1_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.3.2
+
+section6c1_acute_checks <- section6c1 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v629 = as.integer(v629)) %>%
+  filter(v629 == "1"
+  )
+
+section6c2 <- section6c2 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6c2_qualified_missing <- section6c1_acute_checks %>%
+  anti_join(section6c2, by = "uniq_id")
+
+write.csv(section6c2_missing, "section6c2_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.3.3
+
+section6c3 <- section6c3 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6c3_qualified_missing <- section6c1_acute_checks %>%
+  anti_join(section6c3, by = "uniq_id")
+
+write.csv(section6c3_missing, "section6c3_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.3.4
+
+section6c4 <- section6c4 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6c4_qualified_missing <- section6c1_acute_checks %>%
+  anti_join(section6c4, by = "uniq_id")
+
+write.csv(section6c4_missing, "section6c4_missing.csv")
+
+#CHECKING FOR ALL PEOPLE QUALIFYING FOR SECTION 6.3.5 
+
+section6c5 <- section6c5 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6c5_qualified_missing <- section6c1_acute_checks %>%
+  anti_join(section6c5, by = "uniq_id")
+
+write.csv(section6c5_missing, "section6c5_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION 7 
+
+section7_qualified <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109)
+  ) %>%
+  filter(
+    v104a >= 10, 
+    v109 %in% c(1, 2)
+  )
+
+section7 <- section7 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section7_missing <- section7_qualified %>%
+  anti_join(section7, by = "uniq_id")
+
+write.csv(section7_missing, "section7_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION 8 
+
+section8_qualified <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109)
+  ) %>%
+  filter(
+    v104a > 10, 
+    v109 %in% c(1, 2)
+  )
+
+section8 <- section8 %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section8_missing <- section8_qualified %>%
+  anti_join(section8, by = "uniq_id")
+
+write.csv(section8_missing, "section8_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION11A 
+
+section11a_qualified <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109)
+  ) %>%
+  filter(
+    v104a > 10, 
+    v109 %in% c(1, 2)
+  )
+
+section11a <- section11a %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section11a_missing <- section11a_qualified %>%
+  anti_join(section11a, by = "uniq_id")
+
+write.csv(section11a_missing, "section11a_missing.csv")
+
+#CHECKING FOR ALL PEOPLE IN SECTION12A
+
+section12a_qualified <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v104a = as.integer(v104a),
+    v109 = as.integer(v109)
+  ) %>%
+  filter(
+    v104a > 10, 
+    v109 %in% c(3, 4)
+  )
+
+section12a <- section12a %>%
+  mutate(uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section12a_missing <- section12a_qualified %>%
+  anti_join(section12a, by = "uniq_id")
+
+write.csv(section12a_missing, "section12a_missing.csv")
+
+#CHECKING FOR HOUSEHOLDS WITH NO HEALTH EXPENDITURE
+
+sec4_healthex <- section4a %>%
+  filter(v401 == 22)
+
+health_expenditure <- section2b %>%
+  inner_join(section6d, by = "ID") %>%
+  inner_join(sec4_healthex, by = "ID")
+
+health_expenditure <- health_expenditure %>%
+  select(ID, psu = psu.x, palika = palika.x, ward = ward.x,
+         hhld = hhld.x, version = version.x, verified = verified.x,
+         v249, v662, v403a, v403b)
+
+no_healthexpense <- merge.data.frame(health_expenditure, section0, by.x = "ID", by.y = "ID")
+
+no_healthexpense <- no_healthexpense %>%
+  filter(v249 == 0) %>%
+  select(ID, psu = psu.x, palika = palika.x, ward = ward.x, hhld = hhld.x, version = version.x, verified = verified.x, v249, respondent, Name.of.enumerator)
+
+no_expense_enumerator <- no_healthexpense %>%
+  group_by(Name.of.enumerator) %>%
+  summarise(
+    n_hhlds = n()
+  )
+
+health_expenditure <- health_expenditure %>%
+  mutate(
+    v249 = as.integer(v249), 
+    v662 = as.integer(v662)
+  )
+
+#Section12 discrepency 
+
+outside_household <- section1a %>%
+  mutate(v109 = as.integer(v109)) %>%
+  filter(v109 %in% c(3, 4)) %>%
+  select(personid, v109)
+
+outside_household <- merge.data.frame(section12a, outside_household, by.x = "personid", by.y = "personid", all = FALSE)
+
+outside_household <- outside_household %>%
+  select(personid, ID, psu, palika, ward, hhld, version, verified, v101, v802, v109)
+
+write.csv(outside_household, "section12adiscrepency.csv")
+
+#UNIQUE ID 
+
+section0 <- section0 %>%
+  group_by(psu) %>%
+  arrange(psu, hhld, ID) %>%      
+  mutate(
+    hhld_serial = row_number(),     
+    uniq_hhid = paste0(psu, "-", hhld_serial)
+  ) %>%
+  ungroup()
+
+any(duplicated(section0$uniq_hhid))
+
+#NORMAL DISTRIBUTION CONSISTENCY OF TWO HEALTH EXPENSE VARIABLES
+
+mean_v249 <- mean(health_expenditure$v249, na.rm = TRUE)
+sd_v249   <- sd(health_expenditure$v249, na.rm = TRUE)
+
+mean_v662 <- mean(health_expenditure$v662, na.rm = TRUE)
+sd_v662   <- sd(health_expenditure$v662, na.rm = TRUE)
+
+xrange <- seq(
+  min(mean_v249 - 4*sd_v249, mean_v662 - 4*sd_v662),
+  max(mean_v249 + 4*sd_v249, mean_v662 + 4*sd_v662),
+  length.out = 1000
+)
+
+dens_v249 <- dnorm(xrange, mean = mean_v249, sd = sd_v249)
+dens_v662 <- dnorm(xrange, mean = mean_v662, sd = sd_v662)
+
+plot(xrange, dens_v249, type = "l", col = "red", lwd = 2,
+     xlab = "Value", ylab = "Density",
+     main = "Normal Curves for v249 and v662")
+lines(xrange, dens_v662, col = "blue", lwd = 2)
+
+legend("topright", legend = c("v249", "v662"), col = c("red", "blue"), lwd = 2)
+
+#INCOME AND EXPENDITURE CONSISTENCY CHECK
+
+
+#MISALLOTED PSU AS PER ENROLLMENT 
+
+NHIP_insured <- c(1101:1112, 2101:2110, 3101:3115, 4101:4109, 5101:5111, 6101:6108, 7101:7109)
+NHIP_non_insured <- c(1201:1212, 2201:2210, 3201:3215, 4201:4209, 5201:5211, 6201:6208, 7201:7209)
+
+misalloted_psu <- section0 %>%
+  mutate(
+    enrollment = as.numeric(enrollment),
+    psu = as.numeric(psu)
+  ) %>%
+  filter(
+    (enrollment == 1 & !(psu %in% NHIP_insured)) |
+    (enrollment == 2 & !(psu %in% NHIP_non_insured)) 
+    
+  )
+
+psu_counts <- section0 %>%
+  group_by(psu) %>%
+  summarise(n_hhlds = n()) %>%
+  ungroup()
+
+psu_counts <- psu_counts %>%
+  filter(
+    as.numeric(psu) %in% NHIP_insured |
+    as.numeric(psu) %in% NHIP_non_insured
+  ) 
+  filter(n_hhlds > 20) 
+
+write.csv(psu_counts, "psu_counts.csv")
+
+coverpage <- coverpage %>%
+  mutate(
+    supervisor_name = case_when(
+      Name.of.enumerator %in% c("SHEKHAR SHRESTHA", "PASANG SHERPA", "DEVIKA ACHARYA", "PREEJA BASNET") ~ "SHEKHAR SHRESTHA",
+      Name.of.enumerator %in% c("MINA MAYA PAKHRIN", "KESA MAYA DAHAL", "ASMITA WAIBA", "RANJANA KUMARI MAINALI") ~ "MINA MAYA PAKHRIN",
+      Name.of.enumerator %in% c("PRAMILA ACHARYA", "ADITI KUMARI SHRESTHA", "NEELIMA UPADHYAY", "RAM SHANKER SHAH") ~ "PRAMILA ACHARYA",
+      Name.of.enumerator %in% c("KAMALA SHARMA", "ISHWARI SHRESTHA", "SALINA ADHIKARI", "RUMA LINGTHEP", "KAMAL TIMSINA") ~ "KAMALA SHARMA",
+      Name.of.enumerator %in% c("MANOJ KUMAR BHATTARAI", "AKSHYA ACHARYA", "SWECHCHHA RANJIT", "MANJU KC") ~ "MANOJ KUMAR BHATTARAI",
+      Name.of.enumerator %in% c("BADRI PRASAD MAINALI", "GIRIRAJ ADHIKARI", "BARSHA THAPA MAGAR", "AMBIKA PANDEY") ~ "BADRI PRASAD MAINALI",
+      Name.of.enumerator %in% c("ASMITA DAHAL", "GITA DAHAL", "KRITI PAUDEL", "SAURI GHIMIRE", "SHANKAR PRASAD NEUPANE") ~ "ASMITA DAHAL",
+      Name.of.enumerator %in% c("TIKA RAM ACHARYA", "SANTANA GAUTAM", "SARITA CHHETRI", "SUJATA NEPAL") ~ "TIKA RAM ACHARYA",
+      Name.of.enumerator %in% c("NETRA RAJ DHITAL", "ELIJA SHAHI", "HARIHAR JOSHI", "POOJA RAWAT") ~ "NETRA RAJ DHITAL",
+      Name.of.enumerator %in% c("SIRAJ POKHREL", "SUSHAN SHRESTHA", "URMILA PARAJULI", "SUSHMITA PATHAK") ~ "SIRAJ POKHREL",
+      TRUE ~ "UNASSIGNED"
+    )
+  ) 
+
+supervisor_count <- section0 %>%
+  mutate(
+    supervisor_name = case_when(
+      Name.of.enumerator %in% c("SHEKHAR SHRESTHA", "PASANG SHERPA", "DEVIKA ACHARYA", "PREEJA BASNET") ~ "SHEKHAR SHRESTHA",
+      Name.of.enumerator %in% c("MINA MAYA PAKHRIN", "KESA MAYA DAHAL", "ASMITA WAIBA", "RANJANA KUMARI MAINALI") ~ "MINA MAYA PAKHRIN",
+      Name.of.enumerator %in% c("PRAMILA ACHARYA", "ADITI KUMARI SHRESTHA", "NEELIMA UPADHYAY", "RAM SHANKER SHAH") ~ "PRAMILA ACHARYA",
+      Name.of.enumerator %in% c("KAMALA SHARMA", "ISHWARI SHRESTHA", "SALINA ADHIKARI", "RUMA LINGTHEP", "KAMAL TIMSINA") ~ "KAMALA SHARMA",
+      Name.of.enumerator %in% c("MANOJ KUMAR BHATTARAI", "AKSHYA ACHARYA", "SWECHCHHA RANJIT", "MANJU KC") ~ "MANOJ KUMAR BHATTARAI",
+      Name.of.enumerator %in% c("BADRI PRASAD MAINALI", "GIRIRAJ ADHIKARI", "BARSHA THAPA MAGAR", "AMBIKA PANDEY") ~ "BADRI PRASAD MAINALI",
+      Name.of.enumerator %in% c("ASMITA DAHAL", "GITA DAHAL", "KRITI PAUDEL", "SAURI GHIMIRE", "SHANKAR PRASAD NEUPANE") ~ "ASMITA DAHAL",
+      Name.of.enumerator %in% c("TIKA RAM ACHARYA", "SANTANA GAUTAM", "SARITA CHHETRI", "SUJATA NEPAL") ~ "TIKA RAM ACHARYA",
+      Name.of.enumerator %in% c("NETRA RAJ DHITAL", "ELIJA SHAHI", "HARIHAR JOSHI", "POOJA RAWAT") ~ "NETRA RAJ DHITAL",
+      Name.of.enumerator %in% c("SIRAJ POKHREL", "SUSHAN SHRESTHA", "URMILA PARAJULI", "SUSHMITA PATHAK") ~ "SIRAJ POKHREL",
+      TRUE ~ "UNASSIGNED"
+    )
+  ) %>%
+  group_by(supervisor_name) %>%
+  summarise(supervisor_count = n(), .groups = "drop")
+
+write.csv(supervisor_count, "supervisor_count.csv")
+
+section0_hib <- section0 %>%
+  mutate(
+    palika = as.numeric(palika),
+    ward = as.numeric(ward), 
+    hhld = as.numeric(hhld),
+    interviewer_id = as.numeric(interviewer_id),
+    uniq_id = paste0(palika, "-", ward, "-", hhld, "-", interviewer_id),
+    enrollment = as.numeric(enrollment)
+  ) %>%
+  filter(enrollment %in% c(1, 2)) 
+
+duplicate_households <- section0_hib %>%
+  mutate(
+    palika = as.numeric(palika),
+    enrollment = as.numeric(enrollment),
+    ward = as.numeric(ward), 
+    hhld = as.numeric(hhld),
+    interviewer_id = as.numeric(interviewer_id),
+    uniq_id = paste0(palika, "-", ward, "-", hhld, "-", interviewer_id)
+  ) %>% 
+  filter(enrollment %in% c(1, 2)) %>%
+  group_by(uniq_id) %>%
+  mutate(dup_count = n()) %>%   
+  filter(dup_count > 1) %>%
+  ungroup()
+
+duplicate_households <- duplicate_households %>%
+  select(ID, enrollment, psu, province, district, palika, ward, hhld, interviewer_id, respondent, uniq_id, dup_count)
+
+write.csv(duplicate_households, "hib_uniqid.csv")
+
+duplicate_households[duplicated(duplicate_households$uniq_id), "uniq_id"]
+
+#SSF and NON-SSF UNIQUE ID 
+
+section0_ssf <- section0 %>%
+  mutate(enrollment = as.numeric(enrollment)) %>%
+  filter(enrollment %in% c(3, 4)) %>%   
+  mutate(
+    uniq_id = paste0(hhld, "-", interviewer_id, "-", name)
+  ) %>%
+  group_by(uniq_id) %>%
+  mutate(dup_count = n()) %>%
+  ungroup() %>%
+  select(ID, enrollment, psu, province, district, palika, ward, hhld, name, respondent, uniq_id, dup_count, interviewer_id)
+
+write.csv(section0_ssf, "ssf_uniqid.csv")
+
+#NUMBER OF PEOPLE IN EACH SSF COMPANY
+
+company_wise <- section0 %>%
+  mutate(
+    enrollment = as.numeric(enrollment)
+  ) %>%
+  filter(enrollment == 3) %>%
+  select(name, province, district, palika)
+
+company_wise <- company_wise %>%
+  group_by(name) %>%
+  summarise(employeenumber = n()) %>%
+  ungroup()
+
+company_wise <- section0 %>%
+  mutate(enrollment = as.numeric(enrollment)) %>%
+  filter(enrollment == 3) %>%
+  group_by(name, province, district, palika) %>%
+  summarise(employeenumber = n(), .groups = "drop")
+
+sum(company_wise$employeenumber)
+
+write.csv(company_wise, "company_wise.csv")
+
+enumerator_wise <- section0 %>%
+  mutate(enrollment = as.numeric(enrollment)) %>%
+  group_by(Name.of.enumerator, enrollment) %>%
+  summarise(in_server_hhld = n(), .groups = "drop") %>%
+  pivot_wider(
+    names_from = enrollment,
+    values_from = in_server_hhld,
+    names_prefix = "enrollment_",
+    values_fill = 0
+  )
+
+enumerator_wise <- enumerator_wise %>%
+  rename(
+    nhip = enrollment_1, 
+    non_nhip = enrollment_2, 
+    ssf = enrollment_3, 
+    non_ssf = enrollment_4
+  ) %>%
+  mutate(total_in_server = nhip + non_nhip + ssf + non_ssf)
+
+write.csv(enumerator_wise, "enumerator_wise_inserver.csv")
+
+supervisor_wise <- section0 %>%
+  mutate(enrollment = as.numeric(enrollment)) %>%
+  group_by(supervisor_name, enrollment) %>%
+  summarise(in_server = n(), .groups = "drop") %>%
+  pivot_wider(
+    names_from = enrollment,
+    values_from = in_server,
+    names_prefix = "enrollment_",
+    values_fill = 0
+  ) %>%
+    rename(
+    nhip = enrollment_1, 
+    non_nhip = enrollment_2, 
+    ssf = enrollment_3, 
+    non_ssf = enrollment_4
+  )
+
+write.csv(supervisor_wise, "supervisor_wise.csv")
+
+nonssf <- section0 %>%
+  mutate(enrollment = as.numeric(enrollment)) %>%
+  filter(enrollment == 4)
+
+write.csv(nonssf, "non-ssf.csv")
+
+#SOCIAL SECURITY
+
+ssf <- section0 %>%
+  mutate(enrollment = as.numeric(enrollment)) %>%
+  filter(enrollment %in% c(3,4)) %>%
+  select(psu, name, province) 
+
+ssf <- ssf %>%
+  mutate(
+    psu = as.numeric(psu),
+    group = case_when(
+      ((psu %/% 100) %% 10) == 3 ~ "ssf",
+      ((psu %/% 100) %% 10) == 4 ~ "non ssf",
+      TRUE ~ NA_character_
+    )
+  )
+
+non_ssf <- ssf %>%
+  filter(group == "non ssf")
+
+ssf <- ssf %>%
+  filter(group == "ssf") 
+
+ssf <- ssf %>%
+  mutate(
+    name_clean = name %>%
+      str_to_lower() %>%                
+      str_replace_all("[[:punct:]]", "") %>%  
+      str_replace_all("\\s+", " ") %>%       
+      str_trim()                             
+  ) %>%
+  select(-name)
+
+non_ssf <- non_ssf %>%
+  mutate(
+    name_clean = name %>%
+      str_to_lower() %>%                
+      str_replace_all("[[:punct:]]", "") %>%  
+      str_replace_all("\\s+", " ") %>%       
+      str_trim()                             
+  ) %>%
+  select(-name)
+
+province1_ssf <- ssf %>%
+  filter(province == 1)
+write.csv(province1_ssf, "province1_ssf.csv")
+
+province2_ssf <- ssf %>%
+  filter(province == 2)
+write.csv(province2_ssf, "province2_ssf.csv")
+
+province3_ssf <- ssf %>%
+  filter(province == 3)
+write.csv(province3_ssf, "province3_ssf.csv")
+
+province4_ssf <- ssf %>%
+  filter(province == 4)
+write.csv(province4_ssf, "province4_ssf.csv")
+
+province5_ssf <- ssf %>%
+  filter(province == 5)
+write.csv(province5_ssf, "province5_ssf.csv")
+
+province6_ssf <- ssf %>%
+  filter(province == 6)
+write.csv(province6_ssf, "province6_ssf.csv")
+
+province7_ssf <- ssf %>%
+  filter(province == 7)
+write.csv(province7_ssf, "province7_ssf.csv")
+
+province1_nonssf <- non_ssf %>%
+  filter(province == 1)
+write.csv(province1_nonssf, "province1_nonssf.csv")
+
+province2_nonssf <- non_ssf %>%
+  filter(province == 2)
+write.csv(province2_nonssf, "province2_nonssf.csv")
+
+province3_nonssf <- non_ssf %>%
+  filter(province == 3)
+write.csv(province3_nonssf, "province3_nonssf.csv")
+
+province4_nonssf <- non_ssf %>%
+  filter(province == 4)
+write.csv(province4_nonssf, "province4_nonssf.csv")
+
+province5_nonssf <- non_ssf %>%
+  filter(province == 5)
+write.csv(province5_nonssf, "province5_nonssf.csv")
+
+province6_nonssf <- non_ssf %>%
+  filter(province == 6)
+write.csv(province6_nonssf, "province6_nonssf.csv")
+
+province7_nonssf <- non_ssf %>%
+  filter(province == 7)
+write.csv(province7_nonssf, "province7_nonssf.csv")
+
+write.csv(non_ssf, "nonssf.csv")
+write.csv(ssf, "ssf.csv")
+
+
+
+
+
+coverpage_manoj <- coverpage_manoj %>%
+  select(psu, name, province) %>%
+  mutate(
+    psu = as.numeric(psu),
+    group = case_when(
+      ((psu %/% 100) %% 10) == 3 ~ "ssf",
+      ((psu %/% 100) %% 10) == 4 ~ "non ssf",
+      TRUE ~ NA_character_
+    )
+  )
+
+non_ssf_manoj <- coverpage_manoj %>%
+  filter(group == "non ssf")
+
+ssf_manoj <- coverpage_manoj %>%
+  filter(group == "ssf") 
+
+ssf <- ssf %>%
+  mutate(
+    name_clean = name %>%
+      str_to_lower() %>%                
+      str_replace_all("[[:punct:]]", "") %>%  
+      str_replace_all("\\s+", " ") %>%       
+      str_trim()                             
+  ) %>%
+  select(-name)
+
+non_ssf <- non_ssf %>%
+  mutate(
+    name_clean = name %>%
+      str_to_lower() %>%                
+      str_replace_all("[[:punct:]]", "") %>%  
+      str_replace_all("\\s+", " ") %>%       
+      str_trim()                             
+  ) %>%
+  select(-name)

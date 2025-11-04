@@ -10,6 +10,7 @@ library(writexl)
 section0 <- read.xlsx("dataset/cover page.xlsx")
 section1a <- read.xlsx("dataset/section 1.xlsx")
 section1b <- read.xlsx("dataset/Part 1_1 Household Roster-1.xlsx")
+section2a1 <- read.xlsx("dataset/Household Characteristics.xlsx")
 section2a2 <- read.xlsx("dataset/Section 2_1 Housing Expenses.xlsx")
 section2a3 <- read.xlsx("dataset/Utilities and Amenities.xlsx")
 section3a <- read.xlsx("dataset/Section 3_ Consumption of Food.xlsx")
@@ -37,8 +38,8 @@ section9b <- read.xlsx("dataset/Part 9_2_ Landholding  Increase Decrease.xlsx")
 section9c <- read.xlsx("dataset/Part 9_3_ Production and Uses.xlsx")
 section9d <- read.xlsx("dataset/Part 9_4_ Expenditure.xlsx")
 section9e <- read.xlsx("dataset/Part 9_5_ Livestock.xlsx")
-section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure (1).xlsx")
-section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure.xlsx")
+section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure (1).xlsx")
+section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure.xlsx")
 section10 <- read.xlsx("dataset/Income from Non - Agricultural Enterprises.xlsx")
 section11a <- read.xlsx("dataset/section 11.xlsx")
 section11b <- read.xlsx("dataset/Part 11_2_ Lending and Outstanding Loans.xlsx")
@@ -49,10 +50,12 @@ section13a <- read.xlsx("dataset/section 13.xlsx")
 section13b <- read.xlsx("dataset/Part 13_2_ Social Assistance.xlsx")
 section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
 
+
 #SUMMARISING SECTION 3A PER HOUSEHOLD
 
 food_at_home <- section3a %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     home_production   = sum(as.numeric(v303), na.rm = TRUE),
     food_purchases    = sum(as.numeric(v304), na.rm = TRUE),
@@ -69,7 +72,8 @@ food_at_home <- section3a %>%
 #SUMMARISING SECTION 3B PER HOUSEHOLD
 
 food_away_from_home <- section3b %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     week_spend = sum(as.numeric(v308), na.rm = TRUE),
     week_receive = sum(as.numeric(v309), na.rm = TRUE)
@@ -84,7 +88,8 @@ food_away_from_home <- section3b %>%
 #SUMMARISING SECTION 4A PER HOUSEHOLD 
 
 non_food_expenditure <- section4a %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     non_food_annual = sum(as.numeric(v403a), na.rm = TRUE),
     non_food_month = sum(as.numeric(v403b), na.rm = TRUE)
@@ -93,8 +98,10 @@ non_food_expenditure <- section4a %>%
 
 #SUMMARISING SECTION 4B PER HOUSEHOLD
 
+
 expenditure_abroad <- section4b %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     abroad_annual = sum(as.numeric(v407a), na.rm = TRUE),
     abroad_month = sum(as.numeric(v407b), na.rm = TRUE)
@@ -104,7 +111,8 @@ expenditure_abroad <- section4b %>%
 #SUMMARISING SECTION 4D PER HOUSEHOLD
 
 consumption_of_goods <- section4d %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     goods_annual = sum(as.numeric(v416a), na.rm = TRUE),
     goods_month = sum(as.numeric(v416b), na.rm = TRUE)
@@ -119,17 +127,18 @@ consumption_dfs <- list(
   consumption_of_goods 
 )
 
-consumption_hh <- reduce(consumption_dfs, full_join, by = "ID") %>%
+consumption_hh <- reduce(consumption_dfs, full_join, by = "hhid") %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_food_annual = foodathome_annual + foodawayhome_annual
   ) %>%
-  select(ID, total_food_annual, foodathome_annual, foodawayhome_annual, non_food_annual, abroad_annual, goods_annual)
+  select(hhid, total_food_annual, foodathome_annual, foodawayhome_annual, non_food_annual, abroad_annual, goods_annual)
 
 #SUMMARISING SECTION 5 PER HOUSEHOLD
 
 education_expenses <- section5 %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     tuition_fee = sum(as.numeric(v502a), na.rm = TRUE), 
     other_fee = sum(as.numeric(v502b), na.rm = TRUE), 
@@ -141,7 +150,7 @@ education_expenses <- section5 %>%
     scholarship = sum(as.numeric(v504), na.rm = TRUE)
   ) %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_expense_education = rowSums(across(
       c(tuition_fee, other_fee, dress_expense, books_expense, transportation_expense, private_tuition, other_expense),
     ), na.rm = TRUE),
@@ -153,7 +162,8 @@ education_expenses <- section5 %>%
 #SUMMARISING SECTION 6.2.3 PER HOUSEHOLD                     
 
 chronic_outpatient_expenditure <- section6b3 %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     emergency_expense = sum(as.numeric(v614a), na.rm = TRUE), 
     opd_expense = sum(as.numeric(v614b), na.rm = TRUE), 
@@ -168,7 +178,7 @@ chronic_outpatient_expenditure <- section6b3 %>%
     total_cost = sum(as.numeric(v614k), na.rm = TRUE)
   ) %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_cost_chronic_outpatient = rowSums(across(
       c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense, transportation_expense, food_accom_expense, care_giver_expense, other_cost),
     ), na.rm = TRUE),
@@ -178,7 +188,8 @@ chronic_outpatient_expenditure <- section6b3 %>%
 #SUMMARISING SECTION 6.2.4 PER HOUSEHOLD
 
 chronic_inpatient_expenditure <- section6b4 %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     emergency_expense = sum(as.numeric(v618a), na.rm = TRUE), 
     opd_expense = sum(as.numeric(v618b), na.rm = TRUE), 
@@ -194,7 +205,7 @@ chronic_inpatient_expenditure <- section6b4 %>%
 
   ) %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_cost_chronic_inpatient = rowSums(across(
       c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense, transportation_expense, food_accom_expense, care_giver_expense, other_cost),
     ), na.rm = TRUE),
@@ -204,7 +215,8 @@ chronic_inpatient_expenditure <- section6b4 %>%
 #SUMMARISING SECTION 6.3.4 PER HOUSEHOLD
 
 acute_expenditure <- section6c4 %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     emergency_expense = sum(as.numeric(v651a), na.rm = TRUE), 
     opd_expense = sum(as.numeric(v651b), na.rm = TRUE), 
@@ -219,7 +231,7 @@ acute_expenditure <- section6c4 %>%
     total_cost = sum(as.numeric(v651k), na.rm = TRUE)
   ) %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_cost_acute = rowSums(across(
       c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense, transportation_expense, food_accom_expense, care_giver_expense, other_cost),
     ), na.rm = TRUE
@@ -230,13 +242,14 @@ acute_expenditure <- section6c4 %>%
 #SUMMARISING SECTION 6.4 
 
 household_health <- section6d %>%
-  select(ID, v662, v663) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  select(hhid, v662, v663) %>%
   rename(
     reported_oop = v662,
     reimbursed_amount = v663
   ) %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0))
+    across(-hhid, ~ replace_na(as.numeric(.x), 0))
   )
 
 #AGGREGATING EXPENDITURE OF HOUSEHOLDS
@@ -250,40 +263,47 @@ expenditure_dfs <- list(
   household_health
 )
 
-expenditure_hhld <- Reduce(function(x, y) full_join(x, y, by = "ID"), expenditure_dfs)
+expenditure_hhld <- Reduce(function(x, y) full_join(x, y, by = "hhid"), expenditure_dfs)
 
 expenditure_hhld <- expenditure_hhld %>%
   select(
-    ID, total_food_annual, net_expense_education, total_cost_chronic_inpatient, total_cost_chronic_outpatient, total_cost_acute, reported_oop, reimbursed_amount
+    hhid, total_food_annual, net_expense_education, total_cost_chronic_inpatient, total_cost_chronic_outpatient, total_cost_acute, reported_oop, reimbursed_amount
   ) %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_health_cost = rowSums(across(
       c(total_cost_chronic_inpatient, total_cost_chronic_outpatient, total_cost_acute)
     )),
     total_expenditure = rowSums(across(
       c(total_food_annual, net_expense_education, total_cost_chronic_inpatient, total_cost_chronic_outpatient, total_cost_acute)
     ), na.rm = TRUE)
-  )
+  ) %>%
+  distinct(hhid, .keep_all = TRUE)
 
 #SUMMARISING SECTION 2 PER HOUSEHOLD 
 
 rent_income <- section2a2 %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    hhid = paste0(psu, "-", hhld),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     v212 = as.numeric(v212),
     rent_annual = v212 * 12
   ) %>%
-  select(ID, rent_annual)
+  select(hhid, rent_annual)
+
+rent_income <- rent_income %>%
+  group_by(hhid) %>%
+  summarise(across(where(is.numeric), \(x) sum(x, na.rm = TRUE)), .groups = "drop")
 
 #SUMMARISING SECTION 8 PER HOUSEHOLD 
 
 household_wage_income <- section8 %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    hhid = paste0(psu, "-", hhld),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     day_income = (as.numeric(v805) * as.numeric(v806)) + as.numeric(v807)
   ) %>%
-  group_by(ID) %>%
+  group_by(hhid) %>%
   summarise(
     total_day_income = sum(day_income, na.rm = TRUE), 
     total_salary = sum(as.numeric(v808a), na.rm = TRUE), 
@@ -308,20 +328,22 @@ household_wage_income <- section8 %>%
 #SUMMARISING SECTION 9.1 PER HOUSEHOLD 
 
 landholding_agri <- section9a %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   mutate(
-    v907b = as.numeric(v907b)
+    v907c = as.numeric(v907c)
   ) %>%
   summarise(
     expected_land_prices = sum(as.numeric(v906), na.rm = TRUE),                                       
-    land_rent_received_cash = sum(as.numeric(v907b), na.rm = TRUE)
+    land_rent_received_cash = sum(as.numeric(v907c), na.rm = TRUE)
   ) %>%
   ungroup()
 
 #SUMMARISING SECTION 9.2 PER HOUSEHOLD 
 
 landholding_buysell <- section9b %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     land_sell = sum(as.numeric(v910), na.rm = TRUE),
     land_buy = sum(as.numeric(v913), na.rm = TRUE)
@@ -331,7 +353,8 @@ landholding_buysell <- section9b %>%
 #SUMMARISING SECTION 9.3 PER HOUSEHOLD
 
 land_production <- section9c %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     total_production_sale = sum(as.numeric(v918d), na.rm = TRUE)
   ) %>%
@@ -340,6 +363,7 @@ land_production <- section9c %>%
 #SUMMARISING SECTION 9.4 
 
 agri_expenditure <- section9d %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
   rename(
     seeds_price = v920, 
     seeds_transportation = v921,
@@ -355,11 +379,11 @@ agri_expenditure <- section9d %>%
     thrasher_rent = v932c, 
     other_expenditure = v932d
   ) %>%
-  select(ID, seeds_price, seeds_transportation, fertilizers_price, fertilizers_transportation,
+  select(hhid, seeds_price, seeds_transportation, fertilizers_price, fertilizers_transportation,
          farm_labour_expenditure, irrigation_charges, land_improvements, equipment_repair,
          crop_insurance, animal_rent, tractor_rent, thrasher_rent, other_expenditure) %>%
   mutate(
-    across(-ID, ~ replace_na(as.numeric(.x), 0)),
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     agri_expense = seeds_price + seeds_transportation + fertilizers_price + fertilizers_transportation +
                    farm_labour_expenditure + irrigation_charges + land_improvements + equipment_repair +
                    crop_insurance + animal_rent + tractor_rent + thrasher_rent + other_expenditure
@@ -369,7 +393,8 @@ agri_expenditure <- section9d %>%
 #SUMMARISING SECTION 9.5 PER HOUSEHOLD
 
 livestock_ownership <- section9e %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     own_livestock_price = sum(as.numeric(v936b), na.rm = TRUE),
     livestock_sell = sum(as.numeric(v938b), na.rm = TRUE), 
@@ -380,7 +405,8 @@ livestock_ownership <- section9e %>%
 #SUMMARISING SECTION 9.6.1 PER HOUSEHOLD 
 
 livestock_income <- section9f1 %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     total_livestock_income = sum(as.numeric(v941), na.rm = TRUE)
   ) %>%
@@ -389,7 +415,8 @@ livestock_income <- section9f1 %>%
 #SUMMARISING SECTION 9.6.2 PER HOUSEHOLD 
 
 livestock_expenditure <- section9f2 %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     total_expenditure_livestock = sum(as.numeric(v943), na.rm = TRUE)
   ) %>%
@@ -405,18 +432,22 @@ farm_dfs <- list(
   agri_expenditure
 )
 
-farm_hh <- Reduce(function(x, y) full_join(x, y, by = "ID"), farm_dfs) 
+farm_hh <- Reduce(function(x, y) full_join(x, y, by = "hhid"), farm_dfs) 
 
 farm_hh <- farm_hh %>%
   mutate(
     across(everything(), ~replace_na(.x, 0)),
-    net_farm_income = total_livestock_income + total_production_sale + land_rent_received_cash + livestock_sell - total_expenditure_livestock - agri_expense
+    total_farm_income = total_livestock_income + total_production_sale + land_rent_received_cash + livestock_sell,
+    total_farm_expenditure = total_expenditure_livestock + agri_expense
   )
 
+farm_hh <- farm_hh %>%
+  distinct(hhid, .keep_all = TRUE)
 
 #SUMMARISING SECTION 10 PER HOUSEHOLD 
 
 non_agri_income <- section10 %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
   mutate(
     v1011 = rowSums(cbind(
       as.numeric(v1005),
@@ -427,7 +458,7 @@ non_agri_income <- section10 %>%
       -as.numeric(v1010)
     ), na.rm = TRUE)
   ) %>%
-  group_by(ID) %>%
+  group_by(hhid) %>%
   summarise(
     total_non_agri_income = sum(v1011, na.rm = TRUE)
   ) %>%
@@ -437,7 +468,8 @@ non_agri_income <- section10 %>%
 #SUMMARISING SECTION 12.1 PER HOUSEHOLD 
 
 remittance_income <- section12a %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     total_money_received       = sum(as.numeric(v1210), na.rm = TRUE), 
     total_valueofgoods_received = sum(as.numeric(v1211), na.rm = TRUE),
@@ -450,7 +482,7 @@ remittance_income <- section12a %>%
     total_amount_received = rowSums(across(
       c(total_money_received, total_valueofgoods_received)
     )),
-    net_remittance_received = total_amount_received - total_sent_abroad
+    net_remittance_received = total_amount_received
   ) %>%
   ungroup()
 
@@ -458,7 +490,8 @@ remittance_income <- section12a %>%
 #SUMMARISING SECTION 13.1 PER HOUSEHOLD 
 
 cash_transfer_program <- section13a %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     cash_assistance_received = sum(as.numeric(v1305), na.rm = TRUE)
   ) %>%
@@ -467,7 +500,8 @@ cash_transfer_program <- section13a %>%
 #SUMMARISING SECTION 13.3 PER HOUSEHOLD
 
 other_income <- section13c %>%
-  group_by(ID) %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  group_by(hhid) %>%
   summarise(
     other_income_annual = sum(as.numeric(v1312), na.rm = TRUE)
   ) %>%
@@ -479,24 +513,25 @@ income_dfs <- list(
   household_wage_income, farm_hh, remittance_income, cash_transfer_program, non_agri_income, rent_income, other_income
 )
 
-income_hhld <- Reduce(function(x, y) full_join(x, y, by = "ID"), income_dfs)
+income_hhld <- Reduce(function(x, y) full_join(x, y, by = "hhid"), income_dfs)
 
 income_hhld <- income_hhld %>%
-  select(ID, total_hh_income, net_farm_income, net_remittance_received, cash_assistance_received, total_non_agri_income, rent_annual, other_income_annual) %>%
+  select(hhid, total_hh_income, total_farm_income, net_remittance_received, cash_assistance_received, total_non_agri_income, rent_annual, other_income_annual) %>%
   mutate(
     across(everything(), ~replace_na(.x, 0)),
     total_income = rowSums(across(
-      c(total_hh_income, net_farm_income, net_remittance_received, cash_assistance_received, total_non_agri_income, rent_annual, other_income_annual)
+      c(total_hh_income, total_farm_income, net_remittance_received, cash_assistance_received, total_non_agri_income, rent_annual, other_income_annual)
     ), na.rm = TRUE)
   )
 
 
-income_expenditure_hhld <- merge.data.frame(income_hhld, expenditure_hhld, by.x = "ID", by.y = "ID", all = FALSE)
+income_expenditure_hhld <- merge.data.frame(income_hhld, expenditure_hhld, by.x = "hhid", by.y = "hhid", all = FALSE)
 
 income_expenditure_hhld <- income_expenditure_hhld %>%
   mutate(
     income_expenditure_ratio = total_income / total_expenditure
-  )
+  ) %>%
+  select(hhid, total_income, total_expenditure, income_expenditure_ratio)
 
 write.csv(income_expenditure_hhld, "hh_income_expenditure.csv")
 
@@ -514,7 +549,7 @@ income_clean_data <- income_expenditure_hhld[!is.na(income_expenditure_hhld$tota
 
 z_logx <- as.vector(scale(log1p(income_clean_data$total_income)))
 
-z_logx <- data.frame(ID = income_clean_data$ID, z_income = z_logx)
+z_logx <- data.frame(hhid = income_clean_data$hhid, z_income = z_logx)
 
 outliers_income <- z_logx[z_logx$z_income < -3 | z_logx$z_income > 3,]
 
@@ -524,9 +559,61 @@ expenditure_clean_data <- income_expenditure_hhld[!is.na(income_expenditure_hhld
 
 z_logy <- as.vector(scale(log1p(expenditure_clean_data$total_expenditure)))
 
-z_logy <- data.frame(ID = expenditure_clean_data$ID, z_expenditure = z_logy)
+z_logy <- data.frame(hhid = expenditure_clean_data$hhid, z_expenditure = z_logy)
 
 outliers_expenditure <- z_logy[z_logy$z_expenditure < -3 | z_logy$z_expenditure > 3,]
 
 hh_flagged <- income_expenditure_hhld %>%
   filter(income_expenditure_ratio < 0.5 | income_expenditure_ratio > 1.5)
+
+#OUTLIER DETECTION FOR INCOME EXPENDITURE RATIO 
+
+income_expense_ratio_clean_data <- income_expenditure_hhld[!is.na(income_expenditure_hhld$income_expenditure_ratio) & income_expenditure_hhld$income_expenditure_ratio > 0,]
+
+zloga <- as.vector(scale(log1p(income_expense_ratio_clean_data$income_expenditure_ratio)))
+
+zloga <- data.frame(hhid = income_expense_ratio_clean_data$hhid, z_ratio = zloga)
+
+outliers_ratio <- zloga[zloga$z_ratio < - 3 | zloga$z_ratio > 3,]
+
+#SINGULAR INCOME DISCREPANCY
+
+income_expenditure_hhld <- income_expenditure_hhld %>%
+  mutate(
+    z_income = ifelse(
+      total_income > 0 & !is.na(total_income),
+      as.vector(scale(log1p(total_income))),
+      NA
+    ),
+    
+    income_flag = case_when(
+      is.na(total_income) ~ "missing_income",
+      total_income == 0 ~ "zero_income",
+      total_income < 0 ~ "negative_income",
+      z_income < -3 | z_income > 3 ~ "outlier_income",
+      TRUE ~ "normal_income"
+    )
+  )
+
+income_outliers_combined <- income_expenditure_hhld %>%
+  filter(income_flag != "normal_income") %>%
+  select(hhid, total_income, z_income, income_flag)
+
+income_outliers_combined <- merge(
+  income_outliers_combined, 
+  section0[, c("hhid", "Name.of.enumerator")],
+  by = "hhid", 
+  all.x = TRUE
+)
+
+outliers <- income_outliers_combined %>%
+  group_by(Name.of.enumerator, income_flag) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  pivot_wider(
+    names_from = income_flag, 
+    values_from = count, 
+    values_fill = 0
+  )
+
+enumerator_wise <- merge.data.frame(enumerator_wise, outliers, by.x = "Name.of.enumerator", by.y = "Name.of.enumerator", all = TRUE)
+
