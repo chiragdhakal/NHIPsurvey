@@ -723,6 +723,9 @@ write.csv(section0_commas, "commas check/section0_commas.csv", row.names = FALSE
 section1a_commas <- section1a %>%
   filter(if_any(everything(), ~ grepl(",", .)))
 
+section1a <- section1a %>%
+  mutate(across(where(~ any(grepl(",", .))), ~ sub(",.*", "", .)))
+
 write.csv(section1a_commas, "commas check/section1a_commas.csv", row.names = FALSE)
 
 section1b_commas <- section1b %>%
@@ -777,6 +780,9 @@ section4c_commas <- section4c %>%
 section5_commas <- section5 %>%
   filter(if_any(everything(), ~ grepl(",", .)))
 
+section5 <- section5 %>%
+  mutate(across(where(~ any(grepl(",", .))), ~ sub(",.*", "", .)))
+
 write.csv(section5_commas, "commas check/section5_commas.csv", row.names = FALSE)
 
 section6a_commas <- section6a %>%
@@ -814,17 +820,37 @@ section7_commas <- section7 %>%
   select(-v709a, -v710b, -v714a, -v716) %>%
   filter(if_any(everything(), ~ grepl(",", .)))
 
+section7 <- section7 %>%
+  mutate(across(
+    .cols = -c(v709a, v710b, v714a, v716),  
+    .fns = ~ ifelse(grepl(",", .), sub(",.*", "", .), .)
+  ))
+
+
 write.csv(section7_commas, "commas check/section7_commas.csv", row.names = FALSE)
 
 section8_commas <- section8 %>%
   select(-v803, -v803b ) %>%
   filter(if_any(everything(), ~ grepl(",", .)))
 
+section8 <- section8 %>%
+  mutate(across(
+    .cols = -c(v803, v803b),  
+    .fns = ~ ifelse(grepl(",", .), sub(",.*", "", .), .)
+  ))
+
 write.csv(section8_commas, "commas check/section8_commas.csv", row.names = FALSE)
 
 section9a_commas <- section9a %>%
   select(-v902b) %>%
   filter(if_any(everything(), ~ grepl(",", .)))
+
+section9a <- section9a %>%
+  mutate(across(
+    .cols = -c(v902b), 
+    .fns = ~ ifelse(grepl(",", .), sub(",.*", "", .), .)
+  ))
+
 
 write.csv(section9a_commas, "commas check/section9a_commas.csv", row.names = FALSE)
 

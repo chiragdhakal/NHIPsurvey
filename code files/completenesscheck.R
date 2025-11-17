@@ -52,12 +52,41 @@ section13a <- read.xlsx("dataset/section 13.xlsx")
 section13b <- read.xlsx("dataset/Part 13_2_ Social Assistance.xlsx")
 section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
 
+#REMOVING COMMAS IN UNNECESSARY SECTIONS
+
+section1a <- section1a %>%
+  mutate(across(where(~ any(grepl(",", .))), ~ sub(",.*", "", .)))
+
+section5 <- section5 %>%
+  mutate(across(where(~ any(grepl(",", .))), ~ sub(",.*", "", .)))
+
+section7 <- section7 %>%
+  mutate(across(
+    .cols = -c(v709a, v710b, v714a, v716),  
+    .fns = ~ ifelse(grepl(",", .), sub(",.*", "", .), .)
+  ))
+
+section8 <- section8 %>%
+  mutate(across(
+    .cols = -c(v803, v803b),  
+    .fns = ~ ifelse(grepl(",", .), sub(",.*", "", .), .)
+  ))
+
+section9a <- section9a %>%
+  mutate(across(
+    .cols = -c(v902b), 
+    .fns = ~ ifelse(grepl(",", .), sub(",.*", "", .), .)
+  ))
+
 #MAKING HHLD UNIQUE ACROSS THE ENTIRE DATABASE 
 
 section0 <- section0 %>%
+  group_by(psu) %>%
   mutate(
+    hhld = row_number(),
     hhid = paste0(psu, "-", hhld)
-  )
+  ) %>%
+  ungroup()
 
 sections <- list(
   section1a, section1b, section2a1, section2a2, section2a3, section2b, section2c,
@@ -137,6 +166,15 @@ hh_members <- merge(
   all = TRUE
 )
 
+hh_members <- merge(
+  hh_members, 
+  section0[, c("ID", "hhid")],
+  by = "hhid", 
+  all = TRUE
+)
+
+write.xlsx(hh_members, "completeness checks/hh_members.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 5
 
 s5_qualified <- section1b %>%
@@ -187,14 +225,27 @@ hhmembers_s5 <- merge(
   all = TRUE
 )
 
+hhmembers_s5 <- merge(
+  hhmembers_s5, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s5, "completeness checks/section5_discrepency.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.1 
 
-s6_qualified <- section1a %>%
+s6_qualified <- section1a %>% 
   mutate(
     hhid = paste0(psu, "-", hhld),
-    uniq_id = paste0(psu, "-", hhld, "-", v101)
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    v104a = as.numeric(v104a)
   ) %>%
-  filter(v109 %in% c(1, 2)) %>%
+  filter(
+    v109 %in% c(1, 2),
+    v104a >= 5
+  ) %>%
   group_by(hhid) %>%
   summarise(
     qualified_members = n()
@@ -202,8 +253,10 @@ s6_qualified <- section1a %>%
 
 hhmembers_s6a <- section6a %>%
   mutate(
-    hhid = paste0(psu, "-", hhld)
+    hhid = paste0(psu, "-", hhld), 
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     actual_members = n()
@@ -217,34 +270,61 @@ hhmembers_s6a <- merge(
   all = TRUE
 )
 
+hhmembers_s6a <- merge(
+  hhmembers_s6a, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6a, "completeness checks/section6a_discrepency.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.2.1
 
-s6b1_qualified <- section6b1 %>%
+s6b1_qualified <- section1a %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101),
-    v109 = as.numeric(v109), 
-    v104a = as.numeric(v104a)
+    hhid = paste0(psu, "-", hhld),
+    v104a = as.numeric(v104a), 
+    v109 = as.numeric(v109)
   ) %>%
   filter(
     v109 %in% c(1, 2)
-  )
-
-hhmembers_s6b1 <- section6b1 %>%
-  mutate(
-    hhid = paste0(psu, "-", hhld)
   ) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
-    hh_members_s6b1 = n()
+    qualified_members = n()
   ) %>%
   ungroup()
 
-hh_members <- merge(
-  hh_members, 
+hhmembers_s6b1 <- section6b1 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  ) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
+  group_by(hhid) %>%
+  summarise(
+    actual_members = n()
+  ) %>%
+  ungroup()
+
+hhmembers_s6b1 <- merge( 
   hhmembers_s6b1,
+  s6b1_qualified,
   by = "hhid", 
   all = TRUE
 )
+
+hhmembers_s6b1 <- merge(
+  hhmembers_s6b1, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6b1, "completeness checks/section6b1_discrepency.xlsx")
 
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.2.2
 
@@ -267,7 +347,7 @@ hhmembers_s6b2 <- section6b2 %>%
     hhid = paste0(psu, "-", hhld),
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     hh_members_s6b2 = n()
@@ -281,6 +361,15 @@ hhmembers_s6b2 <- merge(
   all = TRUE
 )
 
+hhmembers_s6b2 <- merge(
+  hhmembers_s6b2, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6b2, "completeness checks/section6b2_discrepancy.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.2.3
 
 s6b3_qualified <- section6b1 %>%
@@ -292,7 +381,7 @@ s6b3_qualified <- section6b1 %>%
     v603 == 1, 
     v605a > 0
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     qualified_members = n()
@@ -304,7 +393,7 @@ hhmembers_s6b3 <- section6b3 %>%
     hhid = paste0(psu, "-", hhld), 
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     hh_members_s6b3 = n()
@@ -318,6 +407,15 @@ hhmembers_s6b3 <- merge(
   all = TRUE
 )
 
+hhmembers_s6b3 <- merge(
+  hhmembers_s6b3, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6b3, "completeness checks/section6b3_discrepancy.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.2.4
 
 s6b4_qualified <- section6b1 %>%
@@ -327,7 +425,7 @@ s6b4_qualified <- section6b1 %>%
     hhid = paste0(psu, "-", hhld)
   ) %>%
   filter(trimws(v605b) > 0) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     qualified_members = n()
@@ -339,19 +437,28 @@ hhmembers_s6b4 <- section6b4 %>%
     hhid = paste0(psu, "-", hhld), 
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     actual_members = n()
   ) %>%
   ungroup()
 
-hh_members <- merge(
+hhmembers_s6b4 <- merge(
   hhmembers_s6b4,
   s6b4_qualified, 
   by = "hhid", 
   all = TRUE
 )
+
+hhmembers_s6b4 <- merge(
+  hhmembers_s6b4, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6b4, "completeness checks/section6b4_discrepancy.xlsx")
 
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.3.1
 
@@ -364,7 +471,7 @@ s6c1_qualified <- section1a %>%
   filter(
     v109 %in% c(1, 2)
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     qualified_members = n()
@@ -377,7 +484,7 @@ hhmembers_s6c1 <- section6c1 %>%
     hhid = paste0(psu, "-", hhld), 
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     actual_members = n()
@@ -391,6 +498,15 @@ hhmembers_s6c1 <- merge(
   all = TRUE
 )
 
+hhmembers_s6c1 <- merge(
+  hhmembers_s6c1, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6c1, "completeness checks/section6c1_discrepancy.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.3.2
 
 s6c2_qualified <- section6c1 %>%
@@ -401,7 +517,7 @@ s6c2_qualified <- section6c1 %>%
   ) %>%
   filter(v629 == "1"
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     qualified_members = n()
@@ -413,7 +529,7 @@ hhmembers_s6c2 <- section6c2 %>%
     hhid = paste0(psu, "-", hhld), 
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     actual_members = n()
@@ -427,6 +543,15 @@ hhmembers_s6c2 <- merge(
   all = TRUE
 )
 
+hhmembers_s6c2 <- merge(
+  hhmembers_s6c2, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6c2, "completeness checks/section6c2_discrepancy.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.3.3
 
 s6c3_qualified <- section6c1 %>%
@@ -437,7 +562,7 @@ s6c3_qualified <- section6c1 %>%
   ) %>%
   filter(v629 == "1"
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     qualified_members = n()
@@ -449,7 +574,7 @@ hhmembers_s6c3 <- section6c3 %>%
     hhid = paste0(psu, "-", hhld), 
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     actual_members = n()
@@ -463,6 +588,15 @@ hhmembers_s6c3 <- merge(
   all = TRUE
 )
 
+hhmembers_s6c3 <- merge(
+  hhmembers_s6c3, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6c3, "completeness checks/section6c3_discrepancy.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 6.3.4
 
 s6c4_qualified <- section6c1 %>%
@@ -473,7 +607,7 @@ s6c4_qualified <- section6c1 %>%
   ) %>%
   filter(v629 == "1"
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     qualified_members = n()
@@ -485,7 +619,7 @@ hhmembers_s6c4 <- section6c4 %>%
     hhid = paste0(psu, "-", hhld), 
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     actual_members = n()
@@ -498,6 +632,15 @@ hhmembers_s6c4 <- merge(
   by = "hhid", 
   all = TRUE
 )
+
+hhmembers_s6c4 <- merge(
+  hhmembers_s6c4, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s6c4, "completeness checks/section6c4_discrepancy.xlsx")
 
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 7
 
@@ -521,7 +664,7 @@ hhmembers_s7 <- section7 %>%
     hhid = paste0(psu, "-", hhld),
     uniq_id = paste0(psu, "-", hhld, "-", v101),
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(actual_members = n()) %>%
   ungroup() 
@@ -532,6 +675,15 @@ hhmembers_s7 <- merge(
   by = "hhid", 
   all = TRUE
 )  
+
+hhmembers_s7 <- merge(
+  hhmembers_s7, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s7, "completeness checks/section7_discrepancy.xlsx")
 
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 8 
 
@@ -555,7 +707,7 @@ hhmembers_s8 <- section8 %>%
     hhid = paste0(psu, "-", hhld),
     uniq_id = paste0(psu, "-", hhld, "-", v101),
   ) %>%
-  distinct(uniq_id) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(actual_members = n()) %>%
   ungroup() 
@@ -567,11 +719,19 @@ hhmembers_s8 <- merge(
   all = TRUE
 )  
 
+hhmembers_s8 <- merge(
+  hhmembers_s8, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s8, "completeness checks/section8_discrepancy.xlsx")
+
 #NUMBER OF HOUSEHOLD MEMBERS IN SECTION 12.1
 
 s12a_qualified <- section1a %>%
   mutate(
-    uniq_id = paste0(psu, "-", hhld, "-", v101),
     hhid = paste0(psu, "-", hhld),
     v104a = as.integer(v104a),
     v109 = as.integer(v109)
@@ -580,7 +740,6 @@ s12a_qualified <- section1a %>%
     v104a > 10, 
     v109 %in% c(3, 4)
   ) %>%
-  distinct(uniq_id) %>%
   group_by(hhid) %>%
   summarise(qualified_members = n()) %>%
   ungroup()
@@ -588,9 +747,7 @@ s12a_qualified <- section1a %>%
 hhmembers_s12a <- section12a %>%
   mutate(
     hhid = paste0(psu, "-", hhld),
-    uniq_id = paste0(psu, "-", hhld, "-", v101),
   ) %>%
-  distinct(uniq_id) %>%
   group_by(hhid) %>%
   summarise(actual_members = n()) %>%
   ungroup() 
@@ -601,5 +758,14 @@ hhmembers_s12a <- merge(
   by = "hhid", 
   all = TRUE
 )  
+
+hhmembers_s12a <- merge(
+  hhmembers_s12a, 
+  section0[, c("hhid", "ID")], 
+  by = "hhid", 
+  all = FALSE
+)
+
+write.xlsx(hhmembers_s12a, "completeness checks/section12a_discrepancy.xlsx")
 
 
