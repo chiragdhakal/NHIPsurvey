@@ -3784,34 +3784,6 @@ section7 <- section7 %>%
       v714a,
       label = "What are the main goods or services produced at your place of work or its main function (Description)?"
     ),
-    v714b = labelled(
-      v714b,
-      label = "NSIC Code (Economic Sector)", 
-      labels = c(
-        "Agriculture, forestry and fishing" = 1, 
-        "Mining and quarrying" = 2, 
-        "Manufacturing" = 3, 
-        "Electricty, gas, steam and air conditioning supply" = 4, 
-        "Water supply, sewerage, waste management and remediation activities" = 5,
-        "Construction" = 6, 
-        "Wholesale and retail trade" = 7, 
-        "Transportation and storage" = 8, 
-        "Accomodation and food service activities" = 9, 
-        "Publishing, broadcasting, and content production and distribution activities" = 10,
-        "Telecommunications, computer programming, consultancy, computing infrastructure, and other information service activities" = 11, 
-        "Financial and insurance activities" = 12, 
-        "Real estate activities" = 13, 
-        "Professional, scientific and technical activities" = 14,
-        "Administrative and support service activities" = 15, 
-        "Public administration and defence; compulsory social security" = 16, 
-        "Education" = 17, 
-        "Human health and social work activities" = 18, 
-        "Arts, sports and recreation" = 19, 
-        "Other service activities" = 20, 
-        "Activities of households as employers" = 21, 
-        "Activities of extraterritorial organizations and bodies" = 22
-      )
-    ),
     v715 = labelled(
       v715,
       label = "What kind of sector was your main activity carried out in?",

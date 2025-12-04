@@ -9,6 +9,7 @@ library(writexl)
 library(labelled)
 library(officer)
 library(flextable)
+library(stringr)
 
 section0 <- read.xlsx("dataset/cover page.xlsx")
 section1a <- read.xlsx("dataset/section 1.xlsx")
@@ -686,6 +687,12 @@ write.xlsx(ratio_income, "descriptive tables/ratio_income.xlsx")
 
 #DESCRIPTIVE TABLE FOR LABOUR AND EMPLOYMENT
 
+section1a <- section1a %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld), 
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
 labor_force <- section1a %>%
   filter(v104a >= 10 & v104a <= 65)
 
@@ -739,8 +746,50 @@ lfpr_province_gender <- labor_force %>%
     .groups = "drop"
   )
 
+work_population <- section7 %>%
+  filter(v702 == 1 | v703 == 1 | v704 == 1) %>%
+  mutate(
+    v714a = str_extract(v714a, "^[0-9]+") %>% as.numeric(),
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  ) %>%
+  select(uniq_id, hhid, v708) %>%
+  filter(!is.na(v708))
+
+work_population <- merge(
+  work_population, 
+  section0[, c("hhid", "province")],
+  by = "hhid"
+)
+
+work_population <- merge(
+  work_population, 
+  section1a[, c("uniq_id", "v103")],
+  by = "uniq_id"
+)
+
+work_type_nepal <- work_population %>%
+  group_by(v708) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
+work_type_province <- work_population %>%
+  group_by(province, v708) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
+work_type_gender <- work_population %>%
+  group_by(v103, v708) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
+
 write.xlsx(lfpr_province, "descriptive tables/lfpr_province.xlsx")
 write.xlsx(lfpr_province_gender, "descriptive tables/lfpr_province_gender.xlsx")
+write.xlsx(work_type_nepal, "descriptive tables/work_type_nepal.xlsx")
+write.xlsx(work_type_province, "descriptive tables/work_type_province.xlsx")
+write.xlsx(work_type_gender, "descriptive tables/work_type_gender.xlsx")
+
 
 #DESCRIPTIVE TABLE FOR CHRONIC ILLNESSES 
 
@@ -792,3 +841,66 @@ chronic_gender <- chronic_qualified %>%
 write.xlsx(chronic_nepal, "descriptive tables/chronic_nepal.xlsx")
 write.xlsx(chronic_province, "descriptive tables/chronic_province.xlsx")
 write.xlsx(chronic_gender, "descriptive tables/chronic_gender.xlsx")
+
+#DESCRIPTIVE TABLE FOR ACUTE ILLNESSES 
+
+acute_qualified <- section1a %>%
+  filter(
+    v109 %in% c(1, 2) & v104a >= 5
+  ) %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  ) %>%
+  select(uniq_id, hhid, v103)
+
+acute_qualified <- merge(
+  acute_qualified, 
+  section0[, c("hhid", "province")], 
+  by = "hhid"
+)
+
+section6c1 <- section6c1 %>%
+  mutate(
+    v630 = as.numeric(v630),
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
+acute_qualified <- merge(
+  acute_qualified,
+  section6c1[, c("uniq_id", "v630")],
+  by = "uniq_id"
+)
+
+acute_nepal <- acute_qualified %>%
+  filter(!is.na(v630)) %>%   
+  count(v630) %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
+acute_province <- acute_qualified %>%
+  filter(!is.na(v630)) %>%
+  group_by(province, v630) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
+acute_gender <- acute_qualified %>%
+  filter(!is.na(v630)) %>%
+  group_by(v103, v630) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
+write.xlsx(acute_nepal, "descriptive tables/acute_nepal.xlsx")
+write.xlsx(acute_province, "descriptive tables/acute_province.xlsx")
+write.xlsx(acute_gender, "descriptive tables/acute_gender.xlsx")
+
+#DESCRIPTIVE TABLE FOR EMPLOYMENT TYPES
+
+section7 <- section7 %>%
+  filter(v702 == 1 || v703 == 1 || v704 == 1) %>%
+  mutate(
+    v714a = str_extract(v714a, "^[0-9]+") %>% as.numeric(),
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  ) %>%
+  select(uniq_id, hhid, v103)
