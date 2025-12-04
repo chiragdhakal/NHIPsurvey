@@ -749,4 +749,3 @@ non_ssf <- non_ssf %>%
       str_replace_all("\\s+", " ") %>%       
       str_trim()                             
   ) %>%
-  select(-name)

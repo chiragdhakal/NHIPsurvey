@@ -336,6 +336,7 @@ s6b2_qualified <- section6b1 %>%
   ) %>%
   filter(v603 == "1"
   ) %>%
+  distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
     qualified_members = n()
@@ -350,7 +351,7 @@ hhmembers_s6b2 <- section6b2 %>%
   distinct(uniq_id, .keep_all = TRUE) %>%
   group_by(hhid) %>%
   summarise(
-    hh_members_s6b2 = n()
+    actual_members = n()
   ) %>%
   ungroup()
 
@@ -695,7 +696,7 @@ s8_qualified <- section1a %>%
     hhid = paste0(psu, "-", hhld)
   ) %>%
   filter(
-    v104a > 10, 
+    v104a >= 10, 
     v109 %in% c(1, 2)
   ) %>%
   group_by(hhid) %>%

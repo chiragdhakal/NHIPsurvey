@@ -617,3 +617,15 @@ outliers <- income_outliers_combined %>%
 
 enumerator_wise <- merge.data.frame(enumerator_wise, outliers, by.x = "Name.of.enumerator", by.y = "Name.of.enumerator", all = TRUE)
 
+#WINSORIZE THE INCOME VALUES
+
+library(DescTools)
+
+x <- income_expenditure_hhld$total_income
+
+val <- quantile(x, probs = c(0.02, 0.98), na.rm = TRUE)
+
+income_expenditure_hhld$total_income <- Winsorize(x, val = val)
+
+summary(income_expenditure_hhld$total_income)
+

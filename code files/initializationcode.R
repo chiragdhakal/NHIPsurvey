@@ -305,7 +305,7 @@ section1a <- section1a %>%
     v103 = labelled(
       v103, 
       label = "sex", 
-      labels = c(Male = 1, Female = 2, Others = 3)
+      labels = c(Male = 1, Female = 2, Others = 96)
     ), 
     v104a = labelled(
       v104a, 
@@ -488,7 +488,7 @@ section2c <- read.xlsx("dataset/PART 2_3_ Mortality (Death) Information.xlsx")
 
 #Part 2.1.1 - Type of dwelling
 
-for (i in setdiff(1:ncol(section2a1), c(6, 7, 12, 14, 16, 18))) {
+for (i in setdiff(1:ncol(section2a1), c(7, 8, 13, 15, 17, 19))) {
   section2a1[[i]] <- as.integer(section2a1[[i]])
 }
 

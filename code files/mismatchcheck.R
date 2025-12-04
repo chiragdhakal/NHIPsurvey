@@ -40,8 +40,8 @@ section9b <- read.xlsx("dataset/Part 9_2_ Landholding  Increase Decrease.xlsx")
 section9c <- read.xlsx("dataset/Part 9_3_ Production and Uses.xlsx")
 section9d <- read.xlsx("dataset/Part 9_4_ Expenditure.xlsx")
 section9e <- read.xlsx("dataset/Part 9_5_ Livestock.xlsx")
-section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock  Expenditure.xlsx")
-section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income.xlsx")
+section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure.xlsx")
+section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure (1).xlsx")
 section10 <- read.xlsx("dataset/Income from Non - Agricultural Enterprises.xlsx")
 section11a <- read.xlsx("dataset/section 11.xlsx")
 section11b <- read.xlsx("dataset/Part 11_2_ Lending and Outstanding Loans.xlsx")
@@ -483,8 +483,6 @@ missing_ids$uniq_id1
 nrow(section1b)       
 nrow(education_consistent)  
 
-
-
 #REMITTANCE CONSISTENCY CHECK
 section1a_remit <- section1a %>%
   mutate(
@@ -888,6 +886,7 @@ section11a_commas <- section11a %>%
   filter(if_any(everything(), ~ grepl(",", .)))
 
 section11b_commas <- section11b %>%
+  select(-v1112) %>%
   filter(if_any(everything(), ~ grepl(",", .)))
 
 section11c_commas <- section11c %>%

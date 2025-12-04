@@ -1,0 +1,21 @@
+cover <- read.xlsx("/home/sobaakun/Downloads/coverpage.xlsx")
+
+cover <- cover %>%
+  filter(interview_date >= as.Date("2082/7/20")) %>%
+  mutate(
+    supervisor_name = case_when(
+      Name.of.enumerator %in% c("SIRAJ POKHAREL", "SUSHAN SHRESTHA", "SUSHMITA PATHAK", "URMILA PARAJULI") ~ "SIRAJ POKHAREL",
+      Name.of.enumerator %in% c("NETRA RAJ DHITAL", "ASMITA DAHAL", "HARIHAR JOSHI") ~ "NETRA RAJ DHITAL",
+      Name.of.enumerator %in% c("TIKA RAM ACHARYA", "SARITA CHHETRI", "SHANKAR PRASAD NEUPANE") ~ "TIKA RAM ACHARYA",
+      Name.of.enumerator %in% c("BADRI PRASAD MAINALI", "BARSHA THAPA MAGAR", "AMBIKA PANDEY", "GIRIRAJ ADHIKARI") ~ "BADRI PRASAD MAINALI", 
+      Name.of.enumerator %in% c("MANOJ KUMAR BHATTARAI", "MANJU KC", "SWECHCHHA RANJIT", "AKSHYA ACHARYA") ~ "MANOJ KUMAR BHATTARAI",
+      Name.of.enumerator %in% c("KAMALA SHARMA", "PRAMILA ACHARYA", "ADITI KUMARI SHRESTHA", "SALINA ADHIKARI") ~ "KAMALA SHARMA",
+      Name.of.enumerator %in% c("MINA MAYA PARKHRIN", "ASMITA WAIBA", "KESA MAYA DAHAL", "RAMASHANKAR SAH", "RANJANA KUMARI MAINALI") ~ "MINA MAYA PAKHRIN",
+      Name.of.enumerator %in% c("SHEKHAR SHRESTHA", "PREEJA BASNET", "DEVIKA ACHARYA") ~ "SHEKHAR SHRESTHA"
+    )
+  )
+
+supervisor_count <- cover %>%
+  group_by(supervisor_name) %>%
+  summarise(nhhlds = n()) %>%
+  ungroup()
