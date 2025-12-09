@@ -130,9 +130,10 @@ consumption_dfs <- list(
 consumption_hh <- reduce(consumption_dfs, full_join, by = "hhid") %>%
   mutate(
     across(-hhid, ~ replace_na(as.numeric(.x), 0)),
-    total_food_annual = foodathome_annual + foodawayhome_annual
+    total_food_annual = foodathome_annual + foodawayhome_annual, 
+    total_consumption = total_food_annual + non_food_annual + abroad_annual + goods_annual
   ) %>%
-  select(hhid, total_food_annual, foodathome_annual, foodawayhome_annual, non_food_annual, abroad_annual, goods_annual)
+  select(hhid, total_food_annual, foodathome_annual, foodawayhome_annual, non_food_annual, abroad_annual, goods_annual, total_consumption)
 
 #SUMMARISING SECTION 5 PER HOUSEHOLD
 
@@ -246,7 +247,7 @@ household_health <- section6d %>%
   select(hhid, v662, v663) %>%
   rename(
     reported_oop = v662,
-    reimbursed_amount = v663
+    copay_amount = v663
   ) %>%
   mutate(
     across(-hhid, ~ replace_na(as.numeric(.x), 0))
@@ -301,27 +302,29 @@ household_wage_income <- section8 %>%
   mutate(
     hhid = paste0(psu, "-", hhld),
     across(-hhid, ~ replace_na(as.numeric(.x), 0)),
-    day_income = (as.numeric(v805) * as.numeric(v806)) + as.numeric(v807)
+    day_income = v805 * v806 + v807
   ) %>%
   group_by(hhid) %>%
   summarise(
     total_day_income = sum(day_income, na.rm = TRUE), 
-    total_salary = sum(as.numeric(v808a), na.rm = TRUE), 
-    total_transport_allowance = sum(as.numeric(v808b), na.rm = TRUE), 
-    total_bonus = sum(as.numeric(v808c), na.rm = TRUE),                       
-    total_uniform_allowance = sum(as.numeric(v808d), na.rm = TRUE), 
-    total_other_allowance = sum(as.numeric(v808e), na.rm = TRUE),
-    total_salary_inkind = sum(as.numeric(v809), na.rm = TRUE), 
-    total_contract_wage = sum(as.numeric(v810a), na.rm = TRUE), 
-    total_contract_inkind = sum(as.numeric(v810b), na.rm = TRUE)
+    total_salary = sum(v808a, na.rm = TRUE), 
+    total_transport_allowance = sum(v808b, na.rm = TRUE), 
+    total_bonus = sum(v808c, na.rm = TRUE),                       
+    total_uniform_allowance = sum(v808d, na.rm = TRUE), 
+    total_other_allowance = sum(v808e, na.rm = TRUE),
+    total_salary_inkind = sum(v809, na.rm = TRUE), 
+    total_contract_wage = sum(v810a, na.rm = TRUE), 
+    total_contract_inkind = sum(v810b, na.rm = TRUE)
   ) %>%
   mutate(
-    total_hh_income = rowSums(across(
-      c(total_day_income, total_salary, total_transport_allowance, total_bonus, 
-        total_uniform_allowance, total_other_allowance, total_salary_inkind, 
-        total_contract_wage, total_contract_inkind)),
-      na.rm = TRUE
-    )
+    total_hh_salary = total_salary +
+                      total_transport_allowance +
+                      total_bonus +
+                      total_uniform_allowance +
+                      total_other_allowance +
+                      total_salary_inkind,
+    total_hh_income = ifelse(total_hh_salary == 0, total_day_income, total_hh_salary),
+    total_hh_income = total_hh_income + total_contract_wage + total_contract_inkind
   ) %>%
   ungroup()
 

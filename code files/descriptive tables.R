@@ -894,13 +894,3 @@ write.xlsx(acute_nepal, "descriptive tables/acute_nepal.xlsx")
 write.xlsx(acute_province, "descriptive tables/acute_province.xlsx")
 write.xlsx(acute_gender, "descriptive tables/acute_gender.xlsx")
 
-#DESCRIPTIVE TABLE FOR EMPLOYMENT TYPES
-
-section7 <- section7 %>%
-  filter(v702 == 1 || v703 == 1 || v704 == 1) %>%
-  mutate(
-    v714a = str_extract(v714a, "^[0-9]+") %>% as.numeric(),
-    hhid = paste0(psu, "-", hhld),
-    uniq_id = paste0(psu, "-", hhld, "-", v101)
-  ) %>%
-  select(uniq_id, hhid, v103)
