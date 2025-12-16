@@ -101,6 +101,8 @@ hh_head <- section1a %>%
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
   filter(v107 == 1) %>%
+  group_by(hhid) %>%
+  slice(1) %>%
   select(hhid, uniq_id, v107, v103, v109) %>%
   rename(hh_head_sex = v103)
 
@@ -267,21 +269,16 @@ hh_head <- hh_head %>%
 
 #OUT-OF-POCKET EXPENDITURE
 
-expenditure_hhld <- expenditure_hhld %>%
-  mutate(
-    total_health_cost = ifelse(
-    total_health_cost < reimbursed_amount, 
-    reported_oop, 
-    total_health_cost
-    ),
-    out_of_pocket = total_health_cost - reimbursed_amount,
-  )
+hh_head <- merge(
+  hh_head, 
+  expenditure_hhld[, c("hhid", "reported_oop", "copay_amount", "total_health_cost")],
+  by = "hhid",
+  all = FALSE
+)
 
 hh_head <- merge(
   hh_head, 
-  expenditure_hhld[, c("hhid", "out_of_pocket")],
-  by = "hhid",
-  all = FALSE
+  section2b[, c("hhid", "v249")]
 )
 
 #TOTAL HOUSEHOLD INCOME 

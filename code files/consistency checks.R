@@ -268,7 +268,7 @@ expenditure_hhld <- Reduce(function(x, y) full_join(x, y, by = "hhid"), expendit
 
 expenditure_hhld <- expenditure_hhld %>%
   select(
-    hhid, total_food_annual, net_expense_education, total_cost_chronic_inpatient, total_cost_chronic_outpatient, total_cost_acute, reported_oop, reimbursed_amount
+    hhid, total_food_annual, net_expense_education, total_cost_chronic_inpatient, total_cost_chronic_outpatient, total_cost_acute, reported_oop, copay_amount
   ) %>%
   mutate(
     across(-hhid, ~ replace_na(as.numeric(.x), 0)),
