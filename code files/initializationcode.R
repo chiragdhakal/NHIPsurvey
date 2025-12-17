@@ -5,6 +5,7 @@ cat("\014")
 library(haven)
 library(tidyverse)
 library(openxlsx)
+library(stringr)
 
 #SECTION0
 
@@ -255,6 +256,36 @@ section1b <- read.xlsx("dataset/Part 1_1 Household Roster-1.xlsx")
 
 section1a <- section1a %>%
   mutate(
+    v105_num = grepl("[0-9]", v105a),   
+    
+    v105_new  = if_else(v105_num, v105a, v105),
+    v105a_new = if_else(v105_num, v105,  v105a),
+    
+    v105  = v105_new,
+    v105a = v105a_new
+  ) %>%
+  select(-v105_num, -v105_new, -v105a_new) %>%
+  mutate(
+    v106_num = grepl("[0-9]", v106a),   
+    
+    v106_new  = if_else(v106_num, v106a, v106),
+    v106a_new = if_else(v106_num, v106,  v106a),
+    
+    v106  = v106_new,
+    v106a = v106a_new
+  ) %>%
+  select(-v106_num, -v106_new, -v106a_new) %>%
+  mutate(
+    v107_num = grepl("[0-9]", v107a),   
+    
+    v107_new  = if_else(v107_num, v107a, v107),
+    v107a_new = if_else(v107_num, v107,  v107a),
+    
+    v107  = v107_new,
+    v107a = v107a_new
+  ) %>%
+  select(-v107_num, -v107_new, -v107a_new) %>%
+  mutate(
     v105 = case_when(
       grepl("KUMHAL", v105, ignore.case = TRUE) ~ "3",
       grepl("NEWAR|SHRESTHA|THARU|SIMANTRAKIT|SIMANTAKRIT", v105, ignore.case = TRUE) ~ "2",
@@ -320,6 +351,10 @@ section1a <- section1a %>%
       label = "ethnicity", 
       labels = c(Aryan = 1, Janajati = 2, Madhesi = 3, Dalit = 4, Muslim = 5)
     ), 
+    v105a = labelled(
+      v105a, 
+      label = "others (specify)"
+    ),
     v106 = labelled(
       v106, 
       label = "religion", 
@@ -353,8 +388,8 @@ section1a <- section1a %>%
 
 #Section1b
 
-for (i in setdiff(1:ncol(section1b), c(6, 7, 20, 21, 22))) {
-  section1b[[i]] <- as.integer(section1b[[i]])
+for (i in setdiff(1:ncol(section1b), c(2, 6, 7, 8, 21, 22, 23))) {
+  section1b[[i]] <- as.numeric(section1b[[i]])
 }
 
 section1b <- section1b %>%
@@ -488,8 +523,51 @@ section2c <- read.xlsx("dataset/PART 2_3_ Mortality (Death) Information.xlsx")
 
 #Part 2.1.1 - Type of dwelling
 
-for (i in setdiff(1:ncol(section2a1), c(7, 8, 13, 15, 17, 19))) {
-  section2a1[[i]] <- as.integer(section2a1[[i]])
+section2a1 <- section2a1 %>%
+  mutate(
+    v203_num = grepl("[0-9]", v203a),   
+    
+    v203_new  = if_else(v203_num, v203a, v203),
+    v203a_new = if_else(v203_num, v203,  v203a),
+    
+    v203  = v203_new,
+    v203a = v203a_new
+  ) %>%
+  select(-v203_num, -v203_new, -v203a_new) %>%
+  mutate(
+    v204_num = grepl("[0-9]", v204a),   
+    
+    v204_new  = if_else(v204_num, v204a, v204),
+    v204a_new = if_else(v204_num, v204,  v204a),
+    
+    v204  = v204_new,
+    v204a = v204a_new
+  ) %>%
+  select(-v204_num, -v204_new, -v204a_new) %>%
+  mutate(
+    v205_num = grepl("[0-9]", v205a),   
+    
+    v205_new  = if_else(v205_num, v205a, v205),
+    v205a_new = if_else(v205_num, v205,  v205a),
+    
+    v205  = v205_new,
+    v205a = v205a_new
+  ) %>%
+  select(-v205_num, -v205_new, -v205a_new) %>%
+  mutate(
+    v206_num = grepl("[0-9]", v206a),   
+    
+    v206_new  = if_else(v206_num, v206a, v206),
+    v206a_new = if_else(v206_num, v206,  v206a),
+    
+    v206  = v206_new,
+    v206a = v206a_new
+  ) %>%
+  select(-v206_num, -v206_new, -v206a_new) 
+
+
+for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
+  section2a1[[i]] <- as.numeric(section2a1[[i]])
 }
 
 section2a1 <- section2a1 %>%
@@ -563,8 +641,25 @@ section2a1 <- section2a1 %>%
 
 #Part 2.1.2 - Housing Expenses
 
-for (i in setdiff(1:ncol(section2a2), c(6, 7, 15))) {
-  section2a2[[i]] <- as.integer(section2a2[[i]])
+section2a2 <- section2a2 %>%
+  rename(
+    v213 = v213a, 
+    v213a = v213b
+  ) %>%
+  mutate(
+    v213_num = grepl("[0-9]", v213a),   
+    
+    v213_new  = if_else(v213_num, v213a, v213),
+    v213a_new = if_else(v213_num, v213,  v213a),
+    
+    v213  = v213_new,
+    v213a = v213a_new
+  ) %>%
+  select(-v213_num, -v213_new, -v213a_new) 
+  
+
+for (i in setdiff(1:ncol(section2a2), c(2, 7, 8, 16))) {
+  section2a2[[i]] <- as.numeric(section2a2[[i]])
 }
 
 section2a2 <- section2a2 %>%
@@ -607,13 +702,13 @@ section2a2 <- section2a2 %>%
     v212, 
     label = "How much rent do you receive per month?"
   ), 
-  v213a = labelled(
-    v213a, 
+  v213 = labelled(
+    v213, 
     label = "What is your present occupancy status?",
     labels = c(Renter = 1, "Provided free of charge" = 2, Squatting = 3, Other = 4)
   ), 
-  v213b = labelled(
-    v213b, 
+  v213a = labelled(
+    v213a, 
     label = "Other (specify)"
   ), 
   v214 = labelled(
@@ -628,8 +723,40 @@ section2a2 <- section2a2 %>%
 
 #Part 2.1.3 - Utilities and Amenities
 
-for (i in setdiff(1:ncol(section2a3), c(6, 7, 10, 13, 23, 32))) {
-  section2a3[[i]] <- as.integer(section2a3[[i]])
+section2a3 <- section2a3 %>%
+  mutate(
+    v216_num = grepl("[0-9]", v216a),   
+    
+    v216_new  = if_else(v216_num, v216a, v216),
+    v216a_new = if_else(v216_num, v216,  v216a),
+    
+    v216  = v216_new,
+    v216a = v216a_new
+  ) %>%
+  select(-v216_num, -v216_new, -v216a_new) %>%
+  mutate(
+    v218_num = grepl("[0-9]", v218a),   
+    
+    v218_new  = if_else(v218_num, v218a, v218),
+    v218a_new = if_else(v218_num, v218,  v218a),
+    
+    v218  = v218_new,
+    v218a = v218a_new
+  ) %>%
+  select(-v218_num, -v218_new, -v218a_new) %>%
+  mutate(
+    v220_num = grepl("[0-9]", v220a),   
+    
+    v220_new  = if_else(v220_num, v220a, v220),
+    v220a_new = if_else(v220_num, v220,  v220a),
+    
+    v220  = v220_new,
+    v220a = v220a_new 
+  ) %>%
+  select(-v220_num, -v220_new, -v220a_new) 
+
+for (i in setdiff(1:ncol(section2a3), c(2, 7, 8, 11, 14, 24, 33))) {
+  section2a3[[i]] <- as.numeric(section2a3[[i]])
 }
 
 section2a3 <- section2a3 %>%
@@ -790,11 +917,33 @@ section2b <- section2b %>%
   ) %>%
   select(-v227h_1, everything(), v227h_1)
 
-for (i in setdiff(1:ncol(section2b), c(6, 7, 22, 34, 44, 81))) {
-  section2b[[i]] <- as.integer(section2b[[i]])
+section2b <- section2b %>%
+  mutate(
+    swap_230 = !grepl("[0-9]", v230) & grepl("[0-9]", v230a),
+    
+    v230_new  = if_else(
+      swap_230,
+      as.numeric(v230a),
+      as.numeric(v230)
+    ),
+    
+    v230a_new = if_else(
+      swap_230,
+      as.character(v230),
+      as.character(v230a)
+    ),
+    
+    v230  = v230_new,
+    v230a = v230a_new
+  ) %>%
+  select(-swap_230, -v230_new, -v230a_new)
+
+
+for (i in setdiff(1:ncol(section2b), c(2, 7, 8, 14:21, 23, 35, 45, 82))) {
+  section2b[[i]] <- as.numeric(section2b[[i]])
 }
 
-section_2b <- section2b %>%
+section2b <- section2b %>%
   mutate(
   psu = labelled(
     psu, 
@@ -1100,8 +1249,32 @@ section_2b <- section2b %>%
 
 #Part 2.3 - Mortality (Death) Information
 
-for (i in setdiff(1:ncol(section2c), c(6, 7, 12, 16, 17, 18))) {
-  section2c[[i]] <- as.integer(section2c[[i]])
+section2c <- section2c %>%
+  mutate(
+    v260_num = grepl("[0-9]", v260a),
+
+    v260_new  = if_else(v260_num, v260a, v260),
+    v260a_new = if_else(v260_num, v260,  v260a),
+
+    v260  = v260_new,
+    v260a = v260a_new
+  ) %>%
+  select(-v260_num, -v260_new, -v260a_new) %>%
+  mutate(
+    v261_num = suppressWarnings(as.numeric(str_extract(v261, "\\d+"))),
+
+    v261_txt = str_trim(
+      str_remove_all(v261, "\\d+|,")
+    ),
+
+    v261  = v261_num,
+    v261a = if_else(v261_txt != "", v261_txt, as.character(v261a))
+  ) %>%
+  select(-v261_num, -v261_txt)
+
+
+for (i in setdiff(1:ncol(section2c), c(2, 8, 7, 13, 17, 19))) {
+  section2c[[i]] <- as.numeric(section2c[[i]])
 }
 
 section2c <- section2c %>%
@@ -1167,7 +1340,7 @@ section2c <- section2c %>%
     label = "Others (specify)"
   ), 
   v261 = labelled(
-    v261a, 
+    v261, 
     label = "If the deceased was a woman aged 15 to 49, what was her condition at the time of death?",
     labels = c(
       Pregnant = 1, 
@@ -1212,8 +1385,8 @@ section3b <- read.xlsx("dataset/Part 3_1_ Food away from home.xlsx")
 
 #Part 3.1: Food at Home
 
-for (i in setdiff(1:ncol(section3a), c(6, 7))) {
-  section3a[[i]] <- as.integer(section3a[[i]])
+for (i in setdiff(1:ncol(section3a), c(2, 8, 7))) {
+  section3a[[i]] <- as.numeric(section3a[[i]])
 }
 
 section3a <- section3a %>%
@@ -1276,7 +1449,7 @@ section3a <- section3a %>%
 
 #Part 3.2: Food Away from Home
 
-for (i in setdiff(1:ncol(section3b), c(6, 7))) {
+for (i in setdiff(1:ncol(section3b), c(2, 8, 7))) {
   section3b[[i]] <- as.integer(section3b[[i]])
 }
 
@@ -1334,8 +1507,8 @@ section4c <- read.xlsx("dataset/Part 4_3_ Inventory of Durable Goods.xlsx")
 section4d <- read.xlsx("dataset/Part 4_4_ Own Account Consumption of Goods.xlsx")
 
 #Part 4.1 - Non-Food Expenditures
-for (i in setdiff(1:ncol(section4a), c(6, 7))) {
-  section4a[[i]] <- as.integer(section4a[[i]])
+for (i in setdiff(1:ncol(section4a), c(2, 8, 7))) {
+  section4a[[i]] <- as.numeric(section4a[[i]])
 }
 
 section4a <- section4a %>%
@@ -1408,8 +1581,8 @@ section4a <- section4a %>%
 
 #Part 4.2: Expenditure Abroad
 
-for (i in setdiff(1:ncol(section4b), c(6, 7))) {
-  section4b[[i]] <- as.integer(section4b[[i]])
+for (i in setdiff(1:ncol(section4b), c(2, 7, 8))) {
+  section4b[[i]] <- as.numeric(section4b[[i]])
 }
 
 section4b <- section4b %>%
@@ -1468,8 +1641,8 @@ section4b <- section4b %>%
 
 #Part 4.3 - Inventory of Durable Goods
 
-for (i in setdiff(1:ncol(section4c), c(6, 7))) {
-  section4c[[i]] <- as.integer(section4c[[i]])
+for (i in setdiff(1:ncol(section4c), c(2, 7, 8))) {
+  section4c[[i]] <- as.numeric(section4c[[i]])
 }
 
 section4c <- section4c %>%
@@ -1555,8 +1728,8 @@ section4c <- section4c %>%
 
 #Part 4.4 - Own Account Consumption of Goods
 
-for (i in setdiff(1:ncol(section4d), c(6, 7))) {
-  section4d[[i]] <- as.integer(section4d[[i]])
+for (i in setdiff(1:ncol(section4d), c(2, 7, 8))) {
+  section4d[[i]] <- as.numeric(section4d[[i]])
 }
 
 section4d <- section4d %>%
@@ -1609,8 +1782,8 @@ section4d <- section4d %>%
 
 section5 <- read.xlsx("dataset/Section 5_ Expense in Education.xlsx")
 
-for (i in setdiff(1:ncol(section5), c(6, 7))) {
-  section5[[i]] <- as.integer(section5[[i]])
+for (i in setdiff(1:ncol(section5), c(2, 7, 8))) {
+  section5[[i]] <- as.numeric(section5[[i]])
 }
 
 section5 <- section5 %>%
@@ -1702,8 +1875,8 @@ section6d <- read.xlsx("dataset/PART 6_4_ Household Health Care Seeking.xlsx")
 
 #Part 6.1 - Screening for General Health Status 
 
-for (i in setdiff(1:ncol(section6a), c(6, 7))) {
-  section6a[[i]] <- as.integer(section6a[[i]])
+for (i in setdiff(1:ncol(section6a), c(2, 7, 8))) {
+  section6a[[i]] <- as.numeric(section6a[[i]])
 }
 
 section6a <- section6a %>%
@@ -1780,7 +1953,7 @@ section6a <- section6a %>%
     ),
     v602 = labelled(
       v602,
-      label = "Please mark your health condition today on this scale, where 100 is the best health, and 0 is the worst (You can imagine) My health today"
+      label = "Please mark your health condition today on this scale, where 100 is the best health, and 0 is the worst."
     )
   )
 
@@ -1813,6 +1986,18 @@ section6b1 <- section6b1 %>%
     v610a = v610_new
   )
 
+section6b1 <- section6b1 %>%
+  mutate(
+    v604_num = grepl("[0-9]", v604a),
+
+    v604_new  = if_else(v604_num, v604a, v604),
+    v604a_new = if_else(v604_num, v604,  v604a),
+
+    v604  = v604_new,
+    v604a = v604a_new
+  ) %>%
+  select(-v604_num, -v604_new, -v604a_new) 
+
 section6b1 <- section6b1 %>% 
   mutate(v611_1 = v611) %>%
   rename(
@@ -1831,17 +2016,16 @@ section6b1 <- section6b1 %>%
   v611j = ifelse(grepl("\\b10\\b", v611), 1, 0), 
   v611k = ifelse(grepl("\\b11\\b", v611), 1, 0), 
   v611l = ifelse(grepl("\\b12\\b", v611), 1, 0),
-  v611m = ifelse(grepl("\\b13\\b", v611), 1, 0),
-  v604 = as.integer(trimws(v604)) 
+  v611m = ifelse(grepl("\\b13\\b", v611), 1, 0)
   ) %>%
   select(-v611) %>%
   rename(
   v611a = v611_new,
   v611 = v611_1
-  )
+  )  
 
-for (i in setdiff(1:ncol(section6b1), c(6, 7, 12, 13, 20, 21, 22, 37))) {
-  section6b1[[i]] <- as.integer(section6b1[[i]])
+for (i in setdiff(1:ncol(section6b1), c(2, 7, 8, 14, 21, 22, 23, 38))) {
+  section6b1[[i]] <- as.numeric(section6b1[[i]])
 }
 
 section6b1 <- section6b1 %>%
@@ -1893,7 +2077,7 @@ section6b1 <- section6b1 %>%
         "Neurological Conditions" = 16, 
         "Alzheimer's/Parkinson's" = 17, 
         "Mental Illness" = 18, 
-        "Others (Specify)" = 19)
+        "Others (Specify)" = 96)
     ),
     v604a = labelled(
       v604a,
@@ -1938,7 +2122,7 @@ section6b1 <- section6b1 %>%
         "Aama Surakshya Programme" = 11, 
         "Social Security Unit/OCMC" = 12, 
         "5000 cash support" = 13, 
-        Others = 14)
+        Others = 96)
     ),
     v610 = labelled(
       v610,
@@ -2068,12 +2252,11 @@ section6b1 <- section6b1 %>%
 
 #Part 6.2.2 - Chronic Illness and Medication Use
 
-for (i in setdiff(1:ncol(section6b2), c(6, 7, 12, 13, 20, 21, 22, 37))) {
-  section6b2[[i]] <- as.integer(section6b2[[i]])
+for (i in setdiff(1:ncol(section6b2), c(2, 7, 8, 13:32))) {
+  section6b2[[i]] <- as.numeric(section6b2[[i]])
 }
 
 section6b2 <- section6b2 %>%
-  section6b2 <- section6b2 %>%
   mutate(
     psu = labelled(
       psu,
@@ -2111,7 +2294,7 @@ section6b2 <- section6b2 %>%
     v612b = labelled(
       v612b,
       label = "Medications: Hypertension",
-      labels - c(
+      labels = c(
         Amlodipine = 21, 
         Losartan = 22, 
         Hydrochlorothiazide = 23, 
@@ -2289,8 +2472,24 @@ section6b2 <- section6b2 %>%
 
 #Part 6.2.3 - Chronic Illness and Expenditure Tracking - Outpatient (Regular Checkups)
 
-for (i in (1:ncol(section6b3))) {
-  section6b3[[i]] <- as.integer(section6b3[[i]])
+section6b3 <- section6b3 %>%
+  rename(
+    v604 = v614
+  ) %>%
+  mutate(
+    v604_num = suppressWarnings(as.numeric(str_extract(v604, "\\d+"))),
+
+    v604_txt = str_trim(
+      str_remove_all(v604, "\\d+|,")
+    ),
+
+    v604  = v604_num,
+    v604a = if_else(v604_txt != "", v604_txt, NA_character_)
+  ) %>%
+  select(-v604_num, -v604_txt)   
+
+for (i in setdiff(1:ncol(section6b3), c(2, 7, 8, 29))) {
+  section6b3[[i]] <- as.numeric(section6b3[[i]])
 }
 
 section6b3 <- section6b3 %>%
@@ -2337,11 +2536,11 @@ section6b3 <- section6b3 %>%
         "Neurological Conditions" = 16, 
         "Alzheimer's/Parkinson's" = 17, 
         "Mental Illness" = 18, 
-        "Others (Specify)" = 19)
+        "Others" = 96)
     ),
-    v614 = labelled(
-      v614,
-      label = "How much have you spent in the past 12 months on the treatment of this illness?"
+    v604a = labelled(
+    v604a, 
+    label = "Others (Specify)"
     ),
     v614a = labelled(
       v614a,
@@ -2399,10 +2598,6 @@ section6b3 <- section6b3 %>%
         "Others" = 6
       )
     ),
-    v615a = labelled(
-      v615a,
-      label = "Other main source of funds for healthcare and treatment"
-    ),
     v616 = labelled(
       v616,
       label = "Did you have to stop doing your usual activity due to this illness during the past 12 months?",
@@ -2419,8 +2614,24 @@ section6b3 <- section6b3 %>%
   
 #Part 6.2.4 - Chronic Illness and Expenditure Tracking - Inpatient
 
-for (i in (1:ncol(section6b4))) {
-  section6b4[[i]] <- as.integer(section6b4[[i]])
+section6b4 <- section6b4 %>%
+  rename(
+    v604a = v603
+  ) %>%
+  mutate(
+    v604_num = suppressWarnings(as.numeric(str_extract(v604, "\\d+"))),
+
+    v604_txt = str_trim(
+      str_remove_all(v604, "\\d+|,")
+    ),
+
+    v604  = v604_num,
+    v604a = if_else(v604_txt != "", v604_txt, NA_character_)
+  ) %>%
+  select(-v604_num, -v604_txt)   
+
+for (i in setdiff(1:ncol(section6b4), c(2, 7, 8, 11))) {
+  section6b4[[i]] <- as.numeric(section6b4[[i]])
 }
 
 section6b4 <- section6b4 %>%
@@ -2435,11 +2646,11 @@ section6b4 <- section6b4 %>%
     ),
     ward = labelled(
       ward,
-      label = "Ward #"
+      label = "Ward number"
     ),
     hhld = labelled(
       hhld,
-      label = "Household #"
+      label = "Household number"
     ),
     v101 = labelled(
       v101,
@@ -2467,7 +2678,7 @@ section6b4 <- section6b4 %>%
         "Neurological Conditions" = 16, 
         "Alzheimer's/Parkinson's" = 17, 
         "Mental Illness" = 18, 
-        "Others (Specify)" = 19)
+        "Others (Specify)" = 96)
     ),
     v618 = labelled(
       v618,
@@ -2553,11 +2764,12 @@ section6b4 <- section6b4 %>%
 
 #Part 6.2.5 - Chronic Illness and Care Giver Burden
 
-for (i in (1:ncol(section6b5))) {
-  section6b5[[i]] <- as.integer(section6b5[[i]])
+for (i in setdiff(1:ncol(section6b5), c(2, 7, 8, 17))) {
+  section6b5[[i]] <- as.numeric(section6b5[[i]])
 }
 
 section6b5 <- section6b5 %>%
+  select(-personid1) %>%
   mutate(
     psu = labelled(
       psu,
@@ -2607,13 +2819,7 @@ section6b5 <- section6b5 %>%
     ),
     v626 = labelled(
       v626,
-      label = "What activities were affected?",
-      labels = c(
-        "Paid work" = 1, 
-        "Farming/household chores" = 2, 
-        "Children's education" = 3, 
-        "Social/community activities" = 4
-      )
+      label = "What activities were affected?"
     ),
     v627 = labelled(
       v627,
@@ -2628,8 +2834,20 @@ section6b5 <- section6b5 %>%
 
 #Part 6.3.1 - Acute Illness and Health Seeking Behavior
 
-for (i in (1:ncol(section6c1))) {
-  section6c1[[i]] <- as.integer(section6c1[[i]])
+section6c1 <- section6c1 %>%
+  mutate(
+    v630_num = grepl("[0-9]", v630a),
+
+    v630_new  = if_else(v630_num, v630a, v630),
+    v630a_new = if_else(v630_num, v630,  v630a),
+
+    v630  = v630_new,
+    v630a = v630a_new
+  ) %>%
+  select(-v630_num, -v630_new, -v630a_new) 
+
+for (i in setdiff(1:ncol(section6c1), c(2, 7, 8, 14, 15, 16))) {
+  section6c1[[i]] <- as.numeric(section6c1[[i]])
 }
 
 section6c1 <- section6c1 %>%
@@ -2799,10 +3017,6 @@ section6c1 <- section6c1 %>%
         "Others" = 8
       )
     ),
-    v639 = labelled(
-      v639,
-      label = "In the last 30 days, how long did it take you to travel (two-way) to the care provider?"
-    ),
     v639a = labelled(
       v639a,
       label = "Two-way travel time: in minutes"
@@ -2850,8 +3064,21 @@ section6c1 <- section6c1 %>%
 
 #Part 6.3.2 - Acute Illness and Diagnostic Tests
 
-for (i in (1:ncol(section6c2))) {
-  section6c2[[i]] <- as.integer(section6c2[[i]])
+section6c2 <- section6c2 %>%
+  mutate(
+    v630_num = suppressWarnings(as.numeric(str_extract(v630, "\\d+"))),
+
+    v630_txt = str_trim(
+      str_remove_all(v630, "\\d+|,")
+    ),
+
+    v630  = v630_num,
+    v630a = if_else(v630_txt != "", v630_txt, NA_character_)
+  ) %>%
+  select(-v630_num, -v630_txt)
+
+for (i in setdiff(1:ncol(section6c2), c(2, 7, 8, 13:22))) {
+  section6c2[[i]] <- as.numeric(section6c2[[i]])
 }
 
 section6c2 <- section6c2 %>%
@@ -2879,19 +3106,6 @@ section6c2 <- section6c2 %>%
     v642 = labelled(
       v642,
       label = "What kind of service did you receive at the health facility for illness or injury? (select all that apply)",
-      labels = c(
-        "Emergency" = 1, 
-        "OPD" = 2, 
-        "Childbirth" = 3, 
-        "Physiotherapy" = 4, 
-        "Dressing" = 5, 
-        "Follow up: General" = 6, 
-        "Fellow up: Chronic" = 7, 
-        "Immunization" = 8, 
-        "Laboratory test" = 9, 
-        "Diagnostic test" = 10, 
-        "Others" = 11
-      )
     ),
     v642a = labelled(
       v642a,
@@ -2905,17 +3119,6 @@ section6c2 <- section6c2 %>%
     v644 = labelled(
       v644,
       label = "If yes, which of the following tests prescribed?",
-      labels = c(
-        "Blood tests" = 1, 
-        "Urine tests" = 2, 
-        "Stool test" = 3, 
-        "X-ray" = 4, 
-        "Ultrasound" = 5, 
-        "ECG" = 6, 
-        "CT scan/MRI" = 7, 
-        "Echo" = 8, 
-        "Others" = 9
-      )
     ),
     v644a = labelled(
       v644a,
@@ -2923,40 +3126,16 @@ section6c2 <- section6c2 %>%
     ),
     v645 = labelled(
       v645,
-      label = "Did you do the test as prescribed?",
-      labels = c(Yes = 1, No = 2)
+      label = "What type of tests did you do as prescribed?"
     ),
     v646 = labelled(
       v646,
       label = "Did you receive the results?",
-      labels = c(
-        "Blood tests" = 1, 
-        "Urine tests" = 2, 
-        "Stool test" = 3, 
-        "X-ray" = 4, 
-        "Ultrasound" = 5, 
-        "ECG" = 6, 
-        "CT scan/MRI" = 7, 
-        "Echo" = 8, 
-        "Others" = 9
-      )
     ),
     v647 = labelled(
       v647,
       label = "Why did you not perform the prescribed test?",
-      labels = c(
-        "Could not afford the cost of the test" = 1, 
-        "Test not available at local health facility" = 2, 
-        "Transportation costs or distance too high" = 3, 
-        "No family members available to assist" = 4, 
-        "Felt the test was not necessary" = 5, 
-        "Fear of test results or procedure" = 6, 
-        "Long waiting times at facility" = 7, 
-        "Lack of trust in healthcare provider" = 8, 
-        "Equipment or supplies out of stock" = 9, 
-        "Other reason" = 10
-      )
-    ),
+      ),
     v647a = labelled(
       v647a,
       label = "Other type of reason for not performing the prescribed test"
@@ -2965,8 +3144,8 @@ section6c2 <- section6c2 %>%
 
 #Part 6.3.3 - Acute Illness and Medication Use
 
-for (i in (1:ncol(section6c3))) {
-  section6c3[[i]] <- as.integer(section6c3[[i]])
+for (i in setdiff(1:ncol(section6c3), c(2, 7, 8, 14:29))) {
+  section6c3[[i]] <- as.numeric(section6c3[[i]])
 }
 
 section6c3 <- section6c3 %>%
@@ -3155,8 +3334,43 @@ section6c3 <- section6c3 %>%
 
 #Part 6.3.4 - Acute Illness Health Seeking and Expenditure Tracking
 
-for (i in (1:ncol(section6c4))) {
-  section6c4[[i]] <- as.integer(section6c4[[i]])
+section6c4 <- section6c4 %>%
+  mutate(
+    v630_num = suppressWarnings(as.numeric(str_extract(v630, "\\d+"))),
+
+    v630_txt = str_trim(
+      str_remove_all(v630, "\\d+|,")
+    ),
+
+    v630  = v630_num,
+    v630a = if_else(v630_txt != "", v630_txt, NA_character_)
+  ) %>%
+  select(-v630_num, -v630_txt) %>%
+  mutate(
+    v658_num = suppressWarnings(as.numeric(str_extract(v658, "\\d+"))),
+
+    v658_txt = str_trim(
+      str_remove_all(v658, "\\d+|,")
+    ),
+
+    v658  = v658_num,
+    v658a = if_else(v658_txt != "", v658_txt, NA_character_)
+  ) %>%
+  select(-v658_num, -v658_txt) %>%
+  mutate(
+    v652_num = suppressWarnings(as.numeric(str_extract(v652, "\\d+"))),
+
+    v652_txt = str_trim(
+      str_remove_all(v652, "\\d+|,")
+    ),
+
+    v652  = v652_num,
+    v652a = if_else(v652_txt != "", v652_txt, NA_character_)
+  ) %>%
+  select(-v652_num, -v652_txt) 
+
+for (i in setdiff(1:ncol(section6c4), c(2, 7, 8, 29, 34:36))) {
+  section6c4[[i]] <- as.numeric(section6c4[[i]])
 }
 
 section6c4 <- section6c4 %>%
@@ -3273,36 +3487,6 @@ section6c4 <- section6c4 %>%
     v654 = labelled(
       v654,
       label = "How many days did you have to stop doing your usual activity due to this illness during the past 30 days?"
-    )
-  )
-
-#Part 6.3.5 - Acute Illness and Care Giver Burden
-
-for (i in (1:ncol(section6c5))) {
-  section6c5[[i]] <- as.integer(section6c5[[i]])
-}
-
-section6c5 <- section6c5 %>%
-  mutate(
-    psu = labelled(
-      psu,
-      label = "PSU number"
-    ),
-    palika = labelled(
-      palika,
-      label = "Local level"
-    ),
-    ward = labelled(
-      ward,
-      label = "Ward #"
-    ),
-    hhld = labelled(
-      hhld,
-      label = "Household #"
-    ),
-    v101 = labelled(
-      v101,
-      label = "Identification code"
     ),
     v655 = labelled(
       v655,
@@ -3348,10 +3532,13 @@ section6c5 <- section6c5 %>%
     )
   )
 
+#Part 6.3.5 - Acute Illness and Care Giver Burden
+
+
 #Part 6.4 - Household Health Care Seeking Behavior
 
-for (i in (1:ncol(section6d))) {
-  section6d[[i]] <- as.integer(section6d[[i]])
+for (i in setdiff(1:ncol(section6d), c(2, 7, 8, 13, 24))) {
+  section6d[[i]] <- as.numeric(section6d[[i]])
 }
 
 section6d <- section6d %>%
@@ -3468,12 +3655,7 @@ section6d <- section6d %>%
     ),
     v668h = labelled(
       v668h,
-      label = "Other types of coverage category",
-      labels = c(
-        "Satisfied" = 1,
-        "Neutral" = 2, 
-        "Not satisfied" = 3
-      )
+      label = "Other types of coverage category"
     ),
     v669 = labelled(
       v669,
@@ -3670,6 +3852,36 @@ section6d <- section6d %>%
 section7 <- read.xlsx("dataset/Swction 7_ Labor and Employment.xlsx")
 
 section7 <- section7 %>%
+  rename(
+    v710 = v710b
+  ) %>%
+  mutate(
+    v710_num = suppressWarnings(as.numeric(str_extract(v710, "\\d+"))),
+
+    v710_txt = str_trim(
+      str_remove_all(v710, "\\d+|,")
+    ),
+
+    v710  = v710_num,
+    v710a = if_else(v710_txt != "", v710_txt, NA_character_)
+  ) %>%
+  select(-v710_num, -v710_txt) %>%
+  rename(
+    v714 = v714a
+  ) %>%
+  mutate(
+    v714_num = suppressWarnings(as.numeric(str_extract(v714, "\\d+"))),
+
+    v714_txt = str_trim(
+      str_remove_all(v714, "\\d+|,")
+    ),
+
+    v714b  = v714_num,
+    v714a = if_else(v714_txt != "", v714_txt, NA_character_)
+  ) %>%
+  select(-v714_num, -v714_txt, -v714) 
+
+section7 <- section7 %>%
   mutate(
     psu = labelled(
       psu,
@@ -3733,24 +3945,8 @@ section7 <- section7 %>%
       v709a,
       label = "Description of main tasks or duties"
     ),
-    v709b = labelled(
-      v709b,
-      label = "NSCO Code (Occupation)",
-      labels = c(
-        "Legislators, Officials & Managers" = 1, 
-        "Professionals" = 2, 
-        "Technicians and Associate Professionals" = 3, 
-        "Clerical Support Workers" = 4, 
-        "Services and Sales Workers" = 5, 
-        "Skilled, Agricultural, Forestry and Fishery Workers" = 6, 
-        "Craft and Related Trades Workers" = 7, 
-        "Plant and Machine Operators and Assemblers" = 8, 
-        "Elementary Occupations" = 9, 
-        "Armed Forces Occupations" = 10
-      )
-    ),
-    v710a = labelled(
-      v710a,
+    v710 = labelled(
+      v710,
       label = "In this job, what is the status of your involvement?",
       labels = c(
         Employee = 1, 
@@ -3761,8 +3957,8 @@ section7 <- section7 %>%
         "Others" = 6
       )
     ),
-    v710b = labelled(
-      v710b,
+    v710a = labelled(
+      v710a,
       label = "Others (specify)"
     ),
     v711 = labelled(
@@ -3784,6 +3980,10 @@ section7 <- section7 %>%
       v714a,
       label = "What are the main goods or services produced at your place of work or its main function (Description)?"
     ),
+    v714b = labelled(
+      v714b,
+      label = "NSIC Code"
+    ),
     v715 = labelled(
       v715,
       label = "What kind of sector was your main activity carried out in?",
@@ -3801,11 +4001,7 @@ section7 <- section7 %>%
     ),
     v716 = labelled(
       v716,
-      label = "What is the type of enterprise/business where you work?", 
-      labels = c(
-        "An incorporated company" = 1, 
-        "Private sector" = 2
-      )
+      label = "What is the type of enterprise/business where you work?"
     ),
     v717 = labelled(
       v717,
@@ -3860,6 +4056,11 @@ section7 <- section7 %>%
 
 section8 <- read.xlsx("dataset/Section 8_ Wage Jobs.xlsx")
 
+for (i in setdiff(1:ncol(section8), c(2, 7, 8, 13, 16))) { 
+  section8[[i]] <- as.numeric(section8[[i]]) 
+}
+
+
 section8 <- section8 %>% 
   mutate(
     psu = labelled(
@@ -3881,10 +4082,6 @@ section8 <- section8 %>%
     v101 = labelled(
       v101,
       label = "Identification code"
-    ),
-    v801 = labelled(
-      v801,
-      label = "Id code from household roster"
     ),
     v802 = labelled(
       v802,
@@ -3982,6 +4179,23 @@ section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure.xlsx
 
 #Part 9.1: Land Holding 
 
+section9a <- section9a %>%
+  mutate(
+    v907_num = suppressWarnings(as.numeric(str_extract(v907c, "\\d+"))),
+
+    v907_txt = str_trim(
+      str_remove_all(v907c, "\\d+|,")
+    ),
+
+    v907c = v907_num,
+    v907a = if_else(v907_txt != "", v907_txt, NA_character_)
+  ) %>%
+  select(-v907_num, -v907_txt) 
+
+for (i in setdiff(1:ncol(section9a), c(2, 7, 8, 13, 20, 22))) { 
+  section9a[[i]] <- as.numeric(section9a[[i]]) 
+}
+
 section9a <- section9a %>% 
   mutate(
     psu = labelled(
@@ -4054,15 +4268,19 @@ section9a <- section9a %>%
     ),
     v907a = labelled(
       v907a,
-      label = "For the parcels which you did not crop yourself, what net rent did you receive/pay from/to the tenant? (In cash NPR)"
+      label = "Description"
     ),
-    v907b = labelled(
-      v907b,
-      label = "For the parcels which you did not crop yourself, what net rent did you receive/pay from/to the tenant? (In-Kind NPR)"
+    v907c = labelled(
+      v907c,
+      label = "Total amount received/paid as the rent of the parcel (In NRs)"
     )
   )
 
 #Part 9.2 - Landholding - Increase/Decrease
+
+for (i in setdiff(1:ncol(section9b), c(2, 7, 8))) { 
+  section9b[[i]] <- as.numeric(section9b[[i]]) 
+}
 
 section9b <- section9b %>% 
   mutate(
@@ -4142,7 +4360,13 @@ section9b <- section9b %>%
 
 #Part 9.3 - Production and Uses
 
+for (i in setdiff(1:ncol(section9c), c(2, 7, 8, 12))) { 
+  section9c[[i]] <- as.numeric(section9c[[i]]) 
+}
+
 section9c <- section9c %>% 
+  select(-v914a) %>%
+  rename(v914a = v914b_1) %>%
   mutate(
     psu = labelled(
       psu,
@@ -4303,6 +4527,10 @@ section9c <- section9c %>%
 
 #Part 9.4 - Expenditure on Agriculture 
 
+for (i in setdiff(1:ncol(section9d), c(2, 7, 8))) { 
+  section9d[[i]] <- as.numeric(section9d[[i]]) 
+}
+
 section9d <- section9d %>%
   mutate(
     psu = labelled(
@@ -4396,6 +4624,10 @@ section9d <- section9d %>%
 
 #Part 9.5 -  Livestock - Ownership 
 
+for (i in setdiff(1:ncol(section9e), c(2, 7, 8))) { 
+  section9e[[i]] <- as.numeric(section9e[[i]]) 
+}
+
 section9e <- section9e %>%
   mutate(
     psu = labelled(
@@ -4485,6 +4717,7 @@ section9e <- section9e %>%
 
 section9f1 <- section9f1 %>%
   mutate(
+    v941 = as.numeric(v941),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -4527,6 +4760,7 @@ section9f1 <- section9f1 %>%
 
 section9f2 <- section9f2 %>%
   mutate(
+    v943 = as.numeric(v943),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -4568,6 +4802,17 @@ section9f2 <- section9f2 %>%
 #SECTION 10 : INCOME FROM NON-AGRICULTURAL ENTERPRISES
 
 section10 <- read.xlsx("dataset/Income from Non - Agricultural Enterprises.xlsx")
+
+section10 <- section10 %>%
+  mutate(
+  v1002b = suppressWarnings(
+      as.numeric(str_extract(v1002b, "^\\d+"))
+    )
+  )
+
+for (i in setdiff(1:ncol(section10), c(2, 7, 8, 13, 15))) { 
+  section10[[i]] <- as.numeric(section10[[i]]) 
+}
 
 section10 <- section10 %>%
   mutate(
@@ -4674,7 +4919,11 @@ section11c <- read.xlsx("dataset/Part 11_3_ Other Assets.xlsx")
 
 #Part 11.1 - Borrowing and Outstanding Loans
 
-section11 <- section11 %>%
+for (i in setdiff(1:ncol(section11a), c(2, 7, 8, 11, 14, 19))) { 
+  section11a[[i]] <- as.numeric(section11a[[i]]) 
+}
+
+section11a <- section11a %>%
   mutate(
     psu = labelled(
       psu,
@@ -4707,11 +4956,7 @@ section11 <- section11 %>%
     ),
     v1104a = labelled(
       v1104a,
-      label = "When did you get the loan (in months)?"
-    ),
-    v1104b = labelled(
-      v1104b,
-      label = "When did you get the loan (in years)?"
+      label = "When did you get the loan?"
     ),
     v1105 = labelled(
       v1105,
@@ -4745,11 +4990,7 @@ section11 <- section11 %>%
     ),
     v1108a = labelled(
       v1108a,
-      label = "By when did / do you have to pay the loan? - Month"
-    ),
-    v1108b = labelled(
-      v1108b,
-      label = "By when did / do you have to pay the loan? - Year"
+      label = "By when did / do you have to pay the loan?"
     ),
     v1109 = labelled(
       v1109,
@@ -4767,6 +5008,10 @@ section11 <- section11 %>%
   )
 
 #Part 11.2 - Lending and Outstanding Loans 
+
+for (i in setdiff(1:ncol(section11b), c(2, 7, 8, 11, 14, 19))) { 
+  section11b[[i]] <- as.numeric(section11b[[i]]) 
+}
 
 section11b <- section11b %>%
   mutate(
@@ -4801,11 +5046,7 @@ section11b <- section11b %>%
     ),
     v1114a = labelled(
       v1114a,
-      label = "When was the loan made? (Month)"
-    ),
-    v1114b = labelled(
-      v1114b,
-      label = "When was the loan made? (Year)"
+      label = "When was the loan made?"
     ),
     v1115 = labelled(
       v1115,
@@ -4833,11 +5074,7 @@ section11b <- section11b %>%
     ),
     v1118a = labelled(
       v1118a,
-      label = "When is/was the borrower scheduled to finish repaying the loan? (Month)"
-    ),
-    v1118b = labelled(
-      v1118b,
-      label = "When is/was the borrower scheduled to finish repaying the loan? (Year)"
+      label = "When is/was the borrower scheduled to finish repaying the loan?"
     ),
     v1119 = labelled(
       v1119,
@@ -4855,6 +5092,10 @@ section11b <- section11b %>%
   )
 
 #Part 11.3 - Other Assets 
+
+for (i in setdiff(1:ncol(section11c), c(2, 7, 8))) { 
+  section11c[[i]] <- as.numeric(section11c[[i]]) 
+}
 
 section11c <- section11c %>%
   mutate(
@@ -4935,6 +5176,17 @@ section12b <- read.xlsx("dataset/Part 12_2. Other Remittances.xlsx")
 
 section12a <- section12a %>%
   mutate(
+    v1205 = suppressWarnings(
+      as.numeric(str_extract(v1205, "^\\d+"))
+    )
+  )
+
+for (i in setdiff(1:ncol(section12a), c(2, 7, 8, 16))) { 
+  section12a[[i]] <- as.numeric(section12a[[i]]) 
+}
+
+section12a <- section12a %>%
+  mutate(
     psu = labelled(
       psu,
       label = "PSU number"
@@ -4950,10 +5202,6 @@ section12a <- section12a %>%
     hhld = labelled(
       hhld,
       label = "Household number"
-    ),
-    v101 = labelled(
-      v101,
-      label = "Identification code"
     ),
     v1201 = labelled(
       v1201,
@@ -5026,6 +5274,7 @@ section12a <- section12a %>%
 
 section12b <- section12b %>%
   mutate(
+    v1213b = as.numeric(v1213b),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -5062,6 +5311,7 @@ section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
 
 section13a <- section13a %>%
   mutate(
+    v1303 = as.numeric(v1303),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -5210,6 +5460,7 @@ section13b <- section13b %>%
 
 section13c <- section13c %>%
   mutate(
+    v1312 = as.numeric(v1312),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -5253,3 +5504,4 @@ section13c <- section13c %>%
       label = "How much has the household received from ..[ITEM].. in the past 12 months?"
     )
   )
+  
