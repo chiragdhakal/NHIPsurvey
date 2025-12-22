@@ -2692,10 +2692,6 @@ section6b4 <- section6b4 %>%
       v618b,
       label = "OOP-IPD: Inpatient: bed charges"
     ),
-    v618b1 = labelled(
-      v618b1,
-      label = "OOP-IPD: Inpatient: # of days"
-    ),
     v618c = labelled(
       v618c,
       label = "OOP-IPD: Laboratory"
@@ -2743,10 +2739,6 @@ section6b4 <- section6b4 %>%
         "From family" = 5, 
         "Others" = 6
       )
-    ),
-    v619a = labelled(
-      v619a,
-      label = "Other main source of funds for healthcare and treatment"
     ),
     v620 = labelled(
       v620,
@@ -5504,4 +5496,55 @@ section13c <- section13c %>%
       label = "How much has the household received from ..[ITEM].. in the past 12 months?"
     )
   )
-  
+
+#MAKING HOUSEHOLD ID UNIQUE ACROSS THE ENTIRE DATASET
+
+section0 <- section0 %>%
+  group_by(psu) %>%
+  mutate(
+    hhld = row_number(),
+    hhid = paste0(psu, "-", hhld)
+  ) %>%
+  ungroup()
+
+sections <- list(
+  section1a, section1b, section2a1, section2a2, section2a3, section2b, section2c,
+  section3a, section3b, section4a, section4b, section4c, section4d,
+  section5, section6a, section6b1, section6b2, section6b3, section6b4,
+  section6b5, section6c1, section6c2, section6c3, section6c4,
+  section6d, section7, section8, section9a, section9b, section9c,
+  section9d, section9e, section9f1, section9f2, section10,
+  section11a, section11b, section11c, section12a, section12b,
+  section13a, section13b, section13c
+)
+
+sections <- lapply(sections, function(df) {
+  df <- df %>%
+    select(-any_of("hhld")) %>%                   
+    left_join(section0 %>% select(uid, hhld), by = "uid")  
+  return(df)
+})
+
+names(sections) <- c(
+  "section1a", "section1b", "section2a1", "section2a2", "section2a3", "section2b", "section2c",
+  "section3a", "section3b", "section4a", "section4b", "section4c", "section4d",
+  "section5", "section6a", "section6b1", "section6b2", "section6b3", "section6b4",
+  "section6b5", "section6c1", "section6c2", "section6c3", "section6c4",
+  "section6d", "section7", "section8", "section9a", "section9b", "section9c",
+  "section9d", "section9e", "section9f1", "section9f2", "section10",
+  "section11a", "section11b", "section11c", "section12a", "section12b",
+  "section13a", "section13b", "section13c"
+)
+
+list2env(sections, .GlobalEnv) 
+
+#SAVING ALL THE DATAFRAMES IN DTA FORMAT
+
+sections <- lapply(sections, haven::zap_widths)
+
+for (nm in names(sections)) {
+  write_dta(
+    sections[[nm]],
+    file.path("stata_data", paste0(nm, ".dta"))
+  )
+}
