@@ -6,10 +6,11 @@ library(haven)
 library(tidyverse)
 library(openxlsx)
 library(stringr)
+library(readr)
 
 #SECTION0
 
-section0 <- read.xlsx("dataset/cover page.xlsx")
+section0 <- read.xlsx("clean data/section0.xlsx")
 
 #labelling section-0
 
@@ -246,11 +247,10 @@ section0 <- section0 %>%
   )
 )
 
-
 #SECTION 1 - HOUSEHOLD ROSTER
 
-section1a <- read.xlsx("dataset/section 1.xlsx")
-section1b <- read.xlsx("dataset/Part 1_1 Household Roster-1.xlsx")
+section1a <- read.xlsx("clean data/section1a.xlsx")
+section1b <- read.xlsx("clean data/section1b.xlsx")
 
 #Section1a
 
@@ -294,19 +294,19 @@ section1a <- section1a %>%
     v107 = as.numeric(gsub("[^0-9]", "", v107))
   ) %>% 
   mutate(
-    ID = as.integer(ID),
-    psu = as.integer(psu), 
-    ward = as.integer(ward),
-    hhld = as.integer(hhld),
-    v101 = as.integer(v101),
-    v103 = as.integer(v103), 
-    v104a = as.integer(v104a),
-    v105 = as.integer(v105), 
-    v106 = as.integer(v106),
-    v107 = as.integer(v107),
-    v108 = as.integer(v108),
-    v109 = as.integer(v109), 
-    v110 = as.integer(v110)
+    ID = as.numeric(ID),
+    psu = as.numeric(psu), 
+    ward = as.numeric(ward),
+    hhld = as.numeric(hhld),
+    v101 = as.numeric(v101),
+    v103 = as.numeric(v103), 
+    v104a = as.numeric(gsub("[^0-9]", "", v104a)),
+    v105 = as.numeric(v105), 
+    v106 = as.numeric(v106),
+    v107 = as.numeric(v107),
+    v108 = as.numeric(v108),
+    v109 = as.numeric(v109), 
+    v110 = as.numeric(v110)
   ) %>% 
   mutate(
     psu = labelled(
@@ -391,6 +391,12 @@ section1a <- section1a %>%
 for (i in setdiff(1:ncol(section1b), c(2, 6, 7, 8, 21, 22, 23))) {
   section1b[[i]] <- as.numeric(section1b[[i]])
 }
+
+section1b <- section1b %>%
+  mutate(
+    v118 = if_else(!is.na(v119), 1, v118),
+    v120 = if_else(!is.na(v121), 1, v120)
+  )
 
 section1b <- section1b %>%
   mutate(
@@ -513,11 +519,11 @@ section1b <- section1b %>%
   )
 
 #SECTION 2 (Household Characteristics)
-section2a1 <- read.xlsx("dataset/Household Characteristics.xlsx")
-section2a2 <- read.xlsx("dataset/Section 2_1 Housing Expenses.xlsx")
-section2a3 <- read.xlsx("dataset/Utilities and Amenities.xlsx")
-section2b <- read.xlsx("dataset/Section 2_2_ National health insurence.xlsx")
-section2c <- read.xlsx("dataset/PART 2_3_ Mortality (Death) Information.xlsx")
+section2a1 <- read.xlsx("clean data/section2a1.xlsx")
+section2a2 <- read.xlsx("clean data/section2a2.xlsx")
+section2a3 <- read.xlsx("clean data/section2a3.xlsx")
+section2b <- read.xlsx("clean data/section2b.xlsx")
+section2c <- read.xlsx("clean data/section2c.xlsx")
 
 #Part 2.1 - Housing
 
@@ -567,10 +573,10 @@ section2a1 <- section2a1 %>%
 
 
 for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
-  section2a1[[i]] <- as.numeric(section2a1[[i]])
+  section2a1[[i]] <- as.numeric(gsub("[^0-9]", "", section2a1[[i]]))
 }
 
-section2a1 <- section2a1 %>%
+ section2a1 <- section2a1 %>%
   mutate(
   psu = labelled(
     psu, 
@@ -659,7 +665,7 @@ section2a2 <- section2a2 %>%
   
 
 for (i in setdiff(1:ncol(section2a2), c(2, 7, 8, 16))) {
-  section2a2[[i]] <- as.numeric(section2a2[[i]])
+  section2a2[[i]] <- as.numeric(gsub("[^0-9]", "", section2a2[[i]]))
 }
 
 section2a2 <- section2a2 %>%
@@ -743,20 +749,10 @@ section2a3 <- section2a3 %>%
     v218  = v218_new,
     v218a = v218a_new
   ) %>%
-  select(-v218_num, -v218_new, -v218a_new) %>%
-  mutate(
-    v220_num = grepl("[0-9]", v220a),   
-    
-    v220_new  = if_else(v220_num, v220a, v220),
-    v220a_new = if_else(v220_num, v220,  v220a),
-    
-    v220  = v220_new,
-    v220a = v220a_new 
-  ) %>%
-  select(-v220_num, -v220_new, -v220a_new) 
+  select(-v218_num, -v218_new, -v218a_new)
 
 for (i in setdiff(1:ncol(section2a3), c(2, 7, 8, 11, 14, 24, 33))) {
-  section2a3[[i]] <- as.numeric(section2a3[[i]])
+  section2a3[[i]] <- as.numeric(gsub("[^0-9]", "", section2a3[[i]]))
 }
 
 section2a3 <- section2a3 %>%
@@ -895,6 +891,7 @@ section2a3 <- section2a3 %>%
   )
 )
 
+
 #Part 2.2 - Awarebess about and Affiliation with Health Insurance Program
 
 section2b <- section2b %>% 
@@ -919,28 +916,29 @@ section2b <- section2b %>%
 
 section2b <- section2b %>%
   mutate(
-    swap_230 = !grepl("[0-9]", v230) & grepl("[0-9]", v230a),
-    
-    v230_new  = if_else(
-      swap_230,
-      as.numeric(v230a),
-      as.numeric(v230)
+    v230_chr  = trimws(as.character(v230)),
+    v230a_chr = trimws(as.character(v230a)),
+
+    non_numeric_v230 = !is.na(v230_chr) & !grepl("^[0-9]+$", v230_chr),
+
+    v230a = if_else(
+      non_numeric_v230,
+      v230_chr,
+      v230a_chr
     ),
-    
-    v230a_new = if_else(
-      swap_230,
-      as.character(v230),
-      as.character(v230a)
-    ),
-    
-    v230  = v230_new,
-    v230a = v230a_new
+
+    v230 = if_else(
+      non_numeric_v230,
+      96,
+      as.numeric(v230_chr)
+    )
   ) %>%
-  select(-swap_230, -v230_new, -v230a_new)
+  select(-v230_chr, -v230a_chr, -non_numeric_v230)
+
 
 
 for (i in setdiff(1:ncol(section2b), c(2, 7, 8, 14:21, 23, 35, 45, 82))) {
-  section2b[[i]] <- as.numeric(section2b[[i]])
+  section2b[[i]] <- as.numeric(gsub("[^0-9]", "", section2b[[i]]))
 }
 
 section2b <- section2b %>%
@@ -1247,6 +1245,7 @@ section2b <- section2b %>%
   )
 )
 
+
 #Part 2.3 - Mortality (Death) Information
 
 section2c <- section2c %>%
@@ -1274,7 +1273,7 @@ section2c <- section2c %>%
 
 
 for (i in setdiff(1:ncol(section2c), c(2, 8, 7, 13, 17, 19))) {
-  section2c[[i]] <- as.numeric(section2c[[i]])
+  section2c[[i]] <- as.numeric(gsub("[^0-9]", "", section2c[[i]]))
 }
 
 section2c <- section2c %>%
@@ -1378,15 +1377,16 @@ section2c <- section2c %>%
   )
 )
 
+
 #SECTION 3: FOOD CONSUMPTION
 
-section3a <- read.xlsx("dataset/Section 3_ Consumption of Food.xlsx")
-section3b <- read.xlsx("dataset/Part 3_1_ Food away from home.xlsx")
+section3a <- read.xlsx("clean data/section3a.xlsx")
+section3b <- read.xlsx("clean data/section3b.xlsx")
 
 #Part 3.1: Food at Home
 
 for (i in setdiff(1:ncol(section3a), c(2, 8, 7))) {
-  section3a[[i]] <- as.numeric(section3a[[i]])
+  section3a[[i]] <- as.numeric(gsub("[^0-9]", "", section3a[[i]]))
 }
 
 section3a <- section3a %>%
@@ -1450,7 +1450,7 @@ section3a <- section3a %>%
 #Part 3.2: Food Away from Home
 
 for (i in setdiff(1:ncol(section3b), c(2, 8, 7))) {
-  section3b[[i]] <- as.integer(section3b[[i]])
+  section3b[[i]] <- as.numeric(gsub("[^0-9]", "", section3b[[i]]))
 }
 
 section3b <- section3b %>%
@@ -1501,14 +1501,14 @@ section3b <- section3b %>%
 
 #SECTION 4: NON-FOOD EXPENDITURE AND INVENTORY OF DURABLE GOODS 
 
-section4a <- read.xlsx("dataset/section 4.xlsx")
-section4b <- read.xlsx("dataset/Part 4_2_ Expenditure Abroad.xlsx")
-section4c <- read.xlsx("dataset/Part 4_3_ Inventory of Durable Goods.xlsx")
-section4d <- read.xlsx("dataset/Part 4_4_ Own Account Consumption of Goods.xlsx")
+section4a <- read.xlsx("clean data/section4a.xlsx")
+section4b <- read.xlsx("clean data/section4b.xlsx")
+section4c <- read.xlsx("clean data/section4c.xlsx")
+section4d <- read.xlsx("clean data/section4d.xlsx")
 
 #Part 4.1 - Non-Food Expenditures
 for (i in setdiff(1:ncol(section4a), c(2, 8, 7))) {
-  section4a[[i]] <- as.numeric(section4a[[i]])
+  section4a[[i]] <- as.numeric(gsub("[^0-9]", "", section4a[[i]]))
 }
 
 section4a <- section4a %>%
@@ -1582,7 +1582,7 @@ section4a <- section4a %>%
 #Part 4.2: Expenditure Abroad
 
 for (i in setdiff(1:ncol(section4b), c(2, 7, 8))) {
-  section4b[[i]] <- as.numeric(section4b[[i]])
+  section4b[[i]] <- as.numeric(gsub("[^0-9]", "", section4b[[i]]))
 }
 
 section4b <- section4b %>%
@@ -1642,7 +1642,7 @@ section4b <- section4b %>%
 #Part 4.3 - Inventory of Durable Goods
 
 for (i in setdiff(1:ncol(section4c), c(2, 7, 8))) {
-  section4c[[i]] <- as.numeric(section4c[[i]])
+  section4c[[i]] <- as.numeric(gsub("[^0-9]", "", section4c[[i]]))
 }
 
 section4c <- section4c %>%
@@ -1729,7 +1729,7 @@ section4c <- section4c %>%
 #Part 4.4 - Own Account Consumption of Goods
 
 for (i in setdiff(1:ncol(section4d), c(2, 7, 8))) {
-  section4d[[i]] <- as.numeric(section4d[[i]])
+  section4d[[i]] <- as.numeric(gsub("[^0-9]", "", section4d[[i]]))
 }
 
 section4d <- section4d %>%
@@ -1783,7 +1783,7 @@ section4d <- section4d %>%
 section5 <- read.xlsx("dataset/Section 5_ Expense in Education.xlsx")
 
 for (i in setdiff(1:ncol(section5), c(2, 7, 8))) {
-  section5[[i]] <- as.numeric(section5[[i]])
+  section5[[i]] <- as.numeric(gsub("[^0-9]", "", section5[[i]]))
 }
 
 section5 <- section5 %>%
@@ -1861,22 +1861,22 @@ section5 <- section5 %>%
 
 #SECTION 6:EXPENSES IN HEALTH
 
-section6a <- read.xlsx("dataset/section 6.xlsx")
-section6b1 <- read.xlsx("dataset/Part 6_2_1_ Chronic Illness and Health Seeking Behaviour.xlsx")
-section6b2 <- read.xlsx("dataset/Part 6_2_2_ Chronic Illness and Expenditure Tracking.xlsx")
-section6b3 <- read.xlsx("dataset/Part 6_2_3_ Chronic Illness and Expenditure Tracking – Outpatient (Regular Checkups).xlsx")
-section6b4 <- read.xlsx("dataset/Part 6_2_4_ Chronic Illness and Expenditure Tracking – Inpatient.xlsx")
-section6b5 <- read.xlsx("dataset/section 6_2_5.xlsx")
-section6c1 <- read.xlsx("dataset/Part 6_3_1_ Acute Illness and health seeking behaviour.xlsx")
-section6c2 <- read.xlsx("dataset/Part 6.3.2_ Acute illness and health screening.xlsx")
-section6c3 <- read.xlsx("dataset/Part 6_3_3_ Acute Illness health seeking and expenditure tracking.xlsx")
-section6c4 <- read.xlsx("dataset/Part 6_3_4_ Acute Illness health seeking and expenditure tracking.xlsx")
-section6d <- read.xlsx("dataset/PART 6_4_ Household Health Care Seeking.xlsx")
+section6a <- read.xlsx("clean data/section6a.xlsx")
+section6b1 <- read.xlsx("clean data/section6b1.xlsx")
+section6b2 <- read.xlsx("clean data/section6b2.xlsx")
+section6b3 <- read.xlsx("clean data/section6b3.xlsx")
+section6b4 <- read.xlsx("clean data/section6b4.xlsx")
+section6b5 <- read.xlsx("clean data/section6b5.xlsx")
+section6c1 <- read.xlsx("clean data/section6c1.xlsx")
+section6c2 <- read.xlsx("clean data/section6c2.xlsx")
+section6c3 <- read.xlsx("clean data/section6c3.xlsx")
+section6c4 <- read.xlsx("clean data/section6c4.xlsx")
+section6d <- read.xlsx("clean data/section6d.xlsx")
 
 #Part 6.1 - Screening for General Health Status 
 
 for (i in setdiff(1:ncol(section6a), c(2, 7, 8))) {
-  section6a[[i]] <- as.numeric(section6a[[i]])
+  section6a[[i]] <- as.numeric(gsub("[^0-9]", "", section6a[[i]]))
 }
 
 section6a <- section6a %>%
@@ -2025,7 +2025,7 @@ section6b1 <- section6b1 %>%
   )  
 
 for (i in setdiff(1:ncol(section6b1), c(2, 7, 8, 14, 21, 22, 23, 38))) {
-  section6b1[[i]] <- as.numeric(section6b1[[i]])
+  section6b1[[i]] <- as.numeric(gsub("[^0-9]", "", section6b1[[i]]))
 }
 
 section6b1 <- section6b1 %>%
@@ -2253,7 +2253,7 @@ section6b1 <- section6b1 %>%
 #Part 6.2.2 - Chronic Illness and Medication Use
 
 for (i in setdiff(1:ncol(section6b2), c(2, 7, 8, 13:32))) {
-  section6b2[[i]] <- as.numeric(section6b2[[i]])
+  section6b2[[i]] <- as.numeric(gsub("[^0-9]", "", section6b2[[i]]))
 }
 
 section6b2 <- section6b2 %>%
@@ -2489,7 +2489,7 @@ section6b3 <- section6b3 %>%
   select(-v604_num, -v604_txt)   
 
 for (i in setdiff(1:ncol(section6b3), c(2, 7, 8, 29))) {
-  section6b3[[i]] <- as.numeric(section6b3[[i]])
+  section6b3[[i]] <- as.numeric(gsub("[^0-9]", "", section6b3[[i]]))
 }
 
 section6b3 <- section6b3 %>%
@@ -2631,7 +2631,7 @@ section6b4 <- section6b4 %>%
   select(-v604_num, -v604_txt)   
 
 for (i in setdiff(1:ncol(section6b4), c(2, 7, 8, 11))) {
-  section6b4[[i]] <- as.numeric(section6b4[[i]])
+  section6b4[[i]] <- as.numeric(gsub("[^0-9]", "", section6b4[[i]]))
 }
 
 section6b4 <- section6b4 %>%
@@ -2757,7 +2757,7 @@ section6b4 <- section6b4 %>%
 #Part 6.2.5 - Chronic Illness and Care Giver Burden
 
 for (i in setdiff(1:ncol(section6b5), c(2, 7, 8, 17))) {
-  section6b5[[i]] <- as.numeric(section6b5[[i]])
+  section6b5[[i]] <- as.numeric(gsub("[^0-9]", "", section6b5[[i]]))
 }
 
 section6b5 <- section6b5 %>%
@@ -3135,6 +3135,26 @@ section6c2 <- section6c2 %>%
   )
 
 #Part 6.3.3 - Acute Illness and Medication Use
+
+section6c3 <- section6c3 %>%
+  mutate(
+    v648 = case_when(
+      !is.na(v649a) ~ "1",
+      !is.na(v649b) ~ "2", 
+      !is.na(v649c) ~ "3", 
+      !is.na(v649d) ~ "4", 
+      !is.na(v649e) ~ "5", 
+      !is.na(v649f) ~ "6", 
+      !is.na(v649g) ~ "7", 
+      !is.na(v649h) ~ "8", 
+      !is.na(v649i) ~ "9", 
+      !is.na(v649j) ~ "10", 
+      !is.na(v649k) ~ "11", 
+      !is.na(v649l) ~ "12", 
+      !is.na(v649m) ~ "13", 
+      !is.na(v649n) ~ "14"
+    )
+  )
 
 for (i in setdiff(1:ncol(section6c3), c(2, 7, 8, 14:29))) {
   section6c3[[i]] <- as.numeric(section6c3[[i]])

@@ -80,7 +80,7 @@ total_interviewed <- psu_counts %>%
 
 #VALIDATING PALIKA AND DISTRICT FOR NHIP AND NON NHIP
 
-nhip_check_geoinputs <- section0 %>%
+nhip_check_geoinputs <- coverpage %>%
   filter(
     #KOSHI
     (psu %in% c(1101, 1201) & !(province == 1 & district == 102 & palika == 10207)) |
