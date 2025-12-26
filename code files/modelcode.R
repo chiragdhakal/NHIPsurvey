@@ -424,27 +424,23 @@ section1a <- section1a %>%
 section1a <- section1a %>%
   group_by(hhid) %>%
   mutate(
-    # 1. Identify if THIS household has a "Bad Head" (Head is absent)
     bad_head_flag = any(v107 == 1 & v109 %in% c(3, 4)),
     
-    # 2. Find the max age ONLY among residents (v109 == 1)
-    # We use na.rm = TRUE to handle missing ages safely
+
     max_res_age = max(v104a[v109 == 1], na.rm = TRUE)
   ) %>%
   mutate(
     v107 = case_when(
-      # CONDITION 1: Modify the OLD Head
-      # If the household has a bad head, and this row is that head...
+    
       bad_head_flag == TRUE & v107 == 1 ~ 3, 
       
-      # CONDITION 2: Assign the NEW Head
-      # If household has bad head, this person is a resident, AND is the oldest...
+    
       bad_head_flag == TRUE & v109 == 1 & v104a == max_res_age ~ 1,
       
-      # CONDITION 3: Everyone else stays the same
+
       TRUE ~ v107
     )
   ) %>%
-  # Clean up the helper columns
+
   select(-bad_head_flag, -max_res_age) %>%
   ungroup()
