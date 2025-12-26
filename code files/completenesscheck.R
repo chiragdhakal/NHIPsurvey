@@ -89,7 +89,7 @@ section0 <- section0 %>%
   ungroup()
 
 sections <- list(
-  section1a, section1b, section2a1, section2a2, section2a3, section2b, section2c,
+  section0, section1a, section1b, section2a1, section2a2, section2a3, section2b, section2c,
   section3a, section3b, section4a, section4b, section4c, section4d,
   section5, section6a, section6b1, section6b2, section6b3, section6b4,
   section6b5, section6c1, section6c2, section6c3, section6c4,
@@ -99,15 +99,9 @@ sections <- list(
   section13a, section13b, section13c
 )
 
-sections <- lapply(sections, function(df) {
-  df <- df %>%
-    select(-any_of("hhld")) %>%                   
-    left_join(section0 %>% select(uid, hhld), by = "uid")  
-  return(df)
-})
 
 names(sections) <- c(
-  "section1a", "section1b", "section2a1", "section2a2", "section2a3", "section2b", "section2c",
+  "section0", "section1a", "section1b", "section2a1", "section2a2", "section2a3", "section2b", "section2c",
   "section3a", "section3b", "section4a", "section4b", "section4c", "section4d",
   "section5", "section6a", "section6b1", "section6b2", "section6b3", "section6b4",
   "section6b5", "section6c1", "section6c2", "section6c3", "section6c4",

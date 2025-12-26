@@ -19,7 +19,7 @@ section0 <- section0 %>%
     nhip_enrollment_date = Health.Insurence.Program,
     ssf_enrollment_date = Social.Health.Insurence,
     employer_name = name
-  ) %>%
+  ) 
   mutate(
   ID = labelled(
     ID, 
@@ -292,7 +292,9 @@ section1a <- section1a %>%
       TRUE ~ v105
     ),
     v107 = as.numeric(gsub("[^0-9]", "", v107))
-  ) %>% 
+  ) 
+
+section1a <- section1a %>%
   mutate(
     ID = as.numeric(ID),
     psu = as.numeric(psu), 
@@ -307,7 +309,9 @@ section1a <- section1a %>%
     v108 = as.numeric(v108),
     v109 = as.numeric(v109), 
     v110 = as.numeric(v110)
-  ) %>% 
+  ) 
+
+section1a <- section1a %>%
   mutate(
     psu = labelled(
       psu, 
@@ -1780,7 +1784,7 @@ section4d <- section4d %>%
 
 #SECTION 5: EXPENSE IN EDUCATION
 
-section5 <- read.xlsx("dataset/Section 5_ Expense in Education.xlsx")
+section5 <- read.xlsx("clean data/section5.xlsx")
 
 for (i in setdiff(1:ncol(section5), c(2, 7, 8))) {
   section5[[i]] <- as.numeric(gsub("[^0-9]", "", section5[[i]]))
@@ -2477,7 +2481,7 @@ section6b3 <- section6b3 %>%
     v604 = v614
   ) %>%
   mutate(
-    v604_num = suppressWarnings(as.numeric(str_extract(v604, "\\d+"))),
+    v604_num = as.numeric(str_extract(v604, "\\d+")),
 
     v604_txt = str_trim(
       str_remove_all(v604, "\\d+|,")
@@ -2761,7 +2765,6 @@ for (i in setdiff(1:ncol(section6b5), c(2, 7, 8, 17))) {
 }
 
 section6b5 <- section6b5 %>%
-  select(-personid1) %>%
   mutate(
     psu = labelled(
       psu,
@@ -2839,7 +2842,7 @@ section6c1 <- section6c1 %>%
   select(-v630_num, -v630_new, -v630a_new) 
 
 for (i in setdiff(1:ncol(section6c1), c(2, 7, 8, 14, 15, 16))) {
-  section6c1[[i]] <- as.numeric(section6c1[[i]])
+  section6c1[[i]] <- as.numeric(gsub("[^0-9]", "", section6c1[[i]]))
 }
 
 section6c1 <- section6c1 %>%
@@ -3069,8 +3072,8 @@ section6c2 <- section6c2 %>%
   ) %>%
   select(-v630_num, -v630_txt)
 
-for (i in setdiff(1:ncol(section6c2), c(2, 7, 8, 13:22))) {
-  section6c2[[i]] <- as.numeric(section6c2[[i]])
+for (i in setdiff(1:ncol(section6c2), c(2, 7, 8, 13, 14, 16:22))) {
+  section6c2[[i]] <- as.numeric(gsub("[^0-9]", "", section6c2[[i]]))
 }
 
 section6c2 <- section6c2 %>%
@@ -3157,7 +3160,7 @@ section6c3 <- section6c3 %>%
   )
 
 for (i in setdiff(1:ncol(section6c3), c(2, 7, 8, 14:29))) {
-  section6c3[[i]] <- as.numeric(section6c3[[i]])
+  section6c3[[i]] <- as.numeric(gsub("[^0-9]", "", section6c3[[i]]))
 }
 
 section6c3 <- section6c3 %>%
@@ -3382,7 +3385,7 @@ section6c4 <- section6c4 %>%
   select(-v652_num, -v652_txt) 
 
 for (i in setdiff(1:ncol(section6c4), c(2, 7, 8, 29, 34:36))) {
-  section6c4[[i]] <- as.numeric(section6c4[[i]])
+  section6c4[[i]] <- as.numeric(gsub("[^0-9]", "", section6c4[[i]]))
 }
 
 section6c4 <- section6c4 %>%
@@ -3550,7 +3553,7 @@ section6c4 <- section6c4 %>%
 #Part 6.4 - Household Health Care Seeking Behavior
 
 for (i in setdiff(1:ncol(section6d), c(2, 7, 8, 13, 24))) {
-  section6d[[i]] <- as.numeric(section6d[[i]])
+  section6d[[i]] <- as.numeric(gsub("[^0-9]", "", section6d[[i]]))
 }
 
 section6d <- section6d %>%
@@ -3861,7 +3864,7 @@ section6d <- section6d %>%
 
 #SECTION 7: LABOUR AND EMPLOYMENT
 
-section7 <- read.xlsx("dataset/Swction 7_ Labor and Employment.xlsx")
+section7 <- read.xlsx("clean data/section7.xlsx")
 
 section7 <- section7 %>%
   rename(
@@ -3891,7 +3894,17 @@ section7 <- section7 %>%
     v714b  = v714_num,
     v714a = if_else(v714_txt != "", v714_txt, NA_character_)
   ) %>%
-  select(-v714_num, -v714_txt, -v714) 
+  select(-v714_num, -v714_txt, -v714) %>%
+  mutate(
+    ward = as.numeric(gsub("[^0-9]", "", ward)),
+    v702 = as.numeric(gsub("[^0-9]", "", v702)), 
+    v703 = as.numeric(gsub("[^0-9]", "", v703)),
+    v721 = as.numeric(gsub("[^0-9]", "", v721))
+  )
+
+for (i in setdiff(1:ncol(section7), c(2, 7, 8, 19, 25, 34))) {
+  section7[[i]] <- as.numeric(gsub("[^0-9]", "", section7[[i]]))
+}
 
 section7 <- section7 %>%
   mutate(
@@ -4066,10 +4079,10 @@ section7 <- section7 %>%
 
 #SECTION 8 : WAGE JOBS
 
-section8 <- read.xlsx("dataset/Section 8_ Wage Jobs.xlsx")
+section8 <- read.xlsx("clean data/section8.xlsx")
 
 for (i in setdiff(1:ncol(section8), c(2, 7, 8, 13, 16))) { 
-  section8[[i]] <- as.numeric(section8[[i]]) 
+  section8[[i]] <- as.numeric(gsub("[^0-9]", "", section8[[i]]))
 }
 
 
@@ -4181,13 +4194,13 @@ section8 <- section8 %>%
 
 #SECTION 9: FARMING AND LIVESTOCK
 
-section9a <- read.xlsx("dataset/section 9.xlsx")
-section9b <- read.xlsx("dataset/Part 9_2_ Landholding  Increase Decrease.xlsx")
-section9c <- read.xlsx("dataset/Part 9_3_ Production and Uses.xlsx")
-section9d <- read.xlsx("dataset/Part 9_4_ Expenditure.xlsx")
-section9e <- read.xlsx("dataset/Part 9_5_ Livestock.xlsx")
-section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure (1).xlsx")
-section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure.xlsx")
+section9a <- read.xlsx("clean data/section9a.xlsx")
+section9b <- read.xlsx("clean data/section9b.xlsx")
+section9c <- read.xlsx("clean data/section9c.xlsx")
+section9d <- read.xlsx("clean data/section9d.xlsx")
+section9e <- read.xlsx("clean data/section9e.xlsx")
+section9f2 <- read.xlsx("clean data/section9f1.xlsx")
+section9f1 <- read.xlsx("clean data/section9f2.xlsx")
 
 #Part 9.1: Land Holding 
 
@@ -4205,7 +4218,7 @@ section9a <- section9a %>%
   select(-v907_num, -v907_txt) 
 
 for (i in setdiff(1:ncol(section9a), c(2, 7, 8, 13, 20, 22))) { 
-  section9a[[i]] <- as.numeric(section9a[[i]]) 
+  section9a[[i]] <- as.numeric(gsub("[^0-9]", "", section9a[[i]]))
 }
 
 section9a <- section9a %>% 
@@ -4291,7 +4304,7 @@ section9a <- section9a %>%
 #Part 9.2 - Landholding - Increase/Decrease
 
 for (i in setdiff(1:ncol(section9b), c(2, 7, 8))) { 
-  section9b[[i]] <- as.numeric(section9b[[i]]) 
+  section9b[[i]] <- as.numeric(gsub("[^0-9]", "", section9b[[i]]))
 }
 
 section9b <- section9b %>% 
@@ -4372,13 +4385,11 @@ section9b <- section9b %>%
 
 #Part 9.3 - Production and Uses
 
-for (i in setdiff(1:ncol(section9c), c(2, 7, 8, 12))) { 
-  section9c[[i]] <- as.numeric(section9c[[i]]) 
+for (i in setdiff(1:ncol(section9c), c(2, 7, 8, 11))) { 
+  section9c[[i]] <- as.numeric(gsub("[^0-9]", "", section9c[[i]]))
 }
 
 section9c <- section9c %>% 
-  select(-v914a) %>%
-  rename(v914a = v914b_1) %>%
   mutate(
     psu = labelled(
       psu,
@@ -4540,7 +4551,7 @@ section9c <- section9c %>%
 #Part 9.4 - Expenditure on Agriculture 
 
 for (i in setdiff(1:ncol(section9d), c(2, 7, 8))) { 
-  section9d[[i]] <- as.numeric(section9d[[i]]) 
+  section9d[[i]] <- as.numeric(gsub("[^0-9]", "", section9d[[i]]))
 }
 
 section9d <- section9d %>%
@@ -4637,7 +4648,7 @@ section9d <- section9d %>%
 #Part 9.5 -  Livestock - Ownership 
 
 for (i in setdiff(1:ncol(section9e), c(2, 7, 8))) { 
-  section9e[[i]] <- as.numeric(section9e[[i]]) 
+  section9e[[i]] <- as.numeric(gsub("[^0-9]", "", section9e[[i]]))
 }
 
 section9e <- section9e %>%
@@ -4727,9 +4738,12 @@ section9e <- section9e %>%
 
 #Part 9.6.1 - Livestock Income
 
+for (i in setdiff(1:ncol(section9f1), c(2, 7, 8))) { 
+  section9f1[[i]] <- as.numeric(gsub("[^0-9]", "", section9f1[[i]]))
+}
+
 section9f1 <- section9f1 %>%
   mutate(
-    v941 = as.numeric(v941),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -4770,9 +4784,13 @@ section9f1 <- section9f1 %>%
 
 #Part 9.6.2 - Livestock Expenditure
 
+for (i in setdiff(1:ncol(section9f2), c(2, 7, 8))) { 
+  section9f2[[i]] <- as.numeric(gsub("[^0-9]", "", section9f2[[i]]))
+}
+
 section9f2 <- section9f2 %>%
   mutate(
-    v943 = as.numeric(v943),
+    v943 = as.numeric(gsub("[^0-9]", "", v943)),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -4813,7 +4831,7 @@ section9f2 <- section9f2 %>%
 
 #SECTION 10 : INCOME FROM NON-AGRICULTURAL ENTERPRISES
 
-section10 <- read.xlsx("dataset/Income from Non - Agricultural Enterprises.xlsx")
+section10 <- read.xlsx("clean data/section10.xlsx")
 
 section10 <- section10 %>%
   mutate(
@@ -4822,9 +4840,11 @@ section10 <- section10 %>%
     )
   )
 
-for (i in setdiff(1:ncol(section10), c(2, 7, 8, 13, 15))) { 
-  section10[[i]] <- as.numeric(section10[[i]]) 
+for (i in setdiff(seq_len(ncol(section10)), c(2, 7, 8, 13, 15))) {
+    section10[[i]] <- as.numeric(gsub("[^0-9]", "", section10[[i]]))
 }
+
+
 
 section10 <- section10 %>%
   mutate(
@@ -4925,14 +4945,20 @@ section10 <- section10 %>%
 
 #SECTION 11 : CREDIT AND SAVINGS
 
-section11a <- read.xlsx("dataset/section 11.xlsx")
-section11b <- read.xlsx("dataset/Part 11_2_ Lending and Outstanding Loans.xlsx")
-section11c <- read.xlsx("dataset/Part 11_3_ Other Assets.xlsx")
+section11a <- read.xlsx("clean data/section11a.xlsx")
+section11b <- read.xlsx("clean data/section11b.xlsx")
+section11c <- read.xlsx("clean data/section11c.xlsx")
 
 #Part 11.1 - Borrowing and Outstanding Loans
 
-for (i in setdiff(1:ncol(section11a), c(2, 7, 8, 11, 14, 19))) { 
-  section11a[[i]] <- as.numeric(section11a[[i]]) 
+section11a <- section11a %>%
+  mutate(
+  v1105a = if_else(grepl("[A-Za-z\u0900-\u097F]", v1105), v1105, NA_character_),
+    v1105  = as.numeric(gsub("[^0-9]", "", v1105))
+  )
+
+for (i in setdiff(1:ncol(section11a), c(2, 7, 8, 11, 14, 19, 22))) { 
+  section11a[[i]] <- as.numeric(gsub("[^0-9]", "", section11a[[i]]))
 }
 
 section11a <- section11a %>%
@@ -5022,7 +5048,7 @@ section11a <- section11a %>%
 #Part 11.2 - Lending and Outstanding Loans 
 
 for (i in setdiff(1:ncol(section11b), c(2, 7, 8, 11, 14, 19))) { 
-  section11b[[i]] <- as.numeric(section11b[[i]]) 
+  section11b[[i]] <- as.numeric(gsub("[^0-9]", "", section11b[[i]]))
 }
 
 section11b <- section11b %>%
@@ -5106,7 +5132,7 @@ section11b <- section11b %>%
 #Part 11.3 - Other Assets 
 
 for (i in setdiff(1:ncol(section11c), c(2, 7, 8))) { 
-  section11c[[i]] <- as.numeric(section11c[[i]]) 
+  section11c[[i]] <- as.numeric(gsub("[^0-9]", "", section11c[[i]])) 
 }
 
 section11c <- section11c %>%
@@ -5181,20 +5207,18 @@ section11c <- section11c %>%
 
 #SECTION 12: REMITTANCES AND TRANSFER
 
-section12a <- read.xlsx("dataset/Remittance and transfer.xlsx")
-section12b <- read.xlsx("dataset/Part 12_2. Other Remittances.xlsx")
+section12a <- read.xlsx("clean data/section12a.xlsx")
+section12b <- read.xlsx("clean data/section12b.xlsx")
 
 #Part 12.1 - Remittances and Transfer Income Received and Sent
 
 section12a <- section12a %>%
   mutate(
-    v1205 = suppressWarnings(
-      as.numeric(str_extract(v1205, "^\\d+"))
-    )
+     v1205 = as.numeric(str_trim(str_remove(v1205, ",.*")))
   )
 
 for (i in setdiff(1:ncol(section12a), c(2, 7, 8, 16))) { 
-  section12a[[i]] <- as.numeric(section12a[[i]]) 
+  section12a[[i]] <- as.numeric(gsub("[^0-9]", "", section12a[[i]]))
 }
 
 section12a <- section12a %>%
@@ -5284,9 +5308,14 @@ section12a <- section12a %>%
 
 #Part 12.2 - Other Remittances 
 
+for (i in setdiff(1:ncol(section12b), c(2, 7, 8))) { 
+  section12b[[i]] <- as.numeric(gsub("[^0-9]", "", section12b[[i]]))
+}
+
 section12b <- section12b %>%
   mutate(
-    v1213b = as.numeric(v1213b),
+    v1213b = as.numeric(gsub("[^0-9]", "", v1213b)),
+    v1214b = as.numeric(gsub("[^0-9]", "", v1214b)),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -5315,15 +5344,16 @@ section12b <- section12b %>%
 
 #SECTION 13: TRANSFERS, SOCIAL ASSISTANCE AND OTHER INCOME 
 
-section13a <- read.xlsx("dataset/section 13.xlsx")
-section13b <- read.xlsx("dataset/Part 13_2_ Social Assistance.xlsx")
-section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
+section13a <- read.xlsx("clean data/section13a.xlsx")
+section13b <- read.xlsx("clean data/section13b.xlsx")
+section13c <- read.xlsx("clean data/section13c.xlsx")
 
 #Part 13.1 - Cash Transfer Programs
 
 section13a <- section13a %>%
   mutate(
-    v1303 = as.numeric(v1303),
+    v1303 = as.numeric(gsub("[^0-9]", "", v1303)),
+    v1305 = as.numeric(gsub("[^0-9]", "", v1305)),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -5472,7 +5502,7 @@ section13b <- section13b %>%
 
 section13c <- section13c %>%
   mutate(
-    v1312 = as.numeric(v1312),
+    v1312 = as.numeric(gsub("[^0-9]", "", v1312)),
     psu = labelled(
       psu,
       label = "PSU number"
@@ -5517,48 +5547,29 @@ section13c <- section13c %>%
     )
   )
 
-#MAKING HOUSEHOLD ID UNIQUE ACROSS THE ENTIRE DATASET
-
-section0 <- section0 %>%
-  group_by(psu) %>%
-  mutate(
-    hhld = row_number(),
-    hhid = paste0(psu, "-", hhld)
-  ) %>%
-  ungroup()
-
-sections <- list(
-  section1a, section1b, section2a1, section2a2, section2a3, section2b, section2c,
-  section3a, section3b, section4a, section4b, section4c, section4d,
-  section5, section6a, section6b1, section6b2, section6b3, section6b4,
-  section6b5, section6c1, section6c2, section6c3, section6c4,
-  section6d, section7, section8, section9a, section9b, section9c,
-  section9d, section9e, section9f1, section9f2, section10,
-  section11a, section11b, section11c, section12a, section12b,
-  section13a, section13b, section13c
-)
+#WARD AND PALIKA
 
 sections <- lapply(sections, function(df) {
+
   df <- df %>%
-    select(-any_of("hhld")) %>%                   
-    left_join(section0 %>% select(uid, hhld), by = "uid")  
-  return(df)
+    select(-any_of(c("ward", "palika"))) %>%
+    left_join(
+      section0 %>% select(uid, palika, ward),
+      by = "uid"
+    )
+
+  df <- df %>%
+    relocate(palika, .after = 3) %>% 
+    relocate(ward,   .after = 4)      
+
+  df
 })
 
-names(sections) <- c(
-  "section1a", "section1b", "section2a1", "section2a2", "section2a3", "section2b", "section2c",
-  "section3a", "section3b", "section4a", "section4b", "section4c", "section4d",
-  "section5", "section6a", "section6b1", "section6b2", "section6b3", "section6b4",
-  "section6b5", "section6c1", "section6c2", "section6c3", "section6c4",
-  "section6d", "section7", "section8", "section9a", "section9b", "section9c",
-  "section9d", "section9e", "section9f1", "section9f2", "section10",
-  "section11a", "section11b", "section11c", "section12a", "section12b",
-  "section13a", "section13b", "section13c"
-)
-
-list2env(sections, .GlobalEnv) 
+list2env(sections, .GlobalEnv)
 
 #SAVING ALL THE DATAFRAMES IN DTA FORMAT
+
+dir.create("stata_data", showWarnings = FALSE, recursive = TRUE)
 
 sections <- lapply(sections, haven::zap_widths)
 
@@ -5568,3 +5579,22 @@ for (nm in names(sections)) {
     file.path("stata_data", paste0(nm, ".dta"))
   )
 }
+
+#EXCEL SHEETS OF DATA
+
+out_dir <- "sections_xlsx"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+
+mapply(
+  function(df, nm) {
+    write.xlsx(
+      df,
+      file = file.path(out_dir, paste0(nm, ".xlsx")),
+      overwrite = TRUE
+    )
+  },
+  sections,
+  names(sections)
+)
+
+
