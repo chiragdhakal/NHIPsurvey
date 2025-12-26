@@ -5569,14 +5569,14 @@ list2env(sections, .GlobalEnv)
 
 #SAVING ALL THE DATAFRAMES IN DTA FORMAT
 
-dir.create("stata_data", showWarnings = FALSE, recursive = TRUE)
+dir.create("stata_data1", showWarnings = FALSE, recursive = TRUE)
 
 sections <- lapply(sections, haven::zap_widths)
 
 for (nm in names(sections)) {
   write_dta(
     sections[[nm]],
-    file.path("stata_data", paste0(nm, ".dta"))
+    file.path("stata_data1", paste0(nm, ".dta"))
   )
 }
 

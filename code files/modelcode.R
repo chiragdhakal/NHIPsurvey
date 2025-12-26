@@ -7,15 +7,202 @@ library(tidyverse)
 library(openxlsx)
 library(writexl)
 
-in_dir <- "clean data"
+in_dir <- "stata_data1"
 
-files <- list.files(in_dir, pattern = "\\.xlsx$", full.names = TRUE)
+files <- list.files(in_dir, pattern = "\\.dta$", full.names = TRUE)
 
-sections <- lapply(files, read.xlsx)
+sections <- lapply(files, read_dta)
 
 names(sections) <- tools::file_path_sans_ext(basename(files))
 
 list2env(sections, .GlobalEnv)
+
+#MAKING THE ENTIRE DATASET NUMERIC
+
+section1a <- section1a %>%
+  mutate(
+    ID = as.numeric(ID),
+    psu = as.numeric(psu), 
+    ward = as.numeric(ward),
+    hhld = as.numeric(hhld),
+    v101 = as.numeric(v101),
+    v103 = as.numeric(v103), 
+    v104a = as.numeric(gsub("[^0-9]", "", v104a)),
+    v105 = as.numeric(v105), 
+    v106 = as.numeric(v106),
+    v107 = as.numeric(v107),
+    v108 = as.numeric(v108),
+    v109 = as.numeric(v109), 
+    v110 = as.numeric(v110)
+  ) 
+
+for (i in setdiff(1:ncol(section1b), c(2, 6, 7, 8, 21, 22, 23))) {
+  section1b[[i]] <- as.numeric(section1b[[i]])
+}
+
+for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
+  section2a1[[i]] <- as.numeric(gsub("[^0-9]", "", section2a1[[i]]))
+}
+
+for (i in setdiff(1:ncol(section2a2), c(2, 7, 8, 16))) {
+  section2a2[[i]] <- as.numeric(gsub("[^0-9]", "", section2a2[[i]]))
+}
+
+for (i in setdiff(1:ncol(section2a3), c(2, 7, 8, 11, 14, 24, 33))) {
+  section2a3[[i]] <- as.numeric(gsub("[^0-9]", "", section2a3[[i]]))
+}
+
+for (i in setdiff(1:ncol(section2b), c(2, 7, 8, 14:21, 23, 35, 45, 82))) {
+  section2b[[i]] <- as.numeric(gsub("[^0-9]", "", section2b[[i]]))
+}
+
+for (i in setdiff(1:ncol(section2c), c(2, 8, 7, 13, 17, 19))) {
+  section2c[[i]] <- as.numeric(gsub("[^0-9]", "", section2c[[i]]))
+}
+
+for (i in setdiff(1:ncol(section3a), c(2, 8, 7))) {
+  section3a[[i]] <- as.numeric(gsub("[^0-9]", "", section3a[[i]]))
+}
+
+for (i in setdiff(1:ncol(section3b), c(2, 8, 7))) {
+  section3b[[i]] <- as.numeric(gsub("[^0-9]", "", section3b[[i]]))
+}
+
+for (i in setdiff(1:ncol(section4a), c(2, 8, 7))) {
+  section4a[[i]] <- as.numeric(gsub("[^0-9]", "", section4a[[i]]))
+}
+
+for (i in setdiff(1:ncol(section4b), c(2, 7, 8))) {
+  section4b[[i]] <- as.numeric(gsub("[^0-9]", "", section4b[[i]]))
+}
+
+for (i in setdiff(1:ncol(section4c), c(2, 7, 8))) {
+  section4c[[i]] <- as.numeric(gsub("[^0-9]", "", section4c[[i]]))
+}
+
+for (i in setdiff(1:ncol(section4d), c(2, 7, 8))) {
+  section4d[[i]] <- as.numeric(gsub("[^0-9]", "", section4d[[i]]))
+}
+
+for (i in setdiff(1:ncol(section5), c(2, 7, 8))) {
+  section5[[i]] <- as.numeric(gsub("[^0-9]", "", section5[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6a), c(2, 7, 8))) {
+  section6a[[i]] <- as.numeric(gsub("[^0-9]", "", section6a[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6b1), c(2, 7, 8, 14, 21, 22, 23, 38))) {
+  section6b1[[i]] <- as.numeric(gsub("[^0-9]", "", section6b1[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6b2), c(2, 7, 8, 13:32))) {
+  section6b2[[i]] <- as.numeric(gsub("[^0-9]", "", section6b2[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6b3), c(2, 7, 8, 29))) {
+  section6b3[[i]] <- as.numeric(gsub("[^0-9]", "", section6b3[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6b4), c(2, 7, 8, 11))) {
+  section6b4[[i]] <- as.numeric(gsub("[^0-9]", "", section6b4[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6b5), c(2, 7, 8, 17))) {
+  section6b5[[i]] <- as.numeric(gsub("[^0-9]", "", section6b5[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6c1), c(2, 7, 8, 14, 15, 16))) {
+  section6c1[[i]] <- as.numeric(gsub("[^0-9]", "", section6c1[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6c2), c(2, 7, 8, 13, 14, 16:22))) {
+  section6c2[[i]] <- as.numeric(gsub("[^0-9]", "", section6c2[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6c3), c(2, 7, 8, 14:29))) {
+  section6c3[[i]] <- as.numeric(gsub("[^0-9]", "", section6c3[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6c4), c(2, 7, 8, 29, 34:36))) {
+  section6c4[[i]] <- as.numeric(gsub("[^0-9]", "", section6c4[[i]]))
+}
+
+for (i in setdiff(1:ncol(section6d), c(2, 7, 8, 13, 24))) {
+  section6d[[i]] <- as.numeric(gsub("[^0-9]", "", section6d[[i]]))
+}
+
+for (i in setdiff(1:ncol(section7), c(2, 7, 8, 19, 25, 34))) {
+  section7[[i]] <- as.numeric(gsub("[^0-9]", "", section7[[i]]))
+}
+
+for (i in setdiff(1:ncol(section8), c(2, 7, 8, 13, 16))) { 
+  section8[[i]] <- as.numeric(gsub("[^0-9]", "", section8[[i]]))
+}
+
+for (i in setdiff(1:ncol(section9a), c(2, 7, 8, 13, 20, 22))) { 
+  section9a[[i]] <- as.numeric(gsub("[^0-9]", "", section9a[[i]]))
+}
+
+for (i in setdiff(1:ncol(section9b), c(2, 7, 8))) { 
+  section9b[[i]] <- as.numeric(gsub("[^0-9]", "", section9b[[i]]))
+}
+
+for (i in setdiff(1:ncol(section9c), c(2, 7, 8, 11))) { 
+  section9c[[i]] <- as.numeric(gsub("[^0-9]", "", section9c[[i]]))
+}
+
+for (i in setdiff(1:ncol(section9d), c(2, 7, 8))) { 
+  section9d[[i]] <- as.numeric(gsub("[^0-9]", "", section9d[[i]]))
+}
+
+for (i in setdiff(1:ncol(section9e), c(2, 7, 8))) { 
+  section9e[[i]] <- as.numeric(gsub("[^0-9]", "", section9e[[i]]))
+}
+
+for (i in setdiff(1:ncol(section9f1), c(2, 7, 8))) { 
+  section9f1[[i]] <- as.numeric(gsub("[^0-9]", "", section9f1[[i]]))
+}
+
+for (i in setdiff(1:ncol(section9f2), c(2, 7, 8))) { 
+  section9f2[[i]] <- as.numeric(gsub("[^0-9]", "", section9f2[[i]]))
+}
+
+for (i in setdiff(seq_len(ncol(section10)), c(2, 7, 8, 13, 15))) {
+    section10[[i]] <- as.numeric(gsub("[^0-9]", "", section10[[i]]))
+}
+
+for (i in setdiff(1:ncol(section11a), c(2, 7, 8, 11, 14, 19, 22))) { 
+  section11a[[i]] <- as.numeric(gsub("[^0-9]", "", section11a[[i]]))
+}
+
+for (i in setdiff(1:ncol(section11b), c(2, 7, 8, 11, 14, 19))) { 
+  section11b[[i]] <- as.numeric(gsub("[^0-9]", "", section11b[[i]]))
+}
+
+for (i in setdiff(1:ncol(section11c), c(2, 7, 8))) { 
+  section11c[[i]] <- as.numeric(gsub("[^0-9]", "", section11c[[i]])) 
+}
+
+for (i in setdiff(1:ncol(section12a), c(2, 7, 8, 16))) { 
+  section12a[[i]] <- as.numeric(gsub("[^0-9]", "", section12a[[i]]))
+}
+
+for (i in setdiff(1:ncol(section12b), c(2, 7, 8))) { 
+  section12b[[i]] <- as.numeric(gsub("[^0-9]", "", section12b[[i]]))
+}
+
+for (i in setdiff(1:ncol(section13a), c(2, 7, 8))) { 
+  section13a[[i]] <- as.numeric(gsub("[^0-9]", "", section13a[[i]]))
+}
+
+for (i in setdiff(1:ncol(section13b), c(2, 7, 8))) { 
+  section13b[[i]] <- as.numeric(gsub("[^0-9]", "", section13b[[i]]))
+}
+
+for (i in setdiff(1:ncol(section13c), c(2, 7, 8))) { 
+  section13c[[i]] <- as.numeric(gsub("[^0-9]", "", section13c[[i]]))
+}
 
 #SEX OF HOUSEHOLD HEAD 
 
@@ -26,8 +213,7 @@ hh_head <- section1a %>%
   ) %>%
   filter(v107 == 1) %>%
   group_by(hhid) %>%
-  slice(1) %>%
-  select(hhid, uniq_id, v107, v103, v109) %>%
+  select(ID, hhid, uniq_id, v107, v106, v105, v103, v109) %>%
   rename(hh_head_sex = v103)
 
 #INSURANCE STATUS OF HOUSEHOLD
@@ -58,7 +244,7 @@ hh_head <- merge(
 
 hh_head <- merge(
   hh_head, 
-  section0[, c("ID", "hhid", "hhld_member_t", "insured")],
+  section0[, c("hhid", "hhld_member_t", "insured")],
   by = "hhid", 
   all = FALSE
 )
@@ -227,3 +413,38 @@ hh_head <- hh_head %>%
 model <- lm(log_oop ~ log_income + hh_head_sex + v116 + insured + chronic_illness + acute_illness, data = hh_head)
 
 summary(model)
+
+
+section1a <- section1a %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    mis_hh = if_else(v107 == 1 & v109 %in% c(3, 4), 1, 0)
+  ) 
+
+section1a <- section1a %>%
+  group_by(hhid) %>%
+  mutate(
+    # 1. Identify if THIS household has a "Bad Head" (Head is absent)
+    bad_head_flag = any(v107 == 1 & v109 %in% c(3, 4)),
+    
+    # 2. Find the max age ONLY among residents (v109 == 1)
+    # We use na.rm = TRUE to handle missing ages safely
+    max_res_age = max(v104a[v109 == 1], na.rm = TRUE)
+  ) %>%
+  mutate(
+    v107 = case_when(
+      # CONDITION 1: Modify the OLD Head
+      # If the household has a bad head, and this row is that head...
+      bad_head_flag == TRUE & v107 == 1 ~ 3, 
+      
+      # CONDITION 2: Assign the NEW Head
+      # If household has bad head, this person is a resident, AND is the oldest...
+      bad_head_flag == TRUE & v109 == 1 & v104a == max_res_age ~ 1,
+      
+      # CONDITION 3: Everyone else stays the same
+      TRUE ~ v107
+    )
+  ) %>%
+  # Clean up the helper columns
+  select(-bad_head_flag, -max_res_age) %>%
+  ungroup()

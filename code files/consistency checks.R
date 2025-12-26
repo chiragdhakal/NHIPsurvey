@@ -7,48 +7,17 @@ library(tidyverse)
 library(openxlsx)
 library(writexl)
 
-section0 <- read.xlsx("dataset/cover page.xlsx")
-section1a <- read.xlsx("dataset/section 1.xlsx")
-section1b <- read.xlsx("dataset/Part 1_1 Household Roster-1.xlsx")
-section2a1 <- read.xlsx("dataset/Household Characteristics.xlsx")
-section2a2 <- read.xlsx("dataset/Section 2_1 Housing Expenses.xlsx")
-section2a3 <- read.xlsx("dataset/Utilities and Amenities.xlsx")
-section3a <- read.xlsx("dataset/Section 3_ Consumption of Food.xlsx")
-section3b <- read.xlsx("dataset/Part 3_1_ Food away from home.xlsx")
-section4a <- read.xlsx("dataset/section 4.xlsx")
-section4b <- read.xlsx("dataset/Part 4_2_ Expenditure Abroad.xlsx")
-section4c <- read.xlsx("dataset/Part 4_3_ Inventory of Durable Goods.xlsx")
-section4d <- read.xlsx("dataset/Part 4_4_ Own Account Consumption of Goods.xlsx")
-section5 <- read.xlsx("dataset/Section 5_ Expense in Education.xlsx")
-section6a <- read.xlsx("dataset/section 6.xlsx")
-section6b1 <- read.xlsx("dataset/Part 6_2_1_ Chronic Illness and Health Seeking Behaviour.xlsx")
-section6b2 <- read.xlsx("dataset/Part 6_2_2_ Chronic Illness and Expenditure Tracking.xlsx")
-section6b3 <- read.xlsx("dataset/Part 6_2_3_ Chronic Illness and Expenditure Tracking – Outpatient (Regular Checkups).xlsx")
-section6b4 <- read.xlsx("dataset/Part 6_2_4_ Chronic Illness and Expenditure Tracking – Inpatient.xlsx")
-section6b5 <- read.xlsx("dataset/section 6_2_5.xlsx")
-section6c1 <- read.xlsx("dataset/Part 6_3_1_ Acute Illness and health seeking behaviour.xlsx")
-section6c2 <- read.xlsx("dataset/Part 6.3.2_ Acute illness and health screening.xlsx")
-section6c3 <- read.xlsx("dataset/Part 6_3_3_ Acute Illness health seeking and expenditure tracking.xlsx")
-section6c4 <- read.xlsx("dataset/Part 6_3_4_ Acute Illness health seeking and expenditure tracking.xlsx")
-section6d <- read.xlsx("dataset/PART 6_4_ Household Health Care Seeking.xlsx")
-section7 <- read.xlsx("dataset/Swction 7_ Labor and Employment.xlsx")
-section8 <- read.xlsx("dataset/Section 8_ Wage Jobs.xlsx")
-section9a <- read.xlsx("dataset/section 9.xlsx")
-section9b <- read.xlsx("dataset/Part 9_2_ Landholding  Increase Decrease.xlsx")
-section9c <- read.xlsx("dataset/Part 9_3_ Production and Uses.xlsx")
-section9d <- read.xlsx("dataset/Part 9_4_ Expenditure.xlsx")
-section9e <- read.xlsx("dataset/Part 9_5_ Livestock.xlsx")
-section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure (1).xlsx")
-section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure.xlsx")
-section10 <- read.xlsx("dataset/Income from Non - Agricultural Enterprises.xlsx")
-section11a <- read.xlsx("dataset/section 11.xlsx")
-section11b <- read.xlsx("dataset/Part 11_2_ Lending and Outstanding Loans.xlsx")
-section11c <- read.xlsx("dataset/Part 11_3_ Other Assets.xlsx")
-section12a <- read.xlsx("dataset/Remittance and transfer.xlsx")
-section12b <- read.xlsx("dataset/Part 12_2. Other Remittances.xlsx")
-section13a <- read.xlsx("dataset/section 13.xlsx")
-section13b <- read.xlsx("dataset/Part 13_2_ Social Assistance.xlsx")
-section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
+#IMPORTING DATASET
+
+in_dir <- "stata_data"
+
+files <- list.files(in_dir, pattern = "\\.dta$", full.names = TRUE)
+
+sections <- lapply(files, read_dta)
+
+names(sections) <- tools::file_path_sans_ext(basename(files))
+
+list2env(sections, .GlobalEnv)
 
 
 #SUMMARISING SECTION 3A PER HOUSEHOLD
@@ -287,7 +256,7 @@ rent_income <- section2a2 %>%
   mutate(
     hhid = paste0(psu, "-", hhld),
     across(-hhid, ~ replace_na(as.numeric(.x), 0)),
-    v212 = as.numeric(v212),
+    v212 = as.numeric(gsub("[^0-9]", "", v212)),
     rent_annual = v212 * 12
   ) %>%
   select(hhid, rent_annual)
@@ -402,7 +371,7 @@ livestock_ownership <- section9e %>%
 
 #SUMMARISING SECTION 9.6.1 PER HOUSEHOLD 
 
-livestock_income <- section9f2 %>%
+livestock_income <- section9f1 %>%
   mutate(hhid = paste0(psu, "-", hhld)) %>%
   group_by(hhid) %>%
   summarise(
@@ -412,7 +381,7 @@ livestock_income <- section9f2 %>%
 
 #SUMMARISING SECTION 9.6.2 PER HOUSEHOLD 
 
-livestock_expenditure <- section9f1 %>%
+livestock_expenditure <- section9f2 %>%
   mutate(hhid = paste0(psu, "-", hhld)) %>%
   group_by(hhid) %>%
   summarise(
