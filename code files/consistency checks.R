@@ -9,7 +9,7 @@ library(writexl)
 
 #IMPORTING DATASET
 
-in_dir <- "stata_data"
+in_dir <- "stata_data1"
 
 files <- list.files(in_dir, pattern = "\\.dta$", full.names = TRUE)
 
@@ -177,7 +177,7 @@ chronic_inpatient_expenditure <- section6b4 %>%
   mutate(
     across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_cost_chronic_inpatient = rowSums(across(
-      c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense, transportation_expense, food_accom_expense, care_giver_expense, other_cost),
+      c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense),
     ), na.rm = TRUE),
     cost_discrepancy = total_cost - total_cost_chronic_inpatient
   )
@@ -203,7 +203,7 @@ acute_expenditure <- section6c4 %>%
   mutate(
     across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_cost_acute = rowSums(across(
-      c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense, transportation_expense, food_accom_expense, care_giver_expense, other_cost),
+      c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense),
     ), na.rm = TRUE
     ),
     cost_discrepancy = total_cost - total_cost_acute
@@ -414,23 +414,14 @@ farm_hh <- farm_hh %>%
 #SUMMARISING SECTION 10 PER HOUSEHOLD 
 
 non_agri_income <- section10 %>%
-  mutate(hhid = paste0(psu, "-", hhld)) %>%
   mutate(
-    v1011 = rowSums(cbind(
-      as.numeric(v1005),
-      -as.numeric(v1007),
-      -as.numeric(v1008),
-      -as.numeric(v1009a),
-      -as.numeric(v1009b),
-      -as.numeric(v1010)
-    ), na.rm = TRUE)
+    hhid = paste0(psu, "-", hhld)
   ) %>%
   group_by(hhid) %>%
   summarise(
-    total_non_agri_income = sum(v1011, na.rm = TRUE)
+    total_non_agri_income = sum(as.numeric(v1011))
   ) %>%
-  ungroup()
-
+  ungroup() 
 
 #SUMMARISING SECTION 12.1 PER HOUSEHOLD 
 

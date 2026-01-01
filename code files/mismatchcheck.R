@@ -52,6 +52,45 @@ section13a <- read.xlsx("dataset/section 13.xlsx")
 section13b <- read.xlsx("dataset/Part 13_2_ Social Assistance.xlsx")
 section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
 
+section0 <- section0 %>%
+  group_by(psu) %>%
+  mutate(
+    hhld = row_number(),
+    hhid = paste0(psu, "-", hhld)
+  ) %>%
+  ungroup()
+
+sections <- list(
+  section0, section1a, section1b, section2a1, section2a2, section2a3, section2b, section2c,
+  section3a, section3b, section4a, section4b, section4c, section4d,
+  section5, section6a, section6b1, section6b2, section6b3, section6b4,
+  section6b5, section6c1, section6c2, section6c3, section6c4,
+  section6d, section7, section8, section9a, section9b, section9c,
+  section9d, section9e, section9f1, section9f2, section10,
+  section11a, section11b, section11c, section12a, section12b,
+  section13a, section13b, section13c
+)
+
+sections <- lapply(sections, function(df) {
+  df <- df %>%
+    select(-any_of("hhld")) %>%                   
+    left_join(section0 %>% select(uid, hhld), by = "uid")  
+  return(df)
+})
+
+names(sections) <- c(
+  "section0", "section1a", "section1b", "section2a1", "section2a2", "section2a3", "section2b", "section2c",
+  "section3a", "section3b", "section4a", "section4b", "section4c", "section4d",
+  "section5", "section6a", "section6b1", "section6b2", "section6b3", "section6b4",
+  "section6b5", "section6c1", "section6c2", "section6c3", "section6c4",
+  "section6d", "section7", "section8", "section9a", "section9b", "section9c",
+  "section9d", "section9e", "section9f1", "section9f2", "section10",
+  "section11a", "section11b", "section11c", "section12a", "section12b",
+  "section13a", "section13b", "section13c"
+)
+
+list2env(sections, .GlobalEnv) 
+
 #COUNTING NUMBER OF HOUSEHOLDS IN EACH PSU
 
 psu_counts <- section0 %>%

@@ -11,91 +11,102 @@ library(officer)
 library(flextable)
 library(stringr)
 
-section0 <- read.xlsx("dataset/cover page.xlsx")
-section1a <- read.xlsx("dataset/section 1.xlsx")
-section1b <- read.xlsx("dataset/Part 1_1 Household Roster-1.xlsx")
-section2a1 <- read.xlsx("dataset/Household Characteristics.xlsx")
-section2a2 <- read.xlsx("dataset/Section 2_1 Housing Expenses.xlsx")
-section2a3 <- read.xlsx("dataset/Utilities and Amenities.xlsx")
-section2b <- read.xlsx("dataset/Section 2_2_ National health insurence.xlsx")
-section2c <- read.xlsx("dataset/PART 2_3_ Mortality (Death) Information.xlsx")
-section3a <- read.xlsx("dataset/Section 3_ Consumption of Food.xlsx")
-section3b <- read.xlsx("dataset/Part 3_1_ Food away from home.xlsx")
-section4a <- read.xlsx("dataset/section 4.xlsx")
-section4b <- read.xlsx("dataset/Part 4_2_ Expenditure Abroad.xlsx")
-section4c <- read.xlsx("dataset/Part 4_3_ Inventory of Durable Goods.xlsx")
-section4d <- read.xlsx("dataset/Part 4_4_ Own Account Consumption of Goods.xlsx")
-section5 <- read.xlsx("dataset/Section 5_ Expense in Education.xlsx")
-section6a <- read.xlsx("dataset/section 6.xlsx")
-section6b1 <- read.xlsx("dataset/Part 6_2_1_ Chronic Illness and Health Seeking Behaviour.xlsx")
-section6b2 <- read.xlsx("dataset/Part 6_2_2_ Chronic Illness and Expenditure Tracking.xlsx")
-section6b3 <- read.xlsx("dataset/Part 6_2_3_ Chronic Illness and Expenditure Tracking – Outpatient (Regular Checkups).xlsx")
-section6b4 <- read.xlsx("dataset/Part 6_2_4_ Chronic Illness and Expenditure Tracking – Inpatient.xlsx")
-section6b5 <- read.xlsx("dataset/section 6_2_5.xlsx")
-section6c1 <- read.xlsx("dataset/Part 6_3_1_ Acute Illness and health seeking behaviour.xlsx")
-section6c2 <- read.xlsx("dataset/Part 6.3.2_ Acute illness and health screening.xlsx")
-section6c3 <- read.xlsx("dataset/Part 6_3_3_ Acute Illness health seeking and expenditure tracking.xlsx")
-section6c4 <- read.xlsx("dataset/Part 6_3_4_ Acute Illness health seeking and expenditure tracking.xlsx")
-section6d <- read.xlsx("dataset/PART 6_4_ Household Health Care Seeking.xlsx")
-section7 <- read.xlsx("dataset/Swction 7_ Labor and Employment.xlsx")
-section8 <- read.xlsx("dataset/Section 8_ Wage Jobs.xlsx")
-section9a <- read.xlsx("dataset/section 9.xlsx")
-section9b <- read.xlsx("dataset/Part 9_2_ Landholding  Increase Decrease.xlsx")
-section9c <- read.xlsx("dataset/Part 9_3_ Production and Uses.xlsx")
-section9d <- read.xlsx("dataset/Part 9_4_ Expenditure.xlsx")
-section9e <- read.xlsx("dataset/Part 9_5_ Livestock.xlsx")
-section9f2 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure (1).xlsx")
-section9f1 <- read.xlsx("dataset/Part 9_6_ Livestock Income and Expenditure.xlsx")
-section10 <- read.xlsx("dataset/Income from Non - Agricultural Enterprises.xlsx")
-section11a <- read.xlsx("dataset/section 11.xlsx")
-section11b <- read.xlsx("dataset/Part 11_2_ Lending and Outstanding Loans.xlsx")
-section11c <- read.xlsx("dataset/Part 11_3_ Other Assets.xlsx")
-section12a <- read.xlsx("dataset/Remittance and transfer.xlsx")
-section12b <- read.xlsx("dataset/Part 12_2. Other Remittances.xlsx")
-section13a <- read.xlsx("dataset/section 13.xlsx")
-section13b <- read.xlsx("dataset/Part 13_2_ Social Assistance.xlsx")
-section13c <- read.xlsx("dataset/Part 13_3_ Other Income.xlsx")
+in_dir <- "stata_data1"
 
-#MAKING HOUSEHOLD ID UNIQUE ACROSS THE ENTIRE DATASET
+files <- list.files(in_dir, pattern = "\\.dta$", full.names = TRUE)
+
+sections <- lapply(files, read_dta)
+
+names(sections) <- tools::file_path_sans_ext(basename(files))
+
+list2env(sections, .GlobalEnv)
+
+#PALIKA TYPE IN SECTION0 
+
+metro_codes <- c(11214, 20807, 30608, 30802, 31304, 40504)
+
+sub_metro_codes <- c(11301, 11306, 20315, 20703, 20708, 31206, 50802, 
+                     51002, 51003, 51106, 70813)
+
+municipality_codes <- c(10106, 10206, 10207, 10208, 10209, 10210, 10307, 10402, 
+  10504, 10505, 10601, 10604, 10701, 10702, 10704, 10804, 10805, 10904, 11003, 
+  11004, 11008, 11009, 11101, 11103, 11104, 11105, 11107, 11108, 11112, 11114, 
+  11202, 11204, 11205, 11207, 11208, 11209, 11210, 11211, 11302, 11305, 11307, 
+  11309, 11401, 11402, 11403, 11407, 20101, 20102, 20105, 20106, 20107, 20109, 
+  20110, 20113, 20116, 20201, 20202, 20203, 20204, 20205, 20206, 20210, 20217, 
+  20301, 20302, 20303, 20305, 20307, 20308, 20309, 20310, 20311, 20313, 20317, 
+  20401, 20402, 20404, 20405, 20406, 20407, 20408, 20410, 20414, 20415, 20501, 
+  20502, 20503, 20504, 20505, 20506, 20507, 20511, 20516, 20517, 20520, 20601, 
+  20602, 20603, 20604, 20605, 20606, 20607, 20608, 20609, 20610, 20611, 20612, 
+  20613, 20616, 20617, 20618, 20701, 20702, 20712, 20713, 20714, 20806, 20808, 
+  20809, 30105, 30109, 30205, 30207, 30209, 30406, 30413, 30504, 30508, 30601, 
+  30602, 30603, 30604, 30605, 30606, 30607, 30609, 30610, 30611, 30701, 30702, 
+  30703, 30704, 30801, 30803, 30903, 30904, 30905, 30906, 30908, 30909, 31004, 
+  31005, 31101, 31105, 31202, 31301, 31302, 31305, 31306, 31307, 40108, 40109, 
+  40406, 40604, 40605, 40606, 40607, 40701, 40702, 40704, 40705, 40801, 40805, 
+  40806, 40807, 40901, 40905, 40908, 40909, 40910, 41003, 41004, 41101, 41105, 
+  41108, 41110, 50207, 50304, 50305, 50404, 50409, 50503, 50504, 50506, 50601, 
+  50605, 50701, 50702, 50703, 50801, 50803, 50808, 50811, 50813, 50901, 50902, 
+  50903, 50905, 50906, 50907, 51007, 51102, 51201, 51202, 51203, 51205, 51206, 
+  51207, 60105, 60106, 60202, 60404, 60503, 60506, 60507, 60605, 60606, 60607, 
+  60608, 60704, 60706, 60707, 60801, 60804, 60806, 60903, 60905, 60907, 61003, 
+  61004, 61005, 61006, 61008, 70103, 70106, 70108, 70109, 70202, 70206, 70303, 
+  70307, 70403, 70405, 70408, 70409, 70502, 70505, 70604, 70605, 70701, 70704, 
+  70706, 70708, 70803, 70804, 70805, 70807, 70810, 70811, 70901, 70902, 70903, 
+  70904, 70905, 70907, 70908)
+
+rural_codes <- c(10101, 10102, 10103, 10104, 10105, 10107, 10108, 10109, 10201, 
+  10202, 10203, 10204, 10205, 10301, 10302, 10303, 10304, 10305, 10306, 10308, 
+  10401, 10403, 10404, 10405, 10406, 10407, 10408, 10501, 10502, 10503, 10506, 
+  10507, 10508, 10509, 10510, 10602, 10603, 10605, 10606, 10607, 10608, 10609, 
+  10703, 10705, 10706, 10707, 10801, 10802, 10803, 10806, 10901, 10902, 10903, 
+  10905, 10906, 10907, 10908, 11001, 11002, 11005, 11006, 11007, 11010, 11102, 
+  11106, 11109, 11110, 11111, 11113, 11115, 11201, 11203, 11206, 11212, 11213, 
+  11215, 11216, 11217, 11303, 11304, 11308, 11310, 11311, 11312, 11404, 11405, 
+  11406, 11408, 20103, 20104, 20108, 20111, 20112, 20114, 20115, 20117, 20118, 
+  20207, 20208, 20209, 20211, 20212, 20213, 20214, 20215, 20216, 20304, 20306, 
+  20312, 20314, 20316, 20318, 20403, 20409, 20411, 20412, 20413, 20508, 20509, 
+  20510, 20512, 20513, 20514, 20515, 20518, 20519, 20614, 20615, 20704, 20705, 
+  20706, 20707, 20709, 20710, 20711, 20715, 20716, 20801, 20802, 20803, 20804, 
+  20805, 20810, 20811, 20812, 20813, 20814, 30101, 30102, 30103, 30104, 30106, 
+  30107, 30108, 30201, 30202, 30203, 30204, 30206, 30208, 30210, 30211, 30212, 
+  30301, 30302, 30303, 30304, 30305, 30401, 30402, 30403, 30404, 30405, 30407, 
+  30408, 30409, 30410, 30411, 30412, 30501, 30502, 30503, 30505, 30506, 30507, 
+  30509, 30510, 30511, 30512, 30804, 30805, 30806, 30901, 30902, 30907, 30910, 
+  30911, 30912, 30913, 31001, 31002, 31003, 31006, 31007, 31008, 31102, 31103, 
+  31104, 31106, 31107, 31108, 31109, 31201, 31203, 31204, 31205, 31207, 31208, 
+  31209, 31210, 31303, 40101, 40102, 40103, 40104, 40105, 40106, 40107, 40110, 
+  40111, 40201, 40202, 40203, 40204, 40301, 40302, 40303, 40304, 40305, 40401, 
+  40402, 40403, 40404, 40405, 40501, 40502, 40503, 40505, 40601, 40602, 40603, 
+  40608, 40703, 40706, 40707, 40708, 40709, 40710, 40802, 40803, 40804, 40808, 
+  40902, 40903, 40904, 40906, 40907, 40911, 41001, 41002, 41005, 41006, 41007, 
+  41102, 41103, 41104, 41106, 41107, 41109, 50101, 50102, 50103, 50201, 50202, 
+  50203, 50204, 50205, 50206, 50208, 50209, 50210, 50301, 50302, 50303, 50306, 
+  50307, 50308, 50309, 50401, 50402, 50403, 50405, 50406, 50407, 50408, 50410, 
+  50411, 50412, 50501, 50502, 50505, 50602, 50603, 50604, 50606, 50607, 50608, 
+  50609, 50610, 50704, 50705, 50706, 50707, 50804, 50805, 50806, 50807, 50809, 
+  50810, 50812, 50814, 50815, 50816, 50904, 50908, 50909, 50910, 51001, 51004, 
+  51005, 51006, 51008, 51009, 51010, 51101, 51103, 51104, 51105, 51107, 51108, 
+  51204, 51208, 60101, 60102, 60103, 60104, 60107, 60108, 60201, 60203, 60204, 
+  60301, 60302, 60303, 60304, 60305, 60306, 60307, 60401, 60402, 60403, 60405, 
+  60406, 60407, 60408, 60501, 60502, 60504, 60505, 60508, 60509, 60601, 60602, 
+  60603, 60604, 60609, 60610, 60611, 60701, 60702, 60703, 60705, 60802, 60803, 
+  60805, 60901, 60902, 60904, 60906, 60908, 60909, 60910, 61001, 61002, 61007, 
+  61009, 70101, 70102, 70104, 70105, 70107, 70201, 70203, 70204, 70205, 70207, 
+  70208, 70209, 70210, 70211, 70212, 70301, 70302, 70304, 70305, 70306, 70308, 
+  70309, 70401, 70402, 70404, 70406, 70407, 70410, 70501, 70503, 70504, 70506, 
+  70507, 70601, 70602, 70603, 70606, 70607, 70608, 70609, 70702, 70703, 70705, 
+  70707, 70709, 70710, 70801, 70802, 70806, 70808, 70809, 70812, 70906, 70909)
 
 section0 <- section0 %>%
-  group_by(psu) %>%
   mutate(
-    hhld = row_number(),
-    hhid = paste0(psu, "-", hhld)
-  ) %>%
-  ungroup()
-
-sections <- list(
-  section0, section1a, section1b, section2a1, section2a2, section2a3, section2b, section2c,
-  section3a, section3b, section4a, section4b, section4c, section4d,
-  section5, section6a, section6b1, section6b2, section6b3, section6b4,
-  section6b5, section6c1, section6c2, section6c3, section6c4,
-  section6d, section7, section8, section9a, section9b, section9c,
-  section9d, section9e, section9f1, section9f2, section10,
-  section11a, section11b, section11c, section12a, section12b,
-  section13a, section13b, section13c
-)
-
-sections <- lapply(sections, function(df) {
-  df <- df %>%
-    select(-any_of("hhld")) %>%                   
-    left_join(section0 %>% select(uid, hhld), by = "uid")  
-  return(df)
-})
-
-names(sections) <- c(
-  "section0", "section1a", "section1b", "section2a1", "section2a2", "section2a3", "section2b", "section2c",
-  "section3a", "section3b", "section4a", "section4b", "section4c", "section4d",
-  "section5", "section6a", "section6b1", "section6b2", "section6b3", "section6b4",
-  "section6b5", "section6c1", "section6c2", "section6c3", "section6c4",
-  "section6d", "section7", "section8", "section9a", "section9b", "section9c",
-  "section9d", "section9e", "section9f1", "section9f2", "section10",
-  "section11a", "section11b", "section11c", "section12a", "section12b",
-  "section13a", "section13b", "section13c"
-)
-
-list2env(sections, .GlobalEnv) 
+    palika_type = case_when(
+      palika %in% metro_codes ~ 1, 
+      palika %in% sub_metro_codes ~ 2, 
+      palika %in% municipality_codes ~ 3, 
+      palika %in% rural_codes ~ 4
+    )
+  )
 
 #DESCRIPTIVE TABLE BASED ON SIZE  
 
@@ -110,68 +121,106 @@ desc_sec0 <- section0 %>%
   ) %>%
   select(household_size)
 
-table_sec0 <- map_df(names(desc_sec0), function(v) {
-  var <- desc_sec0[[v]]
-  fvar <- as_factor(var)
-  freq <- table(fvar)
 
+table_sec0 <- map_df(names(desc_sec0), function(v) {
+  var_data <- desc_sec0[[v]]
+  fvar <- as_factor(var_data)
+  freq <- table(fvar)
+  
   tibble(
-  variable = v,
-  variable_label = var_label(var) %||% NA,
-  value_label = names(freq),
-  count = as.integer(freq), 
-  percent = round(100*count / length(var), 2)
+    Variable = "Household Size", 
+    Label = names(freq),
+    Count = as.integer(freq), 
+    Percentage = round(100 * as.integer(freq) / length(var_data), 2)
   )
 })
 
-ft_sec0 <- flextable(table_sec0) 
-doc_sec0 <- read_docx()
-doc_sec0 <- body_add_flextable(doc_sec0, ft_sec0)
-print(doc_sec0, target = "descriptive tables/doc_sec0.docx")
+ft_sec0 <- flextable(table_sec0) %>%
+  border_remove() %>%
+  hline_top(border = fp_border(width = 1.5, color = "black"), part = "header") %>%
+  hline_bottom(border = fp_border(width = 1, color = "black"), part = "header") %>%
+  hline_bottom(border = fp_border(width = 1.5, color = "black"), part = "body") %>%
+  
+  merge_v(j = ~ Variable) %>%
+  valign(j = 1, valign = "top") %>%
+  
+  font(fontname = "Times New Roman", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(j = 1:2, align = "left", part = "all") %>%
+  align(j = 3:4, align = "right", part = "all") %>%
+  
+  padding(padding = 5, part = "all") %>%
+  autofit()
+
+if(!dir.exists("descriptive tables")) dir.create("descriptive tables")
+
+doc_sec0 <- read_docx() %>%
+  body_add_flextable(ft_sec0)
+
+print(doc_sec0, target = "descriptive tables/doc_sec0_scientific.docx")
 
 
 #DESCRIPTIVE TABLE BASED ON SEX, ENTHICITY, RELIGION AND TYPE OF HOUSEHOLD MEMBER
 
-section1a <- section1a %>%
+section1a_clean <- section1a %>%
   mutate(
     person = paste0(psu, "-", hhld, "-", v102),
-    uniq_id = paste0(psu,"-", hhld, "-", v101),
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
     hhid = paste0(psu, "-", hhld),
     age_group = case_when(
-    v104a >= 0 & v104a <= 14 ~ "0-14 years",
-    v104a >= 15 & v104a <= 59 ~ "15-59 years", 
-    v104a >= 60 ~ "60 years and above"
+      v104a >= 0 & v104a <= 14 ~ "0-14 years",
+      v104a >= 15 & v104a <= 59 ~ "15-59 years", 
+      v104a >= 60 ~ "60 years and above"
     )
   ) %>%
   distinct(person, .keep_all = TRUE) 
 
-desc_sec1a <- section1a %>%
+desc_sec1a <- section1a_clean %>%
   select(v103, v105, v106, v109, age_group) %>%
   rename(
-    sex = v103, 
-    ethnicity = v105, 
-    religion = v106, 
-    category = v109
+    `Sex` = v103, 
+    `Ethnicity` = v105, 
+    `Religion` = v106, 
+    `Category` = v109,
+    `Age Group` = age_group
   )
 
-table_sec1a <- map_df(names(desc_sec1a), function(v) {
-  var <- desc_sec1a[[v]]
-  fvar <- as_factor(var)
+table_sec1a_data <- map_df(names(desc_sec1a), function(v) {
+  var_vector <- desc_sec1a[[v]]
+  fvar <- as_factor(var_vector)
   freq <- table(fvar)
-
+  
   tibble(
-  variable = v,
-  variable_label = var_label(var) %||% NA,
-  value_label = names(freq),
-  count = as.integer(freq), 
-  percent = round(100*count / length(var), 2)
-)
-}) 
+    Variable = v,
+    Label = names(freq),
+    Count = as.integer(freq), 
+    Percentage = round(100 * as.integer(freq) / length(var_vector), 2)
+  )
+})
 
-ft_sec1a <- flextable(table_sec1a) 
-doc_sec1a <- read_docx()
-doc_sec1a <- body_add_flextable(doc_sec1a, ft_sec1a)
-print(doc_sec1a, target = "descriptive tables/desc_sec1a.docx")
+ft_sec1a <- flextable(table_sec1a_data) %>%
+  border_remove() %>%
+  hline_top(border = fp_border(width = 1.5), part = "header") %>%
+  hline_bottom(border = fp_border(width = 1), part = "header") %>%
+  hline_bottom(border = fp_border(width = 1.5), part = "body") %>%
+  
+  merge_v(j = ~ Variable) %>%
+  valign(j = 1, valign = "top") %>%
+  
+  font(fontname = "Times New Roman", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(j = 1:2, align = "left", part = "all") %>%
+  align(j = 3:4, align = "right", part = "all") %>%
+  
+  bold(part = "header") %>%
+  
+  padding(padding = 4, part = "all") %>%
+  autofit()
+
+doc_output <- read_docx() %>%
+  body_add_flextable(ft_sec1a)
+
+print(doc_output, target = "descriptive tables/desc_sec1a_scientific.docx")
 
 #DESCRIPTIVE TABLE BASED ON EDUCATION 
 
@@ -199,17 +248,18 @@ desc_sec1b <- merge(
 
 desc_sec1b <- merge(
   desc_sec1b, 
-  section1a[, c("uniq_id", "v103")],
+  section1a[, c("uniq_id", "v103", "v105")],
   by = "uniq_id"
 )
 
 desc_sec1b <- desc_sec1b %>%
-  select(v114, v115, v116, v103, province) %>%
+  select(v114, v115, v116, v103, v105, province) %>%
   rename(
     literate = v114, 
     attended_school = v115, 
     highest_edu = v116,
-    gender = v103
+    gender = v103, 
+    ethnicity = v105
   )
 
 table_sec1b <- map_df(names(desc_sec1b), function(v) {
@@ -262,6 +312,33 @@ tbl_literate  <- make_wide_table(desc_sec1b, "literate")
 tbl_attend    <- make_wide_table(desc_sec1b, "attended_school")
 tbl_highest   <- make_wide_table(desc_sec1b, "highest_edu")
 
+ethnicity_literacy <- desc_sec1b %>%
+  mutate(
+    literate_bin = literate == 1,
+    ethnicity = as_factor(ethnicity)
+  ) %>%
+  group_by(ethnicity) %>%
+  summarise(
+    total = n(),
+    literate = sum(literate_bin, na.rm = TRUE),
+    literacy_rate = round(100 * literate / total, 2),
+    .groups = "drop"
+  )
+
+ethnicity_gender_literacy <- desc_sec1b %>%
+  mutate(
+    literate_bin = literate == 1,
+    ethnicity = as_factor(ethnicity),
+    gender = as_factor(gender)
+  ) %>%
+  group_by(ethnicity, gender) %>%
+  summarise(
+    total = n(),
+    literate = sum(literate_bin, na.rm = TRUE),
+    literacy_rate = round(100 * literate / total, 2),
+    .groups = "drop"
+  )
+
 wb <- createWorkbook()
 
 addWorksheet(wb, "original_table")
@@ -275,6 +352,12 @@ writeData(wb, "attend_pg", tbl_attend)
 
 addWorksheet(wb, "highest_pg")
 writeData(wb, "highest_pg", tbl_highest)
+
+addWorksheet(wb, "ethnicity_literacy")
+writeData(wb, "ethnicity_literacy", ethnicity_literacy)
+
+addWorksheet(wb, "ethnicity_gender_lit")
+writeData(wb, "ethnicity_gender_lit", ethnicity_gender_literacy)
 
 saveWorkbook(wb, "descriptive tables/sec1b_full_tables.xlsx", overwrite = TRUE)
 
@@ -374,7 +457,10 @@ desc_wageincome <- merge(
 
 desc_wageincome <- desc_wageincome %>%
   select(-hhid) %>%
-  mutate(percapita_wage = total_hh_income / hhld_member_t)
+  mutate(
+    hhld_member_t = as.numeric(hhld_member_t),
+    percapita_wage = total_hh_income / hhld_member_t
+  )
 
 p1  <- quantile(desc_wageincome$percapita_wage, 0.01, na.rm = TRUE)
 p99 <- quantile(desc_wageincome$percapita_wage, 0.99, na.rm = TRUE)
@@ -388,7 +474,7 @@ desc_wageincome <- desc_wageincome %>%
     percapita_wage <= p99, 
     total_hh_income >= a1, 
     total_hh_income <= a99
-  ) 
+  ) %>%
   group_by(province) %>%
   summarise(
     across(
@@ -418,7 +504,8 @@ desc_nonagri <- merge(
 )
 
 desc_nonagri <- desc_nonagri %>%
-  select(-hhid) %>%
+  mutate(total_non_agri_income = ifelse(is.na(total_non_agri_income), 0, total_non_agri_income)) %>%
+  select(-hhid) 
   group_by(province) %>%
   summarise(across(where(is.numeric), mean, na.rm = TRUE)) %>%
   select(province, total_non_agri_income) 
@@ -525,6 +612,7 @@ desc_totalincome <- merge(
 )
 
 desc_totalincome <- desc_totalincome %>%
+  mutate(hhld_member_t = as.numeric(hhld_member_t)) %>%
   select(-hhid) %>%
   mutate(percapita_income = total_income / hhld_member_t)
 
@@ -563,6 +651,7 @@ desc_consumption <- merge(
 
 desc_consumption <- desc_consumption %>%
   mutate(
+    hhld_member_t = as.numeric(hhld_member_t),
     total_consumption = total_food_annual + non_food_annual + abroad_annual + goods_annual, 
     percapita_foodconsumption = total_food_annual / hhld_member_t,
     percapita_consumption = total_consumption / hhld_member_t
@@ -701,7 +790,7 @@ labor_force <- labor_force %>%
     hhid = paste0(psu, "-", hhld), 
     uniq_id = paste0(psu, "-", hhld, "-", v101)
   ) %>%
-  select(hhid, uniq_id, v103)
+  select(hhid, uniq_id, v103, v105)
 
 labor_force <- merge(
   labor_force, 
@@ -714,7 +803,7 @@ section7_1 <- section7 %>%
     uniq_id = paste0(psu, "-", hhld, "-", v101),
     hhid = paste0(psu, "-", hhld)
   ) %>%
-  select(uniq_id, v702, v705, v708, v710b)
+  select(uniq_id, v702, v705, v708, v710)
 
 labor_force <- merge(
   labor_force, 
@@ -734,7 +823,24 @@ lfpr_province <- labor_force %>%
   summarise(
     working_age = n(),                           
     labor_force = sum(lf_participant, na.rm=TRUE), 
-    lfpr = round(labor_force / working_age * 100, 2)  
+    lfpr = round((labor_force / working_age) * 100, 2)  
+  )
+
+lfpr_ethnicity <- labor_force %>%
+  group_by(v105) %>%
+  summarise(
+    working_age = n(), 
+    labor_force = sum(lf_participant, na.rm = TRUE), 
+    lfpr = round(labor_force / working_age * 100, 2)
+  )
+
+lfpr_ethnicity_gender <- labor_force %>%
+  group_by(v103, v105) %>%
+  summarise(
+    working_age = n(), 
+    labor_force = sum(lf_participant, na.rm = TRUE),
+    lfpr = round(labor_force / working_age * 100, 2),
+    .groups = "drop"
   )
 
 lfpr_province_gender <- labor_force %>%
@@ -764,7 +870,7 @@ work_population <- merge(
 
 work_population <- merge(
   work_population, 
-  section1a[, c("uniq_id", "v103")],
+  section1a[, c("uniq_id", "v103", "v105")],
   by = "uniq_id"
 )
 
@@ -778,6 +884,11 @@ work_type_province <- work_population %>%
   summarise(n = n(), .groups = "drop_last") %>%
   mutate(percent = round(n/sum(n) * 100, 2))
 
+work_type_ethnicity <- work_population %>%
+  group_by(v105, v708) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
 work_type_gender <- work_population %>%
   group_by(v103, v708) %>%
   summarise(n = n(), .groups = "drop_last") %>%
@@ -786,7 +897,10 @@ work_type_gender <- work_population %>%
 
 write.xlsx(lfpr_province, "descriptive tables/lfpr_province.xlsx")
 write.xlsx(lfpr_province_gender, "descriptive tables/lfpr_province_gender.xlsx")
+write.xlsx(lfpr_ethnicity, "descriptive tables/lfpr_ethnicity.xlsx")
+write.xlsx(lfpr_ethnicity_gender, "descriptive tables/lfpr_ethnicity_gender.xlsx")
 write.xlsx(work_type_nepal, "descriptive tables/work_type_nepal.xlsx")
+write.xlsx(work_type_ethnicity, "descriptive tables/work_type_ethnicity.xlsx")
 write.xlsx(work_type_province, "descriptive tables/work_type_province.xlsx")
 write.xlsx(work_type_gender, "descriptive tables/work_type_gender.xlsx")
 
@@ -893,4 +1007,12 @@ acute_gender <- acute_qualified %>%
 write.xlsx(acute_nepal, "descriptive tables/acute_nepal.xlsx")
 write.xlsx(acute_province, "descriptive tables/acute_province.xlsx")
 write.xlsx(acute_gender, "descriptive tables/acute_gender.xlsx")
+
+
+
+
+
+
+
+
 
