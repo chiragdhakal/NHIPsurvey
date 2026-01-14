@@ -1,0 +1,318 @@
+section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("COLSTORE", "CHOLESTEROL", "COLSTRORE", "CHOLOSTREL", "CHLOSTROAL", "COLSTROL", "CHLOSTROL", "COLESTROME", "COLESTER", "COLDSTORAL", "CHLOSTROAL",
++       "COLESTEROL", "CHOLESTEROL"
++     ) ~ 19,
++     TRUE ~ v604
++     )
++   )
+> sum(section6b3$v604 == 19)
+[1] NA
+> sum(section6b3$v604 == 19, na.rm = TRUE)
+[1] 136
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c( "URIC ACID", "URIK ACID", "URIC ACID RA PROSTHETICS", "URIK ASID"
++     ) ~ 20,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c( "CHOLESTEROLPROSTATE"
++     ) ~ 19,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c( "URIC ACID", "URIK ACID", "URIC ACID RA PROSTHETICS", "URIK ASID", "URIQE ACID"
++     ) ~ 20,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c( "CHOLESTROL"
++     ) ~ 19,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c( "SUGAR"
++     ) ~ 3,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c( "PILES", "PAYALS", ""
++     ) ~ 13,
++     TRUE ~ v604
++     )
++   )
+> 
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c( "PILES", "PAYALS", "PILES KO LAI SHE SOMETIMES USES OINTMENT BUT MOSTLY TAKES AYURVEDIC MEDICINE", "ALSAR", "ULCER"
++     ) ~ 13,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("PROSTATE", "PROSTED", "PROSTRATE", "PROTEST", "PROSTATE PROBLEM", "POSTED", "POSTERD", "PROSTHETIC"
++     ) ~ 21,
++     TRUE ~ v604
++     )
++   )
+> 163/4857
+[1] 0.03355981
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("PRESSURE", "PRESSURE LOW", "BP LOW"
++     ) ~ 2,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("COLDSTORE", "COL", "COL STORE", "CHOLESTEROL PROSTATE"
++     ) ~ 19,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("MIGRAINE", "MIGRANE", "MIGRAIN"
++     ) ~ 22,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("KNEE PAIN", "BATH"
++     ) ~ 5,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("CANCER", "TONGUE CANCER"
++     ) ~ 8,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("CHHALAKO ROG", "SKIN PROBLEM", "SKIN ALLERGY", "SKIN", "SKIN CONDITION", "SKIN ELERGY", "SKIN ALLERGIES", "CHALA ROG"
++     ) ~ 23,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("ANZITY", "ANJEITY", "ANXIETY"
++     ) ~ 18,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("MIRGI"
++     ) ~ 9,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("THYROID", "THOYRED"
++     ) ~ 12,
++     TRUE ~ v604
++     )
++   )
+> section6b3 <- section6b3 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("NEURO", "CEREBRAL PAIN"
++     ) ~ 16,
++     TRUE ~ v604
++     )
++   )
+> write_dta(section6b3, "section6b3.dta")
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("KIDNEY STONES CAUSE OPESAN", "KIDNEY DIALYSIS", "KIDNEY", ""
++     ) ~ 6,
++     TRUE ~ v604
++     )
++   )
+> in_dir <- "stata_data1"
+> files <- list.files(in_dir, pattern = "\\.dta$", full.names = TRUE)
+> sections <- lapply(files, read_dta)
+> names(sections) <- tools::file_path_sans_ext(basename(files))
+> list2env(sections, .GlobalEnv)
+<environment: R_GlobalEnv>
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("KIDNEY STONES CAUSE OPESAN", "KIDNEY DIALYSIS", "KIDNEY"
++     ) ~ 6,
++     TRUE ~ v604
++     )
++   )
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       v604 == 80000
++     ) ~ 96
++     TRUE ~ v604
++     )
++   
+Error:
+! unexpected numeric constant in:
+"    ) ~ 96
+    TRUE"
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       v604 == 80000
++      ~ 96
++     TRUE ~ v604)
++     )
+Error:
+! unexpected numeric constant in:
+"     ~ 96
+    TRUE"
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       v604 == 80000 ~ 96
++     TRUE ~ v604)
++     )
+Error:
+! unexpected numeric constant in:
+"      v604 == 80000 ~ 96
+    TRUE"
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       personid == 52285 ~ 96
++     TRUE ~ v604)
++     )
+Error:
+! unexpected numeric constant in:
+"      personid == 52285 ~ 96
+    TRUE"
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       personid == 52285 ~ 96,
++       TRUE ~ v604
++     )
++   )
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("BRAIN PROBLEM - SCARS"
++     ) ~ 16,
++     TRUE ~ v604
++     )
++   )
+> section6b4 <- section6b4 %>%
++   mutate(
++     v604 = case_when(
++       v604a %in% c("LIVER PROBLEM", "LIBAR KO SAMSYA"
++     ) ~ 7,
++     TRUE ~ v604
++     )
++   )
+> write_dta(section6b4, "section6b4.dta")
+
+section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("रुघाखोकी", "खोकी", "RUGHA KHOKI", "RUGAKHOKI", "ROUGHA KHOLA", "KHOKI", "COLD ALLERGY", "COLD", "CHISO RUGHA") ~ 6,
++       TRUE ~ v630
++     )
++   )
+> section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("एपेन्डिसाइड", "PETKO SAMSYA", "PETKO SAMASYAA", "PETKO OPERATION GAREKO", "PETDUKHERA", "PETDUKHEKO", "CPETA DUKHE KO", "PETA DUKHEKO", "PET KO SAMASYAA VAAKO BU K HO VANERA THA NAVAAKO HOSPITAL MA.", "PET KO SAMASAYA", "PET KO OPERATION", "PET KAMAR DUKHNA", "PET DUKNE", "PET DUKHYAKO", "PET DUKHYAKO", "PET DUKHNA", "PET DUKHERW", "PET DUKHERA FOOD POISON BHAKO", "PET DUKHERA", "PET DUKHEKO", "PET DUKHANE", "PET DHUKERA", "ABDOMINAL PAIN", "ABDOMEN PAIN", "GASTRITIS", "GASTRIC PROBLEM", "GASTRIC INFECTION", "GASTRIC", "GASTIK", "DOCTOR DOESN'T KNOW ABOUT THEIR CONDITION THEY SAY HE HAS GASTRITIS.") ~ 18,
++       TRUE ~ v630
++     )
++   )
+> section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("एपेन्डिसाइड", "PETKO SAMSYA", "PETKO SAMASYAA", "PETKO OPERATION GAREKO", "PETDUKHERA", "PETDUKHEKO", "CPETA DUKHE KO", "PETA DUKHEKO", "PET KO SAMASYAA VAAKO BU K HO VANERA THA NAVAAKO HOSPITAL MA.", "PET KO SAMASAYA", "PET KO OPERATION", "PET KAMAR DUKHNA", "PET DUKNE", "PET DUKHYAKO", "PET DUKHYAKO", "PET DUKHNA", "PET DUKHERW", "PET DUKHERA FOOD POISON BHAKO", "PET DUKHERA", "PET DUKHEKO", "PET DUKHANE", "PET DHUKERA", "ABDOMINAL PAIN", "ABDOMEN PAIN", "GASTRITIS", "GASTRIC PROBLEM", "GASTRIC INFECTION", "GASTRIC", "GASTIK", "DOCTOR DOESN'T KNOW ABOUT THEIR CONDITION THEY SAY HE HAS GASTRITIS.", "APPENDIX KO OPTION", "APPENDIX", "APPENDICITIS") ~ 18,
++       TRUE ~ v630
++     )
++   )
+> sum(section6b1$v603 == 1)
+[1] 5017
+> sum(section6c1$v629 == 1)
+[1] 1864
+> section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("TONSILS", "TONSILLITIS", "TONSIL") ~ 19,
++       TRUE ~ v630
++     )
++   )
+> section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("एपेन्डिसाइड", "PETKO SAMSYA", "PETKO SAMASYAA", "PETKO OPERATION GAREKO", "PETDUKHERA", "PETDUKHEKO", "CPETA DUKHE KO", "PETA DUKHEKO", "PET KO SAMASYAA VAAKO BU K HO VANERA THA NAVAAKO HOSPITAL MA.", "PET KO SAMASAYA", "PET KO OPERATION", "PET KAMAR DUKHNA", "PET DUKNE", "PET DUKHYAKO", "PET DUKHYAKO", "PET DUKHNA", "PET DUKHERW", "PET DUKHERA FOOD POISON BHAKO", "PET DUKHERA", "PET DUKHEKO", "PET DUKHANE", "PET DHUKERA", "ABDOMINAL PAIN", "ABDOMEN PAIN", "GASTRITIS", "GASTRIC PROBLEM", "GASTRIC INFECTION", "GASTRIC", "GASTIK", "DOCTOR DOESN'T KNOW ABOUT THEIR CONDITION THEY SAY HE HAS GASTRITIS.", "APPENDIX KO OPTION", "APPENDIX", "APPENDICITIS", "STOMACH PAIN", "STOMACH ACHE") ~ 18,
++       TRUE ~ v630
++     )
++   )
+> section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("PREGNANT", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", "PREGNANCY CHECK UP", "SUTKERI", "PREGNANT NA BHAYERA CHECK UP", "PERIOD PAIN", "PERIOD ANIYAMIT", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO OPERATION", "") ~ 20,
++       TRUE ~ v630
++     )
++   )
+> section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("THAUKO DUKHANE", "TAUKO MA GHAU", "TAUKO DUKHNE", "TAUKO DUKHEKO VYERW", "TAUKO DUKHEKO", "TAUKO DUKHANE", "TAU KO DUKHNA", "HEADACHE", "HEADACE", "HEAD INJURIES") ~ 21,
++       TRUE ~ v630
++     )
++   )
+> section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("PISABMA KHARABI", "PISAB THAILIKO PATHARI", "PISAB ROKIYAKO") ~ 10,
++       TRUE ~ v630
++     )
++   )
+> section6c4 <- section6c4 %>%
++   mutate(
++     v630 = case_when(
++       v630a %in% c("ENT", "EAR PROBLEM") ~ 13,
++       TRUE ~ v630
++     )
++   )

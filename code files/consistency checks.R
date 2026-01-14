@@ -171,8 +171,7 @@ chronic_inpatient_expenditure <- section6b4 %>%
     food_accom_expense = sum(as.numeric(v618h), na.rm = TRUE), 
     care_giver_expense = sum(as.numeric(v618i), na.rm = TRUE), 
     other_cost = sum(as.numeric(v618j), na.rm = TRUE), 
-    total_cost = sum(as.numeric(v618k), na.rm = TRUE),
-
+    total_cost = sum(as.numeric(v618k), na.rm = TRUE)
   ) %>%
   mutate(
     across(-hhid, ~ replace_na(as.numeric(.x), 0)),

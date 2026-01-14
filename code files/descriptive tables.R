@@ -25,8 +25,7 @@ list2env(sections, .GlobalEnv)
 
 metro_codes <- c(11214, 20807, 30608, 30802, 31304, 40504)
 
-sub_metro_codes <- c(11301, 11306, 20315, 20703, 20708, 31206, 50802, 
-                     51002, 51003, 51106, 70813)
+sub_metro_codes <- c(11301, 11306, 20315, 20703, 20708, 31206, 50802, 51002, 51003, 51106, 70813)
 
 municipality_codes <- c(10106, 10206, 10207, 10208, 10209, 10210, 10307, 10402, 
   10504, 10505, 10601, 10604, 10701, 10702, 10704, 10804, 10805, 10904, 11003, 
@@ -105,6 +104,28 @@ section0 <- section0 %>%
       palika %in% sub_metro_codes ~ 2, 
       palika %in% municipality_codes ~ 3, 
       palika %in% rural_codes ~ 4
+    ),
+    domain = case_when(
+      province == 1 & palika_type %in% c(1, 2, 3) ~ "KOSHI URBAN",
+      province == 1 & palika_type == 4 ~ "KOSHI RURAL",
+      province == 2 & palika_type %in% c(1, 2, 3) ~ "MADHESH URBAN",
+      province == 2 & palika_type == 4 ~ "MADHESH RURAL",
+      province == 3 & palika_type %in% c(1, 2, 3) ~ "BAGMATI URBAN",
+      province == 3 & palika_type == 4 ~ "BAGMATI RURAL",
+      province == 4 & palika_type %in% c(1, 2, 3) ~ "GANDAKI URBAN",
+      province == 4 & palika_type == 4 ~ "GANDAKI RURAL",
+      province == 5 & palika_type %in% c(1, 2, 3) ~ "LUMBINI URBAN",
+      province == 5 & palika_type == 4 ~ "LUMBINI RURAL",
+      province == 6 & palika_type %in% c(1, 2, 3) ~ "KARNALI URBAN",
+      province == 6 & palika_type == 4 ~ "KARNALI RURAL",
+      province == 7 & palika_type %in% c(1, 2, 3) ~ "SUDURPASCHIM URBAN",
+      province == 7 & palika_type == 4 ~ "SUDURPASCHIM RURAL"
+    ), 
+    enrollment_type = case_when(
+      enrollment == 1 ~ "NHIP", 
+      enrollment == 2 ~ "Non NHIP",
+      enrollment == 3 ~ "SSF", 
+      enrollment == 4 ~ "Non SSF"
     )
   )
 
@@ -117,7 +138,7 @@ desc_sec0 <- section0 %>%
       hhld_member_t >= 3 & hhld_member_t <= 4 ~ "3-4 persons", 
       hhld_member_t >= 5 & hhld_member_t <= 6 ~ "5-6 persons",
       hhld_member_t >= 7 ~ "7 or more persons"
-    ) 
+    )
   ) %>%
   select(household_size)
 
@@ -426,7 +447,7 @@ print(doc_sec2a3, target = "descriptive tables/doc_sec2a3.docx")
 
 desc_farmincome <- merge(
   farm_hh, 
-  section0[, c("hhid", "province")],
+  section0[, c("hhid", "province", "")],
   by = "hhid", 
   all = FALSE
 )
@@ -606,7 +627,7 @@ write.xlsx(desc_remittance, "descriptive tables/desc_remittance.xlsx")
 
 desc_totalincome <- merge(
   income_hhld, 
-  section0[, c("hhid", "province", "hhld_member_t")],
+  section0[, c("hhid", "province", "hhld_member_t", "distinction")],
   by = "hhid", 
   all = FALSE
 )
@@ -619,7 +640,7 @@ desc_totalincome <- desc_totalincome %>%
 p1  <- quantile(desc_totalincome$percapita_income, 0.01, na.rm = TRUE)
 p99 <- quantile(desc_totalincome$percapita_income, 0.99, na.rm = TRUE)
 
-desc_totalincome <- desc_totalincome %>%
+desc_totalincome_province <- desc_totalincome %>%
   filter(percapita_income >= p1, percapita_income <= p99) %>%
   group_by(province) %>%
   summarise(
@@ -631,7 +652,26 @@ desc_totalincome <- desc_totalincome %>%
   ) %>%
   select(province, total_income, percapita_income)
 
-desc_totalincome <- desc_totalincome %>%
+desc_totalincome_urban <- desc_totalincome %>%
+  filter(percapita_income >= p1, percapita_income <= p99) %>%
+  group_by(distinction) %>%
+  summarise(
+    across(
+      .cols = where(is.numeric), 
+      .fns = mean, 
+      na.rm = TRUE
+    )
+  ) %>%
+  select(distinction, total_income, percapita_income)
+
+desc_totalincome_province <- desc_totalincome_province %>%
+  pivot_longer(
+    cols = -province,
+    names_to = "variable",
+    values_to = "mean_value"
+  )  
+
+desc_totalincome_urban <- desc_totalincome_urban %>%
   pivot_longer(
     cols = -province,
     names_to = "variable",
@@ -919,7 +959,7 @@ chronic_qualified <- section1a %>%
 
 chronic_qualified <- merge(
   chronic_qualified, 
-  section0[, c("hhid", "province")], 
+  section0[, c("hhid", "province", "domain")], 
   by = "hhid"
 )
 
@@ -952,9 +992,16 @@ chronic_gender <- chronic_qualified %>%
   summarise(n = n(), .groups = "drop_last") %>%
   mutate(percent = round(n/sum(n) * 100, 2))
 
+chronic_domain <- chronic_qualified %>%
+  filter(!is.na(v604)) %>%
+  group_by(domain, v604) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
 write.xlsx(chronic_nepal, "descriptive tables/chronic_nepal.xlsx")
 write.xlsx(chronic_province, "descriptive tables/chronic_province.xlsx")
 write.xlsx(chronic_gender, "descriptive tables/chronic_gender.xlsx")
+write.xlsx(chronic_domain, "descriptive tables/chronic_domain.xlsx")
 
 #DESCRIPTIVE TABLE FOR ACUTE ILLNESSES 
 
@@ -970,7 +1017,7 @@ acute_qualified <- section1a %>%
 
 acute_qualified <- merge(
   acute_qualified, 
-  section0[, c("hhid", "province")], 
+  section0[, c("hhid", "province", "domain")], 
   by = "hhid"
 )
 
@@ -1004,15 +1051,430 @@ acute_gender <- acute_qualified %>%
   summarise(n = n(), .groups = "drop_last") %>%
   mutate(percent = round(n/sum(n) * 100, 2))
 
+acute_domain <- acute_qualified %>%
+  filter(!is.na(v630)) %>%
+  group_by(domain, v630) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(percent = round(n/sum(n) * 100, 2))
+
 write.xlsx(acute_nepal, "descriptive tables/acute_nepal.xlsx")
 write.xlsx(acute_province, "descriptive tables/acute_province.xlsx")
 write.xlsx(acute_gender, "descriptive tables/acute_gender.xlsx")
+write.xlsx(acute_domain, "descriptive tables/acute_domain.xlsx")
+
+#DESCRIPTIVE TABLES FOR CHRONIC INPATIENT HEALTH COSTS
+
+chronic_inpatient_expenditure <- section6b4 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    across(v618a:v618k, ~ replace_na(., 0))
+  ) %>%
+  group_by(hhid) %>%
+  summarise(
+    emergency_expense = sum(as.numeric(v618a), na.rm = TRUE), 
+    opd_expense = sum(as.numeric(v618b), na.rm = TRUE), 
+    laboratory_expense = sum(as.numeric(v618c), na.rm = TRUE), 
+    imaging_expense = sum(as.numeric(v618d), na.rm = TRUE), 
+    medicine_expense = sum(as.numeric(v618e), na.rm = TRUE), 
+    med_device_expense = sum(as.numeric(v618f), na.rm = TRUE), 
+    transportation_expense = sum(as.numeric(v618g), na.rm = TRUE), 
+    food_accom_expense = sum(as.numeric(v618h), na.rm = TRUE), 
+    care_giver_expense = sum(as.numeric(v618i), na.rm = TRUE), 
+    other_cost = sum(as.numeric(v618j), na.rm = TRUE), 
+    total_cost = sum(as.numeric(v618k), na.rm = TRUE)
+  ) %>%
+  mutate(
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
+    total_cost_chronic_inpatient = rowSums(across(
+      c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense),
+    ), na.rm = TRUE)
+  )
+
+chronic_inpatient_expenditure <- merge(
+  chronic_inpatient_expenditure, 
+  section0[, c("hhid", "province", "domain")],
+  by = "hhid"
+)
+
+summary(chronic_inpatient_expenditure)
+
+chronic_inpatient_expenditure_province <- chronic_inpatient_expenditure %>%
+  group_by(province) %>%
+  summarise(across(where(is.numeric), mean), .groups = "drop") 
+
+chronic_inpatient_expenditure_domain <- chronic_inpatient_expenditure %>%
+  group_by(domain) %>%
+  summarise(across(where(is.numeric), mean), .groups = "drop")
+
+write.xlsx(chronic_inpatient_expenditure_province, "descriptive tables/chronic_inpatient_expenditure_province.xlsx")
+write.xlsx(chronic_inpatient_expenditure_domain, "descriptive tables/chronic_inpatient_expenditure_domain.xlsx")
+
+#DESCRIPTIVE TABLES FOR CHRONIC OUTPATIENT HEALTH COSTS
+
+chronic_outpatient_expenditure <- section6b3 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    across(v614a:v614k, ~ replace_na(., 0))
+  ) %>%
+  group_by(hhid) %>%
+  summarise(
+    emergency_expense = sum(as.numeric(v614a), na.rm = TRUE), 
+    opd_expense = sum(as.numeric(v614b), na.rm = TRUE), 
+    laboratory_expense = sum(as.numeric(v614c), na.rm = TRUE), 
+    imaging_expense = sum(as.numeric(v614d), na.rm = TRUE), 
+    medicine_expense = sum(as.numeric(v614e), na.rm = TRUE), 
+    med_device_expense = sum(as.numeric(v614f), na.rm = TRUE), 
+    transportation_expense = sum(as.numeric(v614g), na.rm = TRUE), 
+    food_accom_expense = sum(as.numeric(v614h), na.rm = TRUE), 
+    care_giver_expense = sum(as.numeric(v614i), na.rm = TRUE), 
+    other_cost = sum(as.numeric(v614j), na.rm = TRUE), 
+    total_cost = sum(as.numeric(v614k), na.rm = TRUE)
+  ) %>%
+  mutate(
+    across(-hhid, ~ replace_na(as.numeric(.x), 0)),
+    total_cost_chronic_outpatient = rowSums(across(
+      c(emergency_expense, opd_expense, laboratory_expense, imaging_expense, medicine_expense, med_device_expense, transportation_expense, food_accom_expense, care_giver_expense, other_cost),
+    ), na.rm = TRUE)
+  )
+
+summary(chronic_outpatient_expenditure)
+
+chronic_outpatient_expenditure <- merge(
+  chronic_outpatient_expenditure, 
+  section0[, c("hhid", "province", "domain")],
+  by = "hhid"
+)
+
+chronic_outpatient_expenditure_province <- chronic_outpatient_expenditure %>%
+  group_by(province) %>%
+  summarise(across(where(is.numeric), mean), .groups = "drop") 
+
+chronic_outpatient_expenditure_domain <- chronic_outpatient_expenditure %>%
+  group_by(domain) %>%
+  summarise(across(where(is.numeric), mean), .groups = "drop")
+
+write.xlsx(chronic_outpatient_expenditure_province, "descriptive tables/chronic_outpatient_expenditure_province.xlsx")
+write.xlsx(chronic_outpatient_expenditure_domain, "descriptive tables/chronic_outpatient_expenditure_domain.xlsx")
+
+#HEALTH TABLES
+
+section6b3 <- section6b3 %>%
+  mutate(
+    v604 = case_when(
+      # Cholesterol
+      v604a %in% c(
+        "कोलेस्ट्रोल", "COLSTORE", "CHOLESTEROL", "COLSTRORE", "CHOLOSTREL", "CHLOSTROAL",
+        "COLSTROL", "CHLOSTROL", "COLESTROME", "COLESTER", "COLDSTORAL",
+        "COLESTEROL", "CHOLESTEROLPROSTATE", "CHOLESTROL", "CHOLEDTEROL",
+        "COLDSTORE", "COL", "CHORESTEROL", "COL STORE", "CHOLESTEROL PROSTATE", " CHOLESTEROL", "CHLORESTROL"
+      ) ~ 19,
+
+      # Uric Acid
+      v604a %in% c(
+        "URIC ACID", "URIK ACID", "URIK ASID",
+        "URIC ACID RA PROSTHETICS", "URIQE ACID"
+      ) ~ 20,
+
+      # Diabetes / Sugar
+      v604a %in% c("SUGAR", "SUGAR BLOOD PRESSURE", "DIABETIC") ~ 3,
+
+      # Piles / Ulcer
+      v604a %in% c(
+        "PILES", "PAYALS", "ALSAR", "ULCER", "ULCERS",
+        "PILES KO LAI SHE SOMETIMES USES OINTMENT BUT MOSTLY TAKES AYURVEDIC MEDICINE",
+        "GASTRIC", "GATRIC", "APPENDIX"
+      ) ~ 13,
+
+      # Prostate
+      v604a %in% c(
+        "PROSTATE", "PROSTED", "PROSTRATE", "PROTEST", "POSTATE", "PROTESTED KO SAMASYA", "POSTERT",
+        "PROSTATE PROBLEM", "POSTED", "POSTERD", "PROSTHETIC", "PROSTRATE", "PROSTATE", "POSTATE"
+      ) ~ 21,
+
+      # Blood Pressure
+      v604a %in% c("PRESSURE", "PRESSURE LOW", "BP LOW") ~ 2,
+
+      # Migraine
+      v604a %in% c("MIGRAINE", "MIGRANE", "MIGRAIN") ~ 22,
+
+      # Joint / Knee pain
+      v604a %in% c("KNEE PAIN", "BATH") ~ 5,
+
+      # Cancer
+      v604a %in% c("CANCER", "TONGUE CANCER") ~ 8,
+
+      # Skin diseases
+      v604a %in% c(
+        "CHHALAKO ROG", "CHALA ROG", "SKIN PROBLEM", "SKIN ALLERGY",
+        "SKIN ALLERGIES", "SKIN ELERGY", "SKIN", "SKIN CONDITION", "XALA SAMBANDHI",
+        "छालाको समस्या छाला रोग", "BRAIN PROBLEM - SCARS", "ACNE ISSUES"
+      ) ~ 23,
+
+      # Anxiety
+      v604a %in% c("ANZITY", "ANJEITY", "ANXIETY") ~ 18,
+
+      # Epilepsy
+      v604a %in% c("MIRGI", "SEIZURE", "SIJAR") ~ 9,
+
+      # Thyroid
+      v604a %in% c("THYROID", "THOYRED") ~ 12,
+
+      # Neurological
+      v604a %in% c("NEURO", "CEREBRAL PAIN", "BRAIN TUMOR", "BRAIN PROBLEM") ~ 16,
+
+      #KIDNEY 
+      v604a %in% c(
+        "KIDNEY MA PATHALI", "KIDNEY STONES", "KIDNEY MA PATHALI", "KIDNEY STONES KO UPRESAN GAREKO"
+      ) ~ 6,
+
+      #EYE PROBLEMS
+      v604a %in% c(
+        "RETINA PROBLEM JALBINDU", "EYE ISSUES", "AKHA SAMBANDI", "JALBINDU VAYEKO", "JALBINDU VAYEKO REGULAR MEDICINE LAGAUNE PARXA", "EYE PROBLEMS", "JALBINDU","EYE PROBLEM",
+        "AAKHAKO SAMASYA", "AAKHA SAMBANDHI SAMASYA", "AAKHAKO - MOTIBIDNU SAMASYA", "AAKHAKO SAMASYA", "MOTIBINDU", "EYE INFECTION", "EYE"
+    ) ~24,
+
+    #TUBERCULOSIS
+    v604a %in% c(
+      "TB ROG"
+    ) ~ 10,
+
+    #PARALYSIS 
+    v604a %in% c(
+      "PARALYZED", "PARALYSIS", "PARALICSES"
+    ) ~ 25,
+
+      TRUE ~ v604
+    )
+  )
+
+section1a <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101))
+
+section6b1 <- merge(
+  section6b1,
+  section1a[, c("uniq_id", "v104a")],
+  by = "uniq_id"
+)
+
+chronic_condition <- chronic_condition %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+section6b1 <- section6b1 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+section6b4 <- section6b4 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+
+section1a <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101)  )
+
+section6b1 <- section6b1 %>%
+  mutate(
+    v606 = if_else(
+      v606 >= v104a & !is.na(v606) & !is.na(v104a),
+      as.numeric(
+        str_extract_all(as.character(v606), "\\d")[[1]] %>% max()
+      ),
+      v606
+    )
+  )
+
+chronic_condition <- health %>%
+  left_join(
+    section6b3 %>% select(disease_id, 15:28),
+    by = "disease_id"
+  )
+
+chronic_condition <- chronic_condition %>%
+  left_join(
+    section6b4 %>% select(disease_id, 16:28),
+    by = "disease_id"
+  )
+
+
+section6c1 <- section6c1 %>%
+  mutate(
+    v630a = str_trim(v630a),
+    v630a = str_squish(v630a),
+    v630a = toupper(v630a),
+
+    v630 = case_when(
+
+      # Cold / cough
+      v630a %in% c(
+        "रुघाखोकी", "खोकी", "RUGHA KHOKI", "RUGAKHOKI", "ROUGHA KHOLA",
+        "KHOKI", "COLD ALLERGY", "COLD", "CHISO RUGHA"
+      ) ~ 6,
+
+      # Abdominal / gastric / appendix
+      v630a %in% c(
+        "एपेन्डिसाइड", "PETKO SAMSYA", "PETKO SAMASYAA",
+        "PETKO OPERATION GAREKO", "PETDUKHERA", "PETDUKHEKO",
+        "CPETA DUKHE KO", "PETA DUKHEKO",
+        "PET KO SAMASYAA VAAKO BU K HO VANERA THA NAVAAKO HOSPITAL MA.",
+        "PET KO SAMASAYA", "PET KO OPERATION", "PET KAMAR DUKHNA",
+        "PET DUKNE", "PET DUKHYAKO", "PET DUKHNA", "PET DUKHERW",
+        "PET DUKHERA FOOD POISON BHAKO", "PET DUKHERA",
+        "PET DUKHEKO", "PET DUKHANE", "PET DHUKERA",
+        "ABDOMINAL PAIN", "ABDOMEN PAIN",
+        "GASTRITIS", "GASTRIC PROBLEM", "GASTRIC INFECTION",
+        "GASTRIC", "GASTIK",
+        "DOCTOR DOESN'T KNOW ABOUT THEIR CONDITION THEY SAY HE HAS GASTRITIS.",
+        "APPENDIX KO OPTION", "APPENDIX", "APPENDICITIS",
+        "STOMACH PAIN", "STOMACH ACHE"
+      ) ~ 18,
+
+      # Tonsils
+      v630a %in% c("TONSILS", "TONSILLITIS", "TONSIL") ~ 19,
+
+      # Pregnancy / gynecological
+      v630a %in% c(
+        "PREGNANT", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW",
+        "PREGNANCY CHECK UP", "SUTKERI",
+        "PREGNANT NA BHAYERA CHECK UP",
+        "PERIOD PAIN", "PERIOD ANIYAMIT",
+        "PATHEGHAR KO SAMASYA", "PATHEGHAR KO OPERATION"
+      ) ~ 20,
+
+      # Headache / head injury
+      v630a %in% c(
+        "THAUKO DUKHANE", "TAUKO MA GHAU", "TAUKO DUKHNE",
+        "TAUKO DUKHEKO VYERW", "TAUKO DUKHEKO",
+        "TAU KO DUKHNA",
+        "HEADACHE", "HEADACE", "HEAD INJURIES"
+      ) ~ 21,
+
+      # Urinary problems
+      v630a %in% c(
+        "PISABMA KHARABI", "PISAB THAILIKO PATHARI", "PISAB ROKIYAKO"
+      ) ~ 10,
+
+      # ENT / ear
+      v630a %in% c("ENT", "EAR PROBLEM") ~ 13,
+
+      TRUE ~ v630
+    )
+  )
 
 
 
+acute_condition <- acute_condition %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
+)
+  
+acute_condition <- acute_condition %>%
+  mutate(
+    v630a = if_else(v630 != 96, "", v630a)
+  )
+
+
+section6c4 <- section6c4 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
+)
+
+acute_condition <- acute_condition %>%
+  left_join(
+    section6c2 %>% select(disease_id, 13:21),
+    by = "disease_id"
+  )
+
+acute_condition <- acute_condition %>%
+  left_join(
+    section6c4 %>% select(disease_id, 13:33),
+    by = "disease_id"
+  )
+
+acute_condition <- merge(
+  acute_condition, 
+  section1a[, c("uniq_id", "v102")],
+  by = "uniq_id", 
+  all = FALSE
+)
+
+chronic_diseases <- merge(
+  chronic_diseases, 
+  section1a[, c("uniq_id", "v103", "enrollment")],
+  by = "uniq_id", 
+  all = FALSE
+)
 
 
 
+chronic_diseases <- chronic_diseases %>%
+  mutate(
+    chronic_condition = case_when(
+      chronic_condition == 1  ~ "Heart Diseases",
+      chronic_condition == 2  ~ "Hypertension",
+      chronic_condition == 3  ~ "Diabetes",
+      chronic_condition == 4  ~ "Asthma/COPD",
+      chronic_condition == 5  ~ "Rheumatism/Arthritis",
+      chronic_condition == 6  ~ "Kidney Diseases",
+      chronic_condition == 7  ~ "Liver Diseases",
+      chronic_condition == 8  ~ "Cancer",
+      chronic_condition == 9  ~ "Epilepsy",
+      chronic_condition == 10 ~ "Tuberculosis",
+      chronic_condition == 11 ~ "HIV/AIDS",
+      chronic_condition == 12 ~ "Thyroid Disorders",
+      chronic_condition == 13 ~ "Chronic Gastrointestinal Diseases",
+      chronic_condition == 14 ~ "Gynaecological Problems",
+      chronic_condition == 15 ~ "Chronic Orthopaedic Problems",
+      chronic_condition == 16 ~ "Neurological Conditions",
+      chronic_condition == 17 ~ "Alzheimer's/Parkinson's",
+      chronic_condition == 18 ~ "Mental Illness",
+      chronic_condition == 96 ~ "Others (Specify)",
+      chronic_condition == 19 ~ "Cholestrol",
+      chronic_condition == 20 ~ "Uric Acid",
+      chronic_condition == 21 ~ "Prostate", 
+      chronic_condition == 22 ~ "Migrane", 
+      chronic_condition == 23 ~ "Skin diseases", 
+      chronic_condition == 24 ~ "Eye related", 
+      chronic_condition == 25 ~ "Paralysis",
+      TRUE ~ NA_character_
+    ),
+    v103 = case_when(
+      v103 == 1 ~ "Male", 
+      v103 == 2 ~ "Female", 
+      TRUE ~ NA_character_
+    ),
+    enrollment = case_when(
+      enrollment == 1 ~ "NHIP", 
+      enrollment == 2 ~ "Non NHIP", 
+      enrollment == 3 ~ "SSF", 
+      enrollment == 4 ~ "Non SSF", 
+      TRUE ~ NA_character_
+    )
+  )
 
+chronic_checkups <- merge(
+  chronic_checkups, 
+  section6b1[, c("disease_id", "v611")],
+  by = "disease_id"
+)
 
+chronic_inpatient_costs <- section6b3 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101), 
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
 
+chronic_inpatient_costs <- merge(
+  chronic_inpatient_costs, 
+  section6b1[, c("disease_id", "v605a", "v605b", "v611")],
+  by = "disease_id"
+)

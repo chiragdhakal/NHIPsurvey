@@ -386,6 +386,11 @@ hh_head <- merge(
   all = FALSE
 )
 
+section2b <- section2b %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  )
+
 hh_head <- merge(
   hh_head, 
   section2b[, c("hhid", "v249")]
@@ -403,7 +408,7 @@ hh_head <- merge(
 
 hh_head <- hh_head %>%
   mutate(
-    log_oop = log(out_of_pocket + 1),
+    log_oop = log(reported_oop + 1),
     log_income = log(total_income + 1),
     hh_head_sex = ifelse(hh_head_sex == 2, 0, hh_head_sex),
     across(everything(), ~ replace_na(.x, 0))
