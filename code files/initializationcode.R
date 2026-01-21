@@ -292,7 +292,42 @@ section1a <- section1a %>%
       TRUE ~ v105
     ),
     v107 = as.numeric(gsub("[^0-9]", "", v107))
-  ) 
+    )
+
+section1a <- section1a %>%
+  mutate(
+    v105 = case_when(
+    v105a %in% c(
+        " SIMANTRAKRIT", " ATI SIMANTAKRIT", " ATI SIMANTKRIT", " ATISIMANTKRIT", " ATISEMANTKRIT",
+        " ATISIMANTKRIT", " ATI SEMANTKRIT", " ATISIMANTKRIT", " ATI SEMANTRAKRIT", " SIMANTAKRIT", 
+        " ATI SIMANTAKRIT", " SIMANTRAKIT", " SIMANTRAKRIT", " ATI SIMANTRAKRIT", "CHEPANG", "CEPANG", 
+        " NEWAR", " THARU"
+    ) ~ 2, 
+    v105a %in% c(" KUMHAR") ~ 3,
+    v105a %in% c(" SANYASI", " JOGI") ~ 1,
+    TRUE ~ v105
+  ), 
+  v105 = case_when(
+    hhid %in% c(
+      "3101-19", "3101-20"
+    ) ~ 2, 
+    hhid %in% c(
+      "5104-16"
+    ) ~ 3,
+    TRUE ~ v105
+  )
+  )
+  
+section1a <- section1a %>%
+  mutate(
+    v106 = case_when(
+      v106a %in% c(
+        " SACHHAI"
+      ) ~ 5,
+      TRUE ~ v106
+    )
+  )
+
 
 section1a <- section1a %>%
   mutate(

@@ -631,14 +631,14 @@ facility_map <- c(
   "96" = "Others"
 )
 
-chronic_illness <- chronic_illness %>%
+chronic_inpatient_costs <- chronic_inpatient_costs %>%
   mutate(
     health_facility_label = map_chr(
-      str_split(v611, ",\\s*"),
+      str_split(health_facility, ",\\s*"),
       ~ paste(recode(.x, !!!facility_map), collapse = ", ")
     )
   ) %>%
-  select(-v611)
+  select(-health_facility)
 
 chronic_inpatient_costs <- chronic_inpatient_costs %>%
   rename(
