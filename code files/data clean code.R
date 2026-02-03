@@ -21,6 +21,10 @@ names(sections) <- tools::file_path_sans_ext(basename(files))
 
 list2env(sections, .GlobalEnv)
 
+rm(sections)
+
+gc()
+
 #SECTION0
 
 section0 <- section0 %>%
@@ -31,11 +35,35 @@ section0 <- section0 %>%
     )
   )
 
+lookup <- section0 %>%
+  select(uid, palika, ward) %>%
+  distinct(uid, .keep_all = TRUE)
+
+for (n in ls()) {
+  x <- get(n)
+
+  if (is.data.frame(x) && "uid" %in% names(x)) {
+
+    x2 <- x %>%
+      dplyr::select(-dplyr::matches("^palika$|^ward$|^palika\\.|^ward\\.")) %>%
+      dplyr::left_join(lookup, by = "uid")
+
+    if (all(c("palika", "ward") %in% names(x2))) {
+      other_cols <- setdiff(names(x2), c("palika", "ward"))
+      x2 <- x2[, append(other_cols, c("palika", "ward"), after = 3)]
+    }
+
+    assign(n, x2, envir = .GlobalEnv)
+  }
+}
+
+
 #SECTION1A
 
 section1a <- section1a %>%
   mutate(
     hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
 
     v105_num  = grepl("[0-9]", v105a),
     v105_tmp  = if_else(v105_num, v105a, v105),
@@ -112,12 +140,55 @@ section1a <- section1a %>%
     is.na(v108) & v109 == 1 ~ 12,
     TRUE ~ v108)
   ) %>%
-  filter(personid != 5952899)
+  filter(
+    !personid %in% c(5952899, 13355, 13861, 15077)
+  )
 
 section1a <- section1a %>%
   group_by(hhid, v102) %>%
   slice(1) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(
+    v107 = case_when(
+      v102 == "MITRA KUMARI DHAMALA" & hhid == "3211-6" ~ 2,
+      v102 == "KAMALA DEVI SARU" & hhid == "4206-3" ~ 2,
+      v102 == "RISHI KUMAR MAHATO" & hhid == "2205-15" ~ 3,
+      v102 == "PARBATI TIMILSINA" & hhid == "5111-7" ~ 2,
+      v102 == "GANGA DEI SHRESTHA" & hhid == "5111-9" ~ 2, 
+      v102 == "SAURAV BHANDARI" & hhid == "5209-15" ~ 3,
+      v102 == "AABHASH DHAMI" & hhid == "7104-15" ~ 3,
+      v102 == "RADHA KC" & hhid == "5211-16" ~ 2, 
+      v102 == "KARNA BDR BUDHA MAGAR" & hhid == "6103-21" ~ 2, 
+      v102 == "MANISHA TAMANG" & hhid == "3444-3" ~ 3,
+      TRUE ~ v107
+    )
+  )
+
+invalid_hhids <- section1a %>%
+  filter(v107 == 1, v109 %in% c(3, 4)) %>%
+  distinct(hhid)
+
+new_heads <- section1a %>%
+  semi_join(invalid_hhids, by = "hhid") %>%
+  filter(v109 %in% c(1, 2)) %>%
+  group_by(hhid) %>%
+  slice_max(v104a, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(hhid, uniq_id)
+
+section1a <- section1a %>%
+  left_join(
+    new_heads %>% mutate(new_head = TRUE),
+    by = c("hhid", "uniq_id")
+  ) %>%
+  mutate(
+    v107 = case_when(
+      new_head ~ 1,
+      v107 == 1 & v109 %in% c(3, 4) ~ 2,
+      TRUE ~ v107
+    )
+  ) %>%
+  select(-new_head)
 
 #SECTION1B
 
@@ -1525,12 +1596,181 @@ section6b1 <- section6b1 %>%
 
 section6b1 <- section6b1 %>%
   mutate(
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604),
+    v606 = if_else(
+      v606 > v104a , 1, v606
+    )
   ) %>%
   group_by(disease_id) %>%
   slice(1) %>%
   ungroup() %>%
   select(-disease_id, -v104a)
+
+section6b1 <- section6b1 %>%
+  mutate(
+    v604 = case_when(
+      personid == 32897 & is.na(v604) ~ 16, 
+      personid == 12901 & is.na(v604) ~ 4,
+      personid == 34146 & is.na(v604) ~ 2,
+      personid == 12847 & is.na(v604) ~ 2,
+      personid == 51866 & v604 == 23 ~ 3,
+      personid == 51866 & is.na(v604) ~ 2, 
+      TRUE ~ v604
+    )
+  )
+
+section6b1 <- section6b1 %>%
+  mutate(
+    v604 = as.numeric(v604),
+    v604 = case_when(
+      personid == 39399 & is.na(v604) ~ 2,
+      personid == 25204 & is.na(v604) ~ 2,
+      personid == 56777 & is.na(v604) ~ 2,
+      personid == 4199 & is.na(v604) ~ 2,
+      personid == 30376 & is.na(v604) ~ 5,
+      personid == 39404 & is.na(v604) ~ 2,
+      personid == 22271 & is.na(v604) ~ 12,
+      personid == 32815 & is.na(v604) ~ 12,
+      personid == 60551 & is.na(v604) ~ 3,
+      personid == 12489 & is.na(v604) ~ 12,
+      personid == 12491 & is.na(v604) ~ 12,
+      personid == 22323 & is.na(v604) ~ 3,
+      personid == 24986 & is.na(v604) ~ 2,
+      personid == 24620 & is.na(v604) ~ 3,
+      personid == 53546 & is.na(v604) ~ 12,
+      personid == 31928 & is.na(v604) ~ 1,
+      personid == 54271 & is.na(v604) ~ 2,
+      personid == 5953049 & is.na(v604) ~ 12,
+      personid == 29544 & is.na(v604) ~ 2,
+      personid == 5951573 & is.na(v604) ~ 2,
+      personid == 54132 & is.na(v604) ~ 2,
+      personid == 1394 & is.na(v604) ~ 13,
+      personid == 11082 & is.na(v604) ~ 1,
+      personid == 31676 & is.na(v604) ~ 2,
+      personid == 22198 & is.na(v604) ~ 15,
+      personid == 54199 & is.na(v604) ~ 2,
+      personid == 35110 & is.na(v604) ~ 12,
+      personid == 52024 & is.na(v604) ~ 4, 
+      personid == 5949842 & is.na(v604) ~ 5,
+      personid == 3745 & is.na(v604) ~ 16,
+      personid == 53819 & v604 == 2 ~ 24,
+      personid == 52223 & v604 == 2 ~ 8,
+      personid == 41261 & v604 == 2 ~ 6,
+      personid == 52178 & v604 == 2 ~ 27,
+      personid == 52184 & v604 == 2 ~ 16,
+      personid == 56197 & v604 == 2 ~ 28,
+      personid == 59006 & v604 == 2 ~ 10,
+      personid == 36569 & v604 == 2 ~ 21,
+      personid == 22974 & v604 == 2 ~ 24,
+      personid == 22435 & v604 == 2 ~ 5,
+      personid == 53948 ~ 15,
+      personid == 15179 ~ 15,
+      personid == 12227 ~ 30,
+      personid == 9899 & v604 == 2 ~ 21,
+      personid == 28120 & v604 == 2 ~ 1,
+      personid == 18291 & v604 == 15 ~ 1,
+      personid == 18284 & v604 == 2 ~ 24, 
+      personid == 18285 & v604 == 2 ~ 27, 
+      personid == 32028 & v604 == 2 ~ 21,
+      personid == 54293 & v604 == 2 ~ 16,
+      personid == 15055 & v604 == 2 ~ 22,
+      personid == 23262 & v604 == 2 ~ 21,
+      personid == 53926 & v604 == 2 ~ 8,
+      personid == 14761 & v604 == 2 ~ 1,
+      personid == 14714 & v604 == 2 ~ 16,
+      personid == 59147 & is.na(v604) ~ 2,
+      personid == 59231 & v604 == 2 ~ 16,
+      personid == 56057 & v604 == 2 ~ 1,
+      personid == 56041 & v604 == 2 ~ 1,
+      personid == 59898 & v604 == 2 ~ 12,
+      personid == 56840 & is.na(v604) ~ 13,
+      personid == 5952123 & v604 == 2 ~ 1,
+      personid == 57968 & v604 == 2 ~ 1,
+      personid == 5949655 & v604 == 2 ~ 5,
+      personid == 59140 & v604 == 2 ~ 23,
+      personid == 55257 & v604 == 2 ~ 1, 
+      personid == 57838 & v604 == 2 ~ 20,
+      personid == 52901 & v604 == 2 ~ 1,
+      personid == 30166 & v604 == 2 ~ 21,
+      personid == 22867 & v604 == 2 ~ 20,
+      personid == 29940 & v604 == 2 ~ 27,
+      personid == 31443 & is.na(v604) ~ 2,
+      personid == 25651 & v604 == 2 ~ 1,
+      personid == 25655 & is.na(v604) ~ 1,
+      personid == 22198 & v604 == 13 ~ 15, 
+      personid == 20651 & v604 == 2 ~ 1, 
+      personid == 21377 & v604 == 2 ~ 5, 
+      personid == 35122 & v604 == 2 ~ 23,
+      personid == 35583 & v604 == 2 ~ 21,
+      personid == 5950647 & v604 == 2 ~ 16,
+      personid == 52333 & v604 == 2 ~ 1,
+      personid == 52760 & v604 == 2 ~ 1,
+      personid == 52761 & v604 == 2 ~ 1,
+      personid == 52766 & v604 == 2 ~ 21,
+      personid == 52773 & v604 == 2 ~ 7,
+      personid == 59759 & is.na(v604) ~ 2,
+      personid == 20647 & v604 == 28 ~ 1,
+      personid == 51866 & v604 == 3 ~ 23,
+      personid == 52345 & v604 == 2 ~ 1,
+      personid == 5951804 & v604 == 2 ~ 23,
+      personid == 5952805 & v604 == 2 ~ 18,
+      personid == 5952811 & v604 == 2 ~ 1,
+      personid == 53719 & v604 == 15 ~ 31,
+      personid == 48098 & v604 == 2 ~ 13, 
+      personid == 56388 & v604 == 2 ~ 30,
+      personid == 9627 & v604 == 2 ~ 16, 
+      personid == 9514 & v604 == 2 ~ 16, 
+      personid == 17123 & v604 == 2 ~ 28,
+      personid == 27181 & v604 == 2 ~ 27, 
+      personid == 59334 & is.na(v604) ~ 30,
+      personid == 3745 & v604 == 2 ~ 16,
+      TRUE ~ v604
+    )
+  ) %>%
+  filter(
+      personid != 15077
+  )
+
+section6b1 <- section6b1 %>%
+  mutate(
+    v603 == if_else(
+      !is.na(v604), 1, 2
+    )
+  ) %>%
+  group_by(v604) %>%
+  mutate(
+    v605a = case_when(
+      !is.na(v604) & is.na(v605a) ~ round(mean(v605a)),
+      TRUE ~ v605a
+    ), 
+    v605b = case_when(
+      !is.na(v604) & is.na(v605b) ~ round(mean(v605b)),
+      TRUE ~ v605b
+    ),
+    v606 = case_when(
+       !is.na(v604) & is.na(v606) ~ round(mean(v606)), 
+       TRUE ~ v606
+    )
+  ) %>%
+  ungroup()
+
+section6b1 <- section6b1 %>%
+  select(-`v603 == if_else(!is.na(v604), 1, 2)`, -uniq_id)
+
+section6b1_added_rows <- read.xlsx("health section arrangement/input_outpatients.xlsx")
+
+section6b1_added_rows <- section6b1_added_rows %>%
+  select(-uniq_id, -disease_id) 
+
+section6b1 <- rbind(
+  section6b1, section6b1_added_rows
+)
+
+section6b1 <- section6b1 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
 
 #SECTION6B2
 
@@ -1814,11 +2054,317 @@ section6b3 <- section6b3 %>%
   ungroup()
 
 section6b3 <- section6b3 %>%
-  left_join(
-    section6b1 %>% select(disease_id, v604),
-    by = "disease_id",
-    suffix = c("", "_from_b1")
+  mutate(
+    v604 = case_when(
+      personid == 39399 & is.na(v604) ~ 2,
+      personid == 25204 & is.na(v604) ~ 2,
+      personid == 56777 & is.na(v604) ~ 2,
+      personid == 4199 & is.na(v604) ~ 2,
+      personid == 30376 & is.na(v604) ~ 5,
+      personid == 39404 & is.na(v604) ~ 2,
+      personid == 22271 & is.na(v604) ~ 12,
+      personid == 32815 & is.na(v604) ~ 12,
+      personid == 60551 & is.na(v604) ~ 3,
+      personid == 12489 & is.na(v604) ~ 12,
+      personid == 12491 & is.na(v604) ~ 12,
+      personid == 22323 & is.na(v604) ~ 3,
+      personid == 24986 & is.na(v604) ~ 2,
+      personid == 24620 & is.na(v604) ~ 3,
+      personid == 53546 & is.na(v604) ~ 12,
+      personid == 31928 & is.na(v604) ~ 1,
+      personid == 54271 & is.na(v604) ~ 2,
+      personid == 5953049 & is.na(v604) ~ 12,
+      personid == 29544 & is.na(v604) ~ 2,
+      personid == 5951573 & is.na(v604) ~ 2,
+      personid == 54132 & is.na(v604) ~ 2,
+      personid == 1394 & is.na(v604) ~ 13,
+      personid == 11082 & is.na(v604) ~ 1,
+      personid == 31676 & is.na(v604) ~ 2,
+      personid == 22198 & is.na(v604) ~ 15,
+      personid == 54199 & is.na(v604) ~ 2,
+      personid == 35110 & is.na(v604) ~ 12,
+      personid == 52024 & is.na(v604) ~ 4, 
+      personid == 19283 ~ 30,
+      personid == 25176 & v604 == 21 ~ 2,
+      personid == 16335 & v604 == 3 ~ 5,
+      personid == 5949831 & v604 == 21 ~ 2,
+      personid == 4165 & v604 == 1 ~ 5,
+      personid == 30313 & is.na(v604) ~ 13, 
+      personid == 30323 & is.na(v604) ~ 12, 
+      personid == 47972 & v604 == 4 ~ 13,
+      personid == 24295 & is.na(v604) ~ 4, 
+      personid == 3969 & v604 == 4 ~ 5,
+      personid == 53818 & is.na(v604) ~ 16,
+      personid == 21309 & is.na(v604) ~ 4, 
+      personid == 55502 & v604 == 2 ~ 13,
+      personid == 19883 ~ 12,
+      personid == 24268 & is.na(v604) ~ 15, 
+      personid == 12265 & is.na(v604) ~ 18, 
+      personid == 54268 & v604 == 9 ~ 30,
+      personid == 29664 & v604 == 1 ~ 2,
+      personid == 35638 & is.na(v604) ~ 10,
+      personid == 15089 & v604 == 1 ~ 2,  
+      personid == 28122 & v604 == 12 ~ 1, 
+      personid == 54271 & v604 == 2 ~ 16,
+      personid == 54849 & v604 == 1 ~ 21,
+      personid == 19576 & v604 == 1 ~ 16,
+      personid == 51077 & v604 == 2 ~ 16,
+      personid == 54132 & v604 == 2 & v614b == 14400 ~ 12,
+      personid == 54191 & is.na(v604) ~ 8,
+      personid == 26202 & is.na(v604) ~ 16,
+      personid == 19438 & v604 == 16 ~ 18, 
+      personid == 34458 & v604 == 13 ~ 7,
+      personid == 25929 & v604 == 7 ~ 3,
+      personid == 12062 & is.na(v604) ~ 2,
+      personid == 60249 & v604 == 96 ~ 16,
+      personid == 9607 & v604 == 2 ~ 28, 
+      personid == 59821 & is.na(v604) ~ 2,
+      personid == 5952200 & v604 == 13 ~ 3,
+      personid == 12487 & is.na(v604) ~ 12,
+      personid == 17644 & v604 == 1 ~ 20,
+      TRUE ~ v604
+    ),
+    v101 = case_when(
+      personid == 12487 ~ 2,
+      TRUE ~ v101
+    ),
+    personid = case_when(
+      uniq_id == c("2207-8-1") ~ 12488,
+      TRUE ~ personid
+    )
+  )
+
+section6b3 <- section6b3 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+section6b3 <- section6b3 %>%
+  filter(
+    !disease_id %in% c(
+      "1101-20-2-NA", "1105-15-6-13", "1111-13-1-2",
+      "1208-18-NA-16", "1208-18-NA-7", "2207-8-3-12",
+      "1418-3-1-3", "2109-3-2-15", "2207-8-5-12", 
+      "2209-10-1-2", "3101-6-5-NA", "3103-10-1-1", 
+      "3103-14-2-1", "3103-14-2-3", "5321-2-1-15",
+      "5321-2-2-1"
+    ),
+    personid != 15077
+  )
+
+
+section6b1 <- section6b1 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+missing_outpatients <- anti_join(
+  section6b3, 
+  section6b1, 
+  by = "disease_id"
+)
+
+#SECTION6B4
+
+section6b4 <- section6b4 %>%
+  rename(
+    v604a = v603
+  ) %>%
+  mutate(
+    v604_num = suppressWarnings(as.numeric(str_extract(v604, "\\d+"))),
+
+    v604_txt = str_trim(
+      str_remove_all(v604, "\\d+|,")
+    ),
+
+    v604  = v604_num,
+    v604a = if_else(v604_txt != "", v604_txt, NA_character_)
+  ) %>%
+  select(-v604_num, -v604_txt)   
+
+section6b4 <- section6b4 %>%
+  mutate(
+    v604a = trimws(v604a),
+    
+    v604 = case_when(
+      is.na(v604a) & v604 == 96 ~ 2,
+      v604a %in% c("MUTUROG", "COLESTEROL", "CHLOSTROAL", "CHOLEDTEROL", 
+                   "CHORESTEROL", "COLDSTORE", "COLESTER", "COLESTROME", 
+                   "COLSTORE", "COLSTRORE", "कोलेस्ट्रोल", "CHOLESTEROL", 
+                   "CHOLOSTREL", "CHLOSTROL", "CHOLESTEROLPROSTATE", "COLSTROL", 
+                   "COLDSTORAL", "COL", "COL STORE", "CHOLESTEROL PROSTATE", 
+                   "CHLORESTROL", "CHOLESTROL", "WEIGHT LOSS MEDICATION") ~ 1,
+      
+      v604a %in% c("BP", "PRESSURE", "PRESSURE RA MANASIK ROG", "BLOOD PRESSURE$ MOTUROG",
+                   "PRESSURE/SUGAR/THYROID", "LOW BLOOD PRESSURE", "96", 
+                   "MUTUROG BLOOD PRESSURE", "PRESSURE LOW", "BP LOW") ~ 2,
+      
+      (v604 == 96 | v604 == "96") & (v604a == "" | is.na(v604a)) ~ 2,
+      
+      v604a %in% c("DIABETES", "DIABETIC", "SUGAR", "SUGAR BLOOD PRESSURE") ~ 3,
+      
+      v604a %in% c("DAM", "DAM KO ROGI") ~ 4,
+      
+      v604a %in% c("BATH", "GHUNDAKO HADDI KHIYEKO.", "LUNGS KO BATHH VANNI", 
+                   "LUPUS", "KNEE PAIN", "LEG SWELLING", "GHUNDAKO HADDI KHIYEKO") ~ 5,
+      
+      v604a %in% c("KIDNEY STONES KO UPRESAN GAREKO", "PATHTHARI", "PIABKO SAMASYAA", 
+                   "PISAB BANDA HUNE GAREKO", "STONE", "STONE IN URINE PIPE", "PATHARI",
+                   "PATTHARI", "PACHTHARI", "KIDNEY MA PATHALI", "KIDNEY STONES", "PISAB BANDA HUNE",
+                   "PISABKO SAMASYA", "PISAB ROKKINE SAMASYAA", "KIDNEY STONES CAUSE OPESAN", "KIDNEY") ~ 6,
+      
+      v604a %in% c("JNDISH", "HEPATITIS", "JAUNDICE", "LIVER KO SAMSYA", "EXCESSIVE ALCOHOL CONSUMPTION",
+                   "ALCOLOHISM", "HE HAD TO BE HOSPITALIZED THIS YEAR DUE TO EXCESSIVE ALCOHOL CONSUMPTION",
+                   "LIBAR KO SAMSYA", "LIVER PROBLEM") ~ 7,
+      
+      v604a %in% c("BONE MARROW TRANSPLANT", "BRAIN TUMOR", "CANCER", "BREAST MA GATHO AAKO",
+                   "TONGUE CANCER", "BREASTMA GATHO BHAKO", "TUMOR PETMA ( LIPOMA)",
+                   "PET MA TUMOR ( LIPOMA)",
+                  "BREAST TUMER.DURING THE TREATMENT OF BREAST TUMER APPROXIMATELY  LAKH RUPEES WERE SPENT ON GOING TO INDIA FOR TREATMENT.") ~ 8,
+      
+      v604a %in% c("MIRGI", "SEIZURE", "SIJAR") ~ 9,
+      
+      v604a %in% c("GANL TB", "TUBOC", "TB ROG") ~ 10,
+      
+      v604a %in% c("THOYRED", "THYROID") ~ 12,
+      
+      v604a %in% c("ULCER", "ULCERS", "ALSAR", "ANDRA MA GHAU", "APPENDIX", "DIGESTIVE",
+                   "BABASHIL", "GALLBLADDER STONES", "GATRIC", "GASTRIC", "ANDRA MA SAMASYA",
+                   "PAYALS", "PET DUKHNA", "PILES", "PIT KO THAILIMA PATHALI", 
+                   "AANDRA KO OPERATION GAREKO PIPE BAT STOOL GARNE GAREKO 2081_01-12 DEKHI",
+                   "PILES KO LAI SHE SOMETIMES USES OINTMENT BUT MOSTLY TAKES AYURVEDIC MEDICINE") ~ 13,
+      
+      v604a %in% c("BACK PA", "THERAPY", "DHARD PET DUKHNA", 
+                   "SARIR MANOJ HATT JODA DUKHNA") ~ 15,
+      
+      v604a %in% c("NEURO DISEASE", "SNAYU", "परलासिस", "CEREBRAL PAIN", 
+                   "MASTISK PAKSHYAGHAT(CP)", "MIGRAIN", "MIGRAINE", "MIGRANE", 
+                   "NEURO", "PARALYSIS", "PARALYZED", "PARALICSES", 
+                   "TAU KO DUKHNA SAMYASYA", "TAUKO DUKHNE PURANO ROG", 
+                   "TAUKO KO", "TAUKO KO DUKAI", "LEFT HAND NACHALNEY", 
+                   "BRAIN PROBLEM", "BRAIN PROBLEM - SCARS", "MIGRAINE SAMBANDI", 
+                   "PARTIAL PARALYSIS", "TAU KO SAMYASYA", "PARALYCIS",
+                   "PARTIAL PARALYSIS LEFT HAND NACHALNEY", "CP") ~ 16,
+      
+      v604a %in% c("DEPRESSION", "ANJEITY", "ANXIETY", "HALLUCINATIONS", "ANZITY") ~ 18,
+      
+      v604a %in% c("URIC ACID", "URIC ACID RA PROSTHETICS", "URIK ASID", 
+                   "URIQE ACID", "URIC  ACID", "URIK ACID") ~ 20,
+      
+      v604a %in% c("POSTATE", "POSTED", "POSTERT", "PROSTATE", "PROSTED", 
+                   "PROSTHETIC", "PROSTRATE", "PROTESTED KO SAMASYA", "URINE INFECTION",
+                   "PROTEST", "POSTERD", "HYDROCELE", "PISAB KO SAMASYA PROSTATE", 
+                   "PISAB ROKKINE SAMASYA", "PISAB THAILI KO PROBLEM", "PISABKO KHARABI",
+                   "PROSTATE PROBLEM", "PISAB THAILI") ~ 21,
+      
+      v604a %in% c("EAR PROBLEM", "ENT BIRAMI", "GHATI DUKHNAY", "PINASH", 
+                   "NOSE KO ALLERGY VAYEKO.", "RUGHA NOSE KO ALLERGY", "GHATIKO SAMASYA") ~ 22,
+      
+      v604a %in% c("ACNE ISSUES", "ALLERGY", "CHHALA ROG DAJ", "DAJ", 
+                   "SKIN ALLERGIES", "SKIN ALLERGY", "SKIN ELERGY", "SKIN PROBLEM", 
+                   "SKIN ROG", "XALA SAMBANDHI", "CHHALAKO ROG", "CHALA ROG", 
+                   "SKIN", "SKIN CONDITION", "छालाको समस्या छाला रोग", "ALARJI",
+                   "CHALA SAMBANDHI", "KHUTTA MA DAG TAI CHILAUNA", "BODY ALLERGY",
+                   "CHHALA SAMBANDHI", "ACNE PRONE SKIN") ~ 23,
+      
+      v604a %in% c("AAKHAKO SAMASYA", "EYE", "EYE INFECTION", "EYE ISSUES", "EYE MOTIBINDU", 
+                   "EYE PROBLEM", "EYE PROBLEMS", "JALABINDU", "JALBINDU", 
+                   "JALBINDU VAYEKO", "JALBINDU VAYEKO REGULAR MEDICINE LAGAUNE PARXA",
+                   "AAKHA SAMBANDHI SAMASYA", "AAKHAKO - MOTIBIDNU SAMASYA", 
+                   "AKHA SAMBANDI", "MOTIBINDU", "RETINA PROBLEM JALBINDU", "EYE DISEASE.",
+                   "AAKHAKO SAMASYA - MOTIBIDNU", "EYE PROBLEM/INFECTION", "AAKHA KO SAMASYA") ~ 24,
+      
+      v604a %in% c("ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA MAA CHOT PAREKO", 
+                   "DISLOCATED BACKBONE", "RIGHT HAND DISABLE DUE TO INJURY", 
+                   "LEGAMENT KO  SURGERY VKO", "LEGAMENT KO SURGERY VKO", 
+                   "LEGAMENT KO PROBLEM", "ACCIDENT", "BACKBONE DISLOCATED", 
+                   "ADMITTED WITH A BROKEN LEG.SHE WAS TAKEN TO TULSIPUR INDIA FOR TREATMENTWHICH COSTS APPROX.NPR..", 
+                   "HAND INJURY", "LIGAMENT KO SMSYA", "ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA NACHALNE",
+                   "LADERA EMERGENCY MA HELICOPTER MA KATHMANDU LAGEKO") ~ 26,
+      
+      v604a %in% c("LUNGS PROBLEM", "PHOKSO KO PROBLEM", "CHEST PROBLEM", 
+                   "CHHATI SAMBANDHI SAMASYA", "PLEURAL EFFUSION", "PHOKSO") ~ 27,
+      
+      v604a %in% c("BLOOD BAKLO VAYEKO", "BLOOD PATALO GARAUNAY", "NASA KO DABAI", 
+                   "NASA SAMBANDHI", "OVER WEIGHT", "SICKLE CELL ANEMIA", 
+                   "SICKLECELL ANIMIYA", "SPLEEN PROBLEM", "VARICOSE VEINS", 
+                   "RAGAT KO KAMI", "POLYCYTHEMIA VERA", "SICKLE CELL", "NASA",
+                   "NASA KO", "BLOOD BAKLOVAYEKO") ~ 28,
+      
+      v604a %in% c("SCRUBE TIFUS") ~ 29,
+      
+      v604a %in% c("AUTISTIC", "DISABLE", "PURNA APANGA", "DIFFERENTLY ABLE", 
+                   "AAPANGA", "DOWN SYNDROME", "INTELLECTUAL DISABILITY", 
+                   "PURNA APANGA BHAYAKO KO", "COMPLETE DISABILITY", "JANMA JAT APANGA") ~ 30,
+      
+      v604a %in% c("BUDO VAYARA KAMJORI VAYO KARAN", "SARIRA KAMJORI") ~ 31,
+
+      personid == 20655 & is.na(v604) ~ 16,
+      personid == 35802 & is.na(v604) ~ 13, 
+      personid == 54033 & is.na(v604) ~ 3,
+      personid == 54116 & is.na(v604) ~ 6,
+
+      TRUE ~ as.numeric(v604)
+    ) 
   ) 
+
+section6b4 <- section6b4 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  ) %>%
+  group_by(disease_id) %>%
+  slice(1) %>%
+  ungroup() %>%
+  filter(!is.na(v101))
+
+section6b4 <- section6b4 %>%
+  mutate(
+    v604 = case_when(
+      personid == 53541 ~ 2, 
+      personid == 3758 ~ 12, 
+      personid == 53999 ~ 2,
+      personid == 54002 ~ 3, 
+      personid == 31913 ~ 18, 
+      personid == 35638 & v604 == 2 ~ 10,
+      personid == 10840 ~ 7, 
+      personid == 9403 ~ 6, 
+      personid == 10599 & v604 == 4 ~ 12, 
+      personid == 18291 ~ 1, 
+      personid == 51077 ~ 16,
+      personid == 1321 ~ 18,
+      personid == 26524 ~ 2,
+      personid == 22198 ~ 13,
+      personid == 35583 ~ 21, 
+      personid == 35603 ~ 12,
+      personid == 5950615 ~ 15,    
+      personid == 52310 ~ 2, 
+      personid == 52331 ~ 2,
+      personid == 52285 ~ 13, 
+      personid == 52292 ~ 16, 
+      personid == 52294 ~ 14,
+      personid == 11225 ~ 2,
+      TRUE ~ v604
+    )
+  ) %>%
+  filter(
+    !disease_id %in% c(
+      "3207-4-2-1", "3441-1-2-16", "1109-20-2-2", "4209-1-1-13"
+    )
+  )
+
+section6b4 <- section6b4 %>%
+  mutate(
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+missing_inpatients <- anti_join(
+  section6b4, 
+  section6b1, 
+  by = "disease_id"
+)
 
 
 #SECTION6C1
@@ -2144,6 +2690,402 @@ section6c1 <- section6c1 %>%
     TRUE ~ v630
   )
   )
+
+for (i in setdiff(1:ncol(section6c1), c(2, 7, 8, 14, 15, 16))) {
+  section6c1[[i]] <- as.numeric(gsub("[^0-9]", "", section6c1[[i]]))
+}
+
+cols_after_v629 <- names(section6c1)[(match("v629", names(section6c1)) + 1):ncol(section6c1)]
+
+section6c1 <- section6c1 %>%
+  mutate(
+    across(
+      all_of(cols_after_v629),
+      ~ ifelse(v629 == 2 & !is.na(v630), NA, .)
+    ),
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
+  ) %>%
+  group_by(disease_id) %>%
+  slice(1) %>%
+  ungroup() 
+
+#SECTION6C4
+
+section6c4 <- section6c4 %>%
+  mutate(
+    v630_num = str_extract(v630, "\\d+"),
+    
+    v630_txt = str_trim(str_remove_all(v630, "\\d+|,")),
+    
+    v630 = if_else(!is.na(v630_num), v630_num, NA_character_),
+    
+    v630a = if_else(v630_txt != "", v630_txt, NA_character_)
+  ) %>%
+  select(-v630_num, -v630_txt) 
+
+section6c4 <- section6c4 %>%
+  filter(v630 != "") %>%
+  mutate(
+  v630 = case_when(
+    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", "RUGAKHOKI",
+                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी", "RUGHA KHOKI",
+                "ROUGHA KHOLA", "COLD") ~ "6",
+
+    v630a == "JONDISH LIVAR PHET MA PANI VKO" ~ "9",
+
+    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
+
+    v630a %in% c("DATA KO SAMASYA", "DAAT KO SAMASYA") ~ "11",
+
+    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", 
+                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL") ~ "14",
+
+    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
+                "HAND FRACTURE", "LIGAMENT TEARING", "LEGAMENT SMSYA") ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE", "SNAKE BITE") ~ "18",
+
+    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
+                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
+                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", "GHUDA DUKHEKO",
+                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", "DHARD DUKHNA",
+                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
+                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
+                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
+                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
+                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "HADDI",
+                "KARANG DUKHEKO", "JIU HATH DUKHEKO", "DHARD DUKHNA", "HAT DUKHNE SAMASAYA") ~ "19",
+
+    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "KAMJORIBP LOW", 
+                 "INCREASES IN CHOLESTEROL LEVEL", "ANEMIA") ~ "20",
+
+    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST") ~ "21",
+
+    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
+                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
+                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
+                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
+                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
+                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", "PET DUKNE",
+                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION", "PET DUKHYAKO",
+                "PETDUKHERA", "DOCTOR DOESN'T KNOW ABOUT THEIR CONDITION THEY SAY HE HAS GASTRITIS.",
+                "PET DUKHERA FOOD POISON BHAKO", "PET DHUKERA", "GASTRIC PROBLEM", "APPENDIX KO OPTION",
+                "PET KO SAMASYAA VAAKO BU K HO VANERA THA NAVAAKO HOSPITAL MA.", "ANDRA MA GHAU",
+                "PETKO SAMASYAA") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a == "DAMM" ~ "24",
+
+    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", "DELIVERY CONDITION",
+                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "ANC CHECKUP VISIT IN PRIVATE HOSPITAL") ~ "25",
+
+    v630a == "JANMA JATA APANGA" ~ "26",
+
+    v630a %in% c("EAR PROBLEM", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", "ENT",
+                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
+                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE TONSIL") ~ "27",
+
+    v630a %in% c("AKHAMA CHO", "EYE PROBLEM") ~ "28",
+
+    v630a == "DAAD" ~ "29",
+
+    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO",
+                 "NORMAL", "OVERALL WHOLE BODY CHECK", "BODEYSCHE", "DUKHAI") ~ "30",
+
+    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
+                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
+                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
+                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
+                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM", "GAINO PATHEGHAR",
+                "PERIOD ANIYAMIT", "GYENO O KO PROBLEM") ~ "31",
+
+    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA",
+                 "FOLLOWUP OF HERNIA OPERATION") ~ "33",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI",
+                 "KIDNEY MA PATHARIYA") ~ "36",
+
+    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                "PATTHARIKO AUSADHI", "STONE", "GAL BLADOR PROBLAM", "LIVER KO SAMASYA",
+                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO",
+                "PITKO THAILI MA PATHALI VAYEKO MA OPRESAN GAREKO") ~ "37",
+
+    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
+                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS") ~ "38",
+
+    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
+
+    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
+                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
+                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
+                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
+                "THAUKO DUKHANE", "TUKO DUKHAYA", "TAU KO DUKHNA", "HEAD INJURIES") ~ "41",
+
+    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID", "URIKASID") ~ "42",
+
+    v630a == "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO" ~ "43",
+
+    v630a == "RAGATMA KHARABI" ~ "20",
+
+    v630a %in% c("KHOKI", "KHOKI LAGEKO", "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO") ~ "6",
+
+    v630a %in% c("KHUTTA MA ALLERGY AAKO", "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", 
+                 "PANI FOKA BATA PANI NILAKELL", "SARIR MA PANIKO PHOKA AYEKO") ~ "14",
+
+    v630a == "LIGAMENT TEARING" ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630a %in% c("KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                 "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                 "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                 "MULTIPLE JOINT PAIN", "PAIN IN LEG") ~ "19",
+
+    v630a == "LUMP IN BREAST" ~ "21",
+
+    v630a %in% c("LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", "PET DUKHER", "PAYELSH",
+                 "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                 "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", 
+                 "PET KO CHECK", "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", 
+                 "PETA DUKHEKO", "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE",
+                 "BHOMIT BHAYERA NAROKIYEKO", "PETDUKHEKO") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a %in% c("PERGINENC", "PREGENCY", "PREGNANCY CHECK UP", 
+                 "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", "PREGNANT", 
+                 "SUTKERI", "SUTKERI BHAYEKO") ~ "25",
+
+    v630a %in% c("MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", 
+                 "NAK RA MUKHA BATA BLOOD AKO", "NAKKO SAMSHYA", "TANSIL", 
+                 "TONSIL", "TONSILLITIS", "TONSILS") ~ "27",
+
+    v630a %in% c("KAMJORI", "KAMJORI BHAYEKO", "KAMJORI BP LOW", "KAMJORI VAYEKO", "JIUDUKHE KO",
+                 "JIU DUKHNE") ~ "30",
+
+    v630a %in% c("MINS VAYAKO BELA PET DUKHEKO", "PATHAGHAR SAMANDI SAMASYA IS", 
+                 "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", "PERIOD ANIYAMIT HUNE", 
+                 "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", "SHIST SURGERY",
+                 "EK DAMAI GARO VAYO MAHINA BARI NIHAMIT NAVAYERA", "PATHAGHAR SAMANDI",
+                 "PATHAGHAR SAMANDI SAMASYA", "LOW ABDOMINAL PAIN WHITE VAGINAL DISCHARGE BURNING MICTURITION") ~ "31",
+
+    v630a %in% c("MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI") ~ "36",
+
+    v630a %in% c("LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                 "PATTHARIKO AUSADHI", "STONE") ~ "37",
+
+    v630a == "TUBERCULOSIS" ~ "38",
+
+    v630a == "MANASIK SAMASYA" ~ "40",
+
+    v630a %in% c("MIGRAINE", "MIGREN HEADACHE", "NASA", "NASA DABE KO", 
+                 "NASA SAMBANDHI", "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", 
+                 "TAUKO DUKHANE", "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", 
+                 "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", "THAUKO DUKHANE", "TUKO DUKHAYA") ~ "41",
+
+    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", 
+                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी") ~ "6",
+
+    v630a %in% c("JONDISH LIVAR PHET MA PANI VKO", "JANDIS") ~ "9",
+
+    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
+
+    v630a == "DATA KO SAMASYA" ~ "11",
+
+    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", "PANI FOKA BATA PANI NIKALEKO",
+                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL", "KHATERA",
+                "KHUTTA MA ELERGY BHAYEKO") ~ "14",
+
+    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
+                "HAND FRACTURE", "LIGAMENT TEARING", "TAUKO MA GHAU") ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
+                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
+                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", "DHADA DUKHE KO",
+                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", "HADIKHIYERA",
+                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
+                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
+                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
+                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
+                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "KAMAR GHUDA DUKHEKO") ~ "19",
+
+    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "NASAKO SAMASYA",
+                 "RAGATKO KHARABI") ~ "20",
+
+    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST",
+                 "SYMPTOMS OF CANCER KIDNEY INFECTION", "CANCER") ~ "21",
+
+    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
+                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
+                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
+                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
+                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
+                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", 
+                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION", "EPIGASTRIC PAIN",
+                "INTESTINE OPERATION", "APPENDICITIS") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a == "DAMM" ~ "24",
+
+    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", 
+                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "PERGINENC TEST") ~ "25",
+
+    v630a == "JANMA JATA APANGA" ~ "26",
+
+    v630 %in% c("EAR PROBLEM", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", 
+                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
+                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE BLEEDING") ~ "27",
+
+    v630a %in% c("AKHAMA CHO", "EYE PROBLEM", "EYE CHECK GARNA GAYEKO") ~ "28",
+
+    v630a == "DAAD" ~ "29",
+
+    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "NORMAL", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO") ~ "30",
+
+    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
+                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
+                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
+                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
+                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM", "PREGNANT NA BHAYERA CHECK UP") ~ "31",
+
+    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA") ~ "33",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI", "PAYHARI") ~ "36",
+
+    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                "PATTHARIKO AUSADHI", "STONE", "PITA THAILIKO PATHARI", "JONDISH LIVAR PHET MA PANI",
+                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO") ~ "37",
+
+    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
+                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS", "FOKSO KO PROBLEM") ~ "38",
+
+    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
+
+    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
+                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
+                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
+                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
+                "THAUKO DUKHANE", "TUKO DUKHAYA", "KHUTTA JHAMJHAMAUNE") ~ "41",
+
+    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID") ~ "42",
+
+    v630a %in% c("KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", "OPERATION KHUTTA KOMKHIL") ~ "43",
+
+    v630a == "FOOD POISON" ~ "22",
+
+    v630a %in% c("CHEST & STOMACH PROBLEM", "TIFID", "TYPHOID", "THYPHOID", "CHEST & STOMACH PAIN") ~ "2",
+
+    v630a == "FOKSO KO PROBLEMP" ~ "38",
+
+    v630a %in% c( "ANC CHECKUP IN PRIVATE HOSPITAL", "KEHI VAKO CHHAIN CHHAIN") ~ "6",
+
+    v630a %in% c("BLOOD AND URINE INFECTION" , "YOUN ROD PANI BAGNE") ~ "10",
+
+    v630a %in% c("BLOOD INFECTION") ~ "20",
+
+    v630a == "EYE CHECK GARDA" ~ "28",
+
+    v630a == "BRUSELA" ~ "17",
+
+    v630a %in% c("BACK PAIN", "BACK PAIN KO SAMASYA BHAKO THIYO", "BACKPAIN", 
+                 "DHAD DUKHE", "DHAD DUKHNE", "DHAD DUKHNE KHUTTA DUKHNE", 
+                 "DHADA DUKHEKO", "DISCOGENIC LBD(LOWER BACK PAIN)", "GHUDA DUKHANE", 
+                 "HADJORANI DUKHEKO", "HATH DUKHEKO", "HATH KHUTTA DUKHAI", 
+                 "KAMAR GHUDA DUKHEKOLE", "KURKUCHA DUKHNE POLNE", 
+                 "BODY ACHE", "BODY PAIN", "हात खुट्टा कम्मर दुखेको") ~ "19",
+
+    v630a %in% c("ABDOMEN PAIN", "APPENDIX", "GALLSTONE", "GASTIC", "GASTIK", "STOMACH  INFECTION",
+                 "GASTRIC INFECTION", "GASTRITIS", "HEART BURN", "DISHA GOTA PAREKO",
+                 "INTESTINE OPERATION SUDDENLY AS THERE WAS GROWTH IN HIS INTESTINE", 
+                 "KABJIYAT", "KAMMAR DUKHEKO", "KOKHA DUKHEKO", "PAYALSH", "PAYELS", 
+                 "PET DUKHANE", "PET DUKHERA", "PET DUKHERA VOMIT BHAKO", "PET KO SAMASAYA", 
+                 "PETKO OPERATION GAREKO", "PILES", "STOMACH", "STOMACH INFECTION", 
+                 "STOMACH ACHE", "STOMACH PAIN", "एपेन्डिसाइड", "ABDOMINAL PAIN",
+                 "THEY DON'T KNOW ABOUT THE ACTUAL DISEASE AS PER THE DOCTOR THEY ALSO DON'T KNOW THE ACTUAL DISEASE . GASTRIC") ~ "22",
+
+    v630a %in% c("PREGNANCY CHECK UP", "PREGNANT", 
+                 "UHA KO BREAST FEEDING GARNA KO LAGI AWASHEK MATRA MA DUDH NAPAKO HUNALEY BIGAT EK HAFTA DEKHI AAUSADHI SEWAN GARDAI HUNUNXA") ~ "25",
+
+    v630a %in% c("GHATI KO SAMASYA", "NAAK MA MASU PALAKO", "PINASH", "TONSIL", "NOSE BLEEDING") ~ "27",
+
+    v630a == "OVERALL" ~ "30",
+
+    v630a %in% c("MAHINA BARI NIHAMIT NAVAYERA", "PATHAK GHAR SAMANDI SAMASYA", 
+                 "PATHEGHAR KO OPERATION", "PATHEGHAR KO SAMASYA", "PATHEGHAR SAMBANDI SAMASYA THIYO") ~ "31",
+
+    v630a == "HEART PROBLEM" ~ "32",
+
+    v630a %in% c("HARNIYA KO OPERATION GAREKO", "HARNIYA KO OPERATION  GAREKO") ~ "33",
+
+    v630a == "HIV AIDS" ~ "34",
+
+    v630a %in% c("KIDANEY MA PATHARIYA", "KIDNEY INFECTION", "KIDNEY STONE", "KIDANEY  MA PATHARIYA",
+                 "KIDNI JACHA RA UPACHAR", "PISABMA KHARABI", "STONE OPERATION") ~ "36",
+
+    v630a %in% c("MILD LIVER DISEASE", "PATHARI", "PATHARI KO OPERATION", "PATTHARIYA", 
+                 "PITA THAILIMA PATHARI KO", "PITKO THAILI MA PATHALI", "PITTATHAILI KO OPERATION") ~ "37",
+
+    v630a == "PROSTATE" ~ "39",
+
+    v630a %in% c("BEHOSH VAYEKO EKKASHI", "DHARD KO NASA CHAPIYA KO", "MIGRAINE", 
+                 "PARALYSIS", "RINGADA CHALEKO", "RINGATA", "TAUKO DUKHAI", 
+                 "TAUKO DUKHEKO", "YAUTA LEG NACHALEKO", "RINGADA CHALNE") ~ "41",
+
+    v630a == "WORM" ~ "44",
+
+    TRUE ~ v630
+  )
+)
+
+section6c1 <- section6c1 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld), 
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
+  )
+
+section6c4 <- section6c4 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld), 
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
+  )
+
+missing_acute <- anti_join(
+  section6c4, 
+  section6c1, 
+  by = "disease_id"
+)
 
 #SECTION7
 
@@ -2586,255 +3528,256 @@ section9a <- section9a %>%
       v901 == "2" ~ "1", 
       TRUE ~ v901
     ),
-    v907a_raw = v907a, 
     v907a = trimws(v907a), 
     v907a = case_when(
-      v907a %in% c("0 NESULKA GAREKO", "2 KATHA DIYEKO", 
-                   "AFNAI DAJU BHAI LEY GARI RAKHNH BHAKO HUNUNXA TESTO PAISA LEKO XAINA", 
-                   "AFNAI MAITI KO GAREKO SO NO ANY PAYMENT", 
-                   "AILE SAMMA PAKO XAINA TARA ABA BATA PAUNE.", 
-                   "BHARKHER KHETI LAGAYAKO DEYAKO CHHAINA", 
-                   "CHHORA HARU LAI GARI KHANU DINU BHAKO", 
-                   "DIYENA", "JETHAJU LEY GARI KHA VANERA DEKO PAISA TIRNU PARDAINA", 
-                   "KEI LINE DINE NAGAREKO", "LINE DINE NAGAREKO", 
-                   "NA", "NISULKA GARI KHANA DIYAKO.", "NO", 
-                   "SKIP HUNU PARNE", "0", "96", 
-                   "AAFAI KHETI GAREKO", "AAFAI VAIKO LIYEKO LE KEI DEKO XAINA", 
-                   "AAFNO AAFANTA KO VAYERA KEHI DIYEKO XAINA.", "ADHIYA NADIYEKO", 
-                   "AFNAI CHHORA LE KAMAI GARNE GAREKO", 
-                   "AFNO VAI LAI KHATI GARNE DEYAKO R TESBAPAT POISA AANA KEHE N LENE OPTION NOT APPLICABLE BHAYAKO LE KUT THAKKA WA BHADA MA DEYAKO MA TIK LAGAYAKO", 
-                   "AGRICULTURE PRODUCTION WAS DONE ON OFFICE LAND AND SHE DIDN'T PAY ANY AMOUNT & THINGS.SHE ALSO DON'T KNOW HOW MUCH IT COST WHILE SELLING LAND", 
-                   "ARUKO JAGGA MA GAREKO HO GHAR SIDE KO PAISA ANI KEI DINU PARDAINA", 
-                   "BINA PAISA YETIKAI GARI KHAU VANERA DIYEKO BAARI BAJHAI NAHOS VANERA", 
-                   "FREE", "GHR KO BUWA LE DINE", "K HI PANI DIDAINAN YETIKAI DIYEKO", 
-                   "KAINADINE BANDHAKI LEKO KHETHO", "KEHI DUNU PARDAINA", 
-                   "KEHI LINE DINE NAGAREKO.", "KEI LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI DIYEKO", 
-                   "KEI PANI LINE GAREKO XAINA GHAR MA SASU SASURA LE GARNE GAREKO", 
-                   "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI DIYEKO", 
-                   "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI LIYEKO", 
-                   "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANE", 
-                   "OO", "SELF USE", "SITTAI MA PRAYOG GAREKO", 
-                   "TETTIKAI KAMAYERA KHANALAI DIYEKO", "TETTIKAI KAMAYERA KHANE", 
-                   "YO SAL BHARKHAR LAGAKO", "केही दिनु नपर्ने", 
-                   "निःशुल्क दिएको आफ्नै भाइले गरेर खाने", 
-                   "UHA KO NAM MA JAGGA  XORA XUTIYEKO HUNA LEY KHET BARI UTA GARNU HUNXA RA TES BAPAT KEI KHANEY ANNA DAL HARU DINEY"
-                   ) ~ 0,
+     v907a %in% c("0 NESULKA GAREKO", "2 KATHA DIYEKO", 
+                 "AFNAI DAJU BHAI LEY GARI RAKHNH BHAKO HUNUNXA TESTO PAISA LEKO XAINA", 
+                 "AFNAI MAITI KO GAREKO SO NO ANY PAYMENT", 
+                 "AILE SAMMA PAKO XAINA TARA ABA BATA PAUNE.", 
+                 "BHARKHER KHETI LAGAYAKO DEYAKO CHHAINA", 
+                 "CHHORA HARU LAI GARI KHANU DINU BHAKO", 
+                 "DIYENA", "JETHAJU LEY GARI KHA VANERA DEKO PAISA TIRNU PARDAINA", 
+                 "KEI LINE DINE NAGAREKO", "LINE DINE NAGAREKO", 
+                 "NA", "NISULKA GARI KHANA DIYAKO.", "NO", 
+                 "SKIP HUNU PARNE", "0", "96", 
+                 "AAFAI KHETI GAREKO", "AAFAI VAIKO LIYEKO LE KEI DEKO XAINA", 
+                 "AAFNO AAFANTA KO VAYERA KEHI DIYEKO XAINA.", "ADHIYA NADIYEKO", 
+                 "AFNAI CHHORA LE KAMAI GARNE GAREKO", 
+                 "AFNO VAI LAI KHATI GARNE DEYAKO R TESBAPAT POISA AANA KEHE N LENE OPTION NOT APPLICABLE BHAYAKO LE KUT THAKKA WA BHADA MA DEYAKO MA TIK LAGAYAKO", 
+                 "AGRICULTURE PRODUCTION WAS DONE ON OFFICE LAND AND SHE DIDN'T PAY ANY AMOUNT & THINGS.SHE ALSO DON'T KNOW HOW MUCH IT COST WHILE SELLING LAND", 
+                 "ARUKO JAGGA MA GAREKO HO GHAR SIDE KO PAISA ANI KEI DINU PARDAINA", 
+                 "BINA PAISA YETIKAI GARI KHAU VANERA DIYEKO BAARI BAJHAI NAHOS VANERA", 
+                 "FREE", "GHR KO BUWA LE DINE", "K HI PANI DIDAINAN YETIKAI DIYEKO", 
+                 "KAINADINE BANDHAKI LEKO KHETHO", "KEHI DUNU PARDAINA", 
+                 "KEHI LINE DINE NAGAREKO.", "KEI LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI DIYEKO", 
+                 "KEI PANI LINE GAREKO XAINA GHAR MA SASU SASURA LE GARNE GAREKO", 
+                 "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI DIYEKO", 
+                 "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI LIYEKO", 
+                 "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANE", 
+                 "OO", "SELF USE", "SITTAI MA PRAYOG GAREKO", 
+                 "TETTIKAI KAMAYERA KHANALAI DIYEKO", "TETTIKAI KAMAYERA KHANE", 
+                 "YO SAL BHARKHAR LAGAKO", "केही दिनु नपर्ने", 
+                 "निःशुल्क दिएको आफ्नै भाइले गरेर खाने", 
+                 "UHA KO NAM MA JAGGA XORA XUTIYEKO HUNA LEY KHET BARI UTA GARNU HUNXA RA TES BAPAT KEI KHANEY ANNA DAL HARU DINEY"
+                 ) ~ "0",
+    v907a == "100" ~ "100",
+    v907a == "150" ~ "150",
+    v907a == "1 MURI TORI" ~ "300",
+    v907a == "500" ~ "500",
+    v907a == "KHADHAYAN BALI 15 KG" ~ "600",
+    v907a == "KHADHYAN BALI 20 KG" ~ "800",
+    v907a %in% c("1", "1000") ~ "1000",
+    v907a %in% c("30KG", "1200") ~ "1200",
+    v907a == "8 PAATHI DHAAN" ~ "1280",
+    v907a == "1300" ~ "1300",
+    v907a == "1400" ~ "1400",
+    v907a %in% c("MILLET (RS1500)", "1500", "MAKAI 18KG") ~ "1500",
+    v907a == "1600" ~ "1600",
+    v907a == "1800" ~ "1800",
+    v907a %in% c("GADAUDI 2000", "SAG PAT TARKARI UBJAU MATRA DINE 2000", "2000") ~ "2000",
+    v907a %in% c("60 KG", "2400") ~ "2400",
+    v907a == "2500" ~ "2500",
+    v907a %in% c("MILLET (10 PATHI)3000", "30", "3000") ~ "3000",
+    v907a == "3500" ~ "3500",
+    v907a %in% c("1 MAN MAKAI 20 KG BHATMAS", "3600") ~ "3600",
+    v907a == "CHAMAL 50 KG DAL 15 KG" ~ "3800",
+    v907a == "3900 CASH RECEIVED" ~ "3900",
+    v907a %in% c("1 QUENTAL DHAN", "100 KILO DHAN GAU", "1 KUNTAL GAHU", 
+                 "1 QUENTAL GAHU", "40", "4000", "SAAG") ~ "4000",
+    v907a == "4500" ~ "4500",
+    v907a == "4800" ~ "4800",
+    v907a %in% c("5000 MOHIKHETKO LAGI DIYAKO", "GAU", "5", "50", "5000") ~ "5000",
+    v907a == "5400" ~ "5400",
+    v907a == "5500" ~ "5500",
+    v907a %in% c("20KG AALU", "DHAN 1 KUNTAL GHEHU 50KG", "GAHU150KG", 
+                 "DHAN 150KG", "6000") ~ "6000",
+    v907a == "6150" ~ "6150",
+    v907a == "6350" ~ "6350",
+    v907a %in% c("2 MURI", "4 MAN DHAN DINE GARXAN") ~ "6400",
+    v907a == "6500" ~ "6500",
+    v907a %in% c("RS.7000", "7000") ~ "7000",
+    v907a == "7500" ~ "7500",
+    v907a %in% c("200 KG KHADHAN", "3 MURI DHAN", "DHAN 200KG", 
+                 "DHANN 8000", "KHADHAN BALI 200KG", "8000", 
+                 'HE SAID THAT " I DON\'T GO THERE AND I DON\'T KNOW HOW MUCH IT YIELDS; WHATEVER THEY GIVE THAT\'S IT AND THE THINGS I GET WAS 2.5 QUINTAL DHAN',
+                 "UHA KO NAM MA JAGGA  XORA XUTIYEKO HUNA LEY KHET BARI UTA GARNU HUNXA RA TES BAPAT KEI KHANEY ANNA DAL HARU DINEY",
+                 "2 KUNTAL DHAN PAKO THIYE", "2 QUINTLE", "DHAN5 MURI") ~ "8000",
+    v907a %in% c("DHAM 3 MURI", "2 QUENTAL DHAN", "2 QUENTEL DHAN", 
+                 "2 QUENTAL 25 KG DHAN MATRA DIYAKO KHARCHA K HI DINA NAPARNE", 
+                 "9000") ~ "9000",
+    v907a %in% c("MAKAI 4MURI", "DHAN 4 MAN GEHU 2MAN", "DHAN 4  MAN GEHU 2MAN") ~ "9600",
+    v907a %in% c("OVERALL 1.5 QUINTAL VEGETABLE", "MAKAI", "10000") ~ "10000",
+    v907a == "DHAN 2 MASURI 20 KG" ~ "10400",
+    v907a == "3 QUENTAL DHAN" ~ "10884",
+    v907a == "11000" ~ "11000",
+    v907a == "11700" ~ "11700",
+    v907a %in% c("12000(DHAN)", "12000DHAN", "8 MAN DHAN", "12000", "3 QUINTAL DHAN") ~ "12000",
+    v907a == "12500" ~ "12500",
+    v907a == "12600" ~ "12600",
+    v907a %in% c("DHAN4 MURI", "12800") ~ "12800",
+    v907a == "13000" ~ "13000",
+    v907a == "13333" ~ "13333",
+    v907a == "13500" ~ "13500",
+    v907a %in% c("14000 KO DHAN", "14000") ~ "14000",
+    v907a == "14400" ~ "14400",
+    v907a %in% c("15000 KO DHAN", "15000(KODO)(MILLET)", "DHAN,GAHU", 
+                 "RS.15000 PAID FOR LAND LEASE", "15000", "DHAN 40 GEHU 20  MAN  MASULI 2MAN") ~ "15000",
+    v907a == "1 QUINTAL GAHU 10KG TORI 2 QUINTAL DHAN" ~ "15500",
+    v907a == "15600" ~ "15600",
+    v907a %in% c("4 QUINTLE", "DHAN 4QUENTAL", "DHAN 5 MURI", "5 MURI DHAN", "10 MAN", "16000") ~ "16000",
+    v907a == "17000" ~ "17000",
+    v907a == "17500" ~ "17500",
+    v907a == "18200" ~ "18200",
+    v907a == "18600" ~ "18600",
+    v907a %in% c("6 MURI", "6 MURI DHAN", "19000") ~ "19000",
+    v907a == "19200" ~ "19200",
+    v907a %in% c("18 MAN DHAN", "20000(DHAN)", "5 QUENTAL DHAN", "5 QUENTEL", 
+                 "500KG KHADHYAN", "6 QUENTEL", "DHAN", "DHAN 5 QUENTAL", 
+                 "DHAN 5 QUENTEL", "DHAN 500KG", "DHAN 5QU", 
+                 "5 KUNTAL DHAN", "5 QUINTAL DHAN", "20000", "2") ~ "20000",
+    v907a == "DHAN 10MAN GAHU3MAN" ~ "20800",
+    v907a %in% c("21000 DHAN", "21000") ~ "21000",
+    v907a == "21600" ~ "21600",
+    v907a %in% c("22000 TIRAYKO", "7 MURI DHAN PAYAKO", "7 MURI DHAN", "7  MURI DHAN PAYAKO",
+                 "DHAN 6 QUENTAL", "DHAN 6 QUENTEL", "22000 DAM KO ANNA BALI", 
+                 "22000") ~ "22000",
+    v907a == "22150" ~ "22150",
+    v907a == "7MURI" ~ "22400",
+    v907a == "22500" ~ "22500",
+    v907a %in% c("20 MAN DHAN DINU PAR XA", "23000", "20  MAN DHAN", "20  MAN DHAN DIYEKO") ~ "23000",
+    v907a == "23100" ~ "23100",
+    v907a %in% c("15 MAN", "6 KUNTAL DHAN", "7.5 MURI", "7.5MURI DHAN", 
+                 "15 MAN DIYAKO", "6 QUINTLE", "DHAN 10 MN GEHU 5 MN", "24000") ~ "24000",
+    v907a == "24500" ~ "24500",
+    v907a %in% c("20 MAN DHAN", "20 MAN DHAN DIYEKO", "25000(DHAN)", 
+                 "RICE", "25000") ~ "25000",
+    v907a %in% c("8 MURI", "8 MURI DHAN", "25600") ~ "25600",
+    v907a == "26000" ~ "26000",
+    v907a == "26250" ~ "26250",
+    v907a == "27000" ~ "27000",
+    v907a == "DHAN 10 MAN GEHU 5 MAN DAL 30 KG" ~ "27600",
+    v907a == "15 MURI DHAN 27750" ~ "27750",
+    v907a %in% c("12 MURI", "7 QUINTEL GAHU PAYEKO", "28000") ~ "28000",
+    v907a %in% c("9 MURI", "28800") ~ "28800",
+    v907a == "29500" ~ "29500",
+    v907a %in% c("30000 DHAN", "AALU", "AALU ", "DHAN ", "DHAN 8", "30000", 
+                 "30000 YO GOVERNMENT KO JAGGA HO TEI NI ARULAU THEKKA MAA DINU BHAKO CHA") ~ "30000",
+    v907a == "31500" ~ "31500",
+    v907a == "31800" ~ "31800",
+    v907a %in% c("10 MURI", "20MAN DHAN", "8 KUNTAL", "8QU", "DHAN 20", "32000") ~ "32000",
+    v907a == "33000" ~ "33000",
+    v907a == "34000" ~ "34000",
+    v907a == "34400" ~ "34400",
+    v907a == "34900" ~ "34900",
+    v907a %in% c("10 QUINTAL DHAN", "35000 (DHAN)", "35000") ~ "35000",
+    v907a %in% c("9 QUINTLE", "9 QUINTLE", "9  QUINTLE", "36000") ~ "36000",
+    v907a == "36450" ~ "36450",
+    v907a == "37000" ~ "37000",
+    v907a %in% c("12MURI DHAN", "38000") ~ "38000",
+    v907a %in% c("DHAN 12 MURI", "38400") ~ "38400",
+    v907a == "38500" ~ "38500",
+    v907a %in% c("39000 DHAN KO", "39000") ~ "39000",
+    v907a == "39200" ~ "39200",
+    v907a %in% c("100000 DHAN", "DHAN 10 KUNTAL GHEHU 4 KUNTAL", "DHAN 10 QUINTAL", 
+                 "DANN 10QUENTEL", "25 MAN", "10QU", "DHAN10 KUNTAL", 
+                 "GAHU 10 QUENTEL", "40000", 
+                 "5 BARSA KO LAGI 2 LAKH LIYARA BANDHAKI RAKHEKO RA TYO KHET KO UBJANI. SABAI UNIHARU LE NAI KHANE GARERA DIYAKO JAHILE 2LAKH TIRINX TYO JAGGA FIRTA HUNE GARI") ~ "40000",
+    v907a %in% c("41600", "DHAN 13 MURI PAYAKO") ~ "41600",
+    v907a %in% c("12 QUENTAL DHAN KHET GARNE LE NAI SABAI KHARCH BEHORX", "42000") ~ "42000",
+    v907a == "42300" ~ "42300",
+    v907a %in% c("1.5 QUINTLE MUSTARD RECEIVED.THE LAND WAS GIVEN TO OTHERS IN THE CHAPTER", "42900") ~ "42900",
+    v907a == "43900" ~ "43900",
+    v907a == "44000" ~ "44000",
+    v907a %in% c("45000(DHAN)", "45000") ~ "45000",
+    v907a == "45600" ~ "45600",
+    v907a == "46000" ~ "46000",
+    v907a == "47250" ~ "47250",
+    v907a %in% c("17 QUENTEL DHAN", "48000(DHAN)", "DHAN 12 QUENTAL ", "DHAN 15MURI", 
+                 "DHAN12", "12 QUINTLE", "DHAN 15 MURI", "48000", "DHAN 12 QUENTAL") ~ "48000",
+    v907a %in% c("20 MURI DHAN", "50(MAN DHAN RA MAIZE)(RS 50000)", "DHAN DAAL(RS50000 NEAR KO)", 
+                 "DHAN GAHU DAAL (50000)", "25 BORA", "12.5 DHAN QUINTAL", "50000", "20 MURI") ~ "50000",
+    v907a %in% c("13 QUENTEL", "13QUENTAL DHAN") ~ "52000",
+    v907a %in% c("DHAN 55000", "CHAMAL") ~ "55000",
+    v907a == "56000" ~ "56000",
+    v907a == "58800" ~ "58800",
+    v907a %in% c("40 MAN DHAN", "40MAN DHAN", "10 KUNTAL DHAN GAHU 5 KUNTAL GHEHU", 
+                 "15 DHAN 3MURI DAL", "60000") ~ "60000",
+    v907a == "61000" ~ "61000",
+    v907a == "61400" ~ "61400",
+    v907a == "61500" ~ "61500",
+    v907a == "62500(DHAN)" ~ "62500",
+    v907a %in% c("20MURI", "45 MAN", "DHAN25 MAN GEHU 15 MAN", "64000", "DHAN20MURI") ~ "64000",
+    v907a == "65000" ~ "65000",
+    v907a == "DHAN 12GAHU5(QUENTEL)" ~ "68000",
+    v907a %in% c("DHAN 25MURI", "2 QUINTAL TORI", "70000") ~ "70000",
+    v907a == "71100" ~ "71100",
+    v907a %in% c("72000 (DHAN)", "72000") ~ "72000",
+    v907a %in% c("DHAN 40 GEHU 5 MAN 2 MASURI MAN", "DHAN 8 GHEHU 4 MAN") ~ "73600",
+    v907a == "75000" ~ "75000",
+    v907a == "77000 DHAN" ~ "77000",
+    v907a == "79500" ~ "79500",
+    v907a %in% c("60 MAN DHAN DIYEKO", "DHAN 20 QU", "80000") ~ "80000",
+    v907a == "83600" ~ "83600",
+    v907a == "84000" ~ "84000",
+    v907a == "53 MAN DHAN" ~ "84800",
+    v907a == "85000" ~ "85000",
+    v907a == "18DHAN 1.5 MURI DAL" ~ "86400",
+    v907a %in% c("80 MAN DHAN DIYEKO", "90000") ~ "90000",
+    v907a == "95000" ~ "95000",
+    v907a %in% c("30 MURI DHAN DIYEKO", "DHAN 40 GEHU 20", "96000") ~ "96000",
+    v907a %in% c("DHAN GAHU 45 QUENTAL", "100000") ~ "100000",
+    v907a == "100500" ~ "100500",
+    v907a == "104000" ~ "104000",
+    v907a %in% c("105000 DHAN KO", "105000") ~ "105000",
+    v907a == "DHAN 40 GEHU 20 MAN MASULI 2MAN" ~ "105600",
+    v907a == "27QU" ~ "108000",
+    v907a %in% c("DHAN 35 GEHU 21MAN", "110000") ~ "110000",
+    v907a == "DHAN 40MAN GEHU 30MAN" ~ "112000",
+    v907a == "114000" ~ "114000",
+    v907a == "115000" ~ "115000",
+    v907a == "120000" ~ "120000",
+    v907a %in% c("4500 KG", "125000") ~ "125000",
+    v907a == "130000" ~ "130000",
+    v907a == "140000" ~ "140000",
+    v907a == "144000" ~ "144000",
+    v907a == "145000" ~ "145000",
+    v907a == "148225" ~ "148225",
+    v907a == "150000" ~ "150000",
+    v907a == "40 DHAN MAN GEHU 20 MAN TORI 5 MAN" ~ "166000",
+    v907a == "167500" ~ "167500",
+    v907a == "170000" ~ "170000",
+    v907a == "175000" ~ "175000",
+    v907a == "180000" ~ "180000",
+    v907a == "190000" ~ "190000",
+    v907a == "192000" ~ "192000",
+    v907a %in% c("200000 PAISA DINU BHAKO CHA TYO RETURN NAGARNE SAMMA KHETI GARI KHANA PAUNU HUNCHA", 
+                 "200000  PAISA DINU BHAKO CHA TYO RETURN NAGARNE SAMMA KHETI GARI KHANA PAUNU HUNCHA", 
+                 "200000 ( 5YEARS KO LAGI LIYEKO RA PAILAI TIREKO )", "50 QUINTLE", 
+                 "5 BARSA KO LAGI 2 LAKH LIYARA BANDHAKI RAKHEKO RA TYO KHET KO UBJANI. SABAI UNIHARU LE NAI KHANE GARERA DIYAKO  JAHILE 2LAKH TIRINX TYO JAGGA FIRTA HUNE GARI",
+                 "200000") ~ "200000",
+    v907a == "215000" ~ "215000",
+    v907a == "216000" ~ "216000",
+    v907a == "220000" ~ "220000",
+    v907a == "225000" ~ "225000",
+    v907a == "240000" ~ "240000",
+    v907a == "250000" ~ "250000",
+    v907a == "260000" ~ "260000",
+    v907a == "275000" ~ "275000",
+    v907a == "300000" ~ "300000",
+    v907a == "315000" ~ "315000",
+    v907a == "350000" ~ "350000",
+    v907a == "400000" ~ "400000",
+    v907a == "480000" ~ "480000",
+    v907a == "500000" ~ "500000",
+    v907a == "800000" ~ "800000",
+    v907a == "2000000" ~ "2000000",
+    v907a == "5000000" ~ "5000000",
+    v907a == "105000  DHAN KO " ~ "105000",
 
-      v907a %in% c("100") ~ 100,
-      v907a %in% c("150") ~ 150,
-      v907a %in% c("1 MURI TORI") ~ 300,
-      v907a %in% c("500") ~ 500,
-      v907a %in% c("KHADHAYAN BALI 15 KG") ~ 600,
-      v907a %in% c("KHADHYAN BALI 20 KG") ~ 800,
-      v907a %in% c("1", "1000") ~ 1000,
-      v907a %in% c("30KG", "1200") ~ 1200,
-      v907a %in% c("8 PAATHI DHAAN") ~ 1280,
-      v907a %in% c("1300") ~ 1300,
-      v907a %in% c("1400") ~ 1400,
-      v907a %in% c("MILLET (RS1500)", "1500") ~ 1500,
-      v907a %in% c("1600") ~ 1600,
-      v907a %in% c("1800") ~ 1800,
-      v907a %in% c("GADAUDI 2000", "SAG PAT TARKARI UBJAU MATRA DINE 2000", "2000") ~ 2000,
-      v907a %in% c("60 KG", "2400") ~ 2400,
-      v907a %in% c("2500") ~ 2500,
-      v907a %in% c("MILLET (10 PATHI)3000", "30", "3000") ~ 3000,
-      v907a %in% c("3500") ~ 3500,
-      v907a %in% c("1 MAN MAKAI 20 KG BHATMAS", "3600") ~ 3600,
-      v907a %in% c("CHAMAL 50 KG DAL 15 KG") ~ 3800,
-      v907a %in% c("3900 CASH RECEIVED") ~ 3900,
-      v907a %in% c("1 QUENTAL DHAN", "100 KILO DHAN GAU", "1 KUNTAL GAHU", 
-                   "1 QUENTAL GAHU", "40", "4000", "SAAG") ~ 4000,
-      v907a %in% c("4500") ~ 4500,
-      v907a %in% c("4800") ~ 4800,
-      v907a %in% c("5000 MOHIKHETKO LAGI DIYAKO", "GAU", "5", "50", "5000") ~ 5000,
-      v907a %in% c("5400") ~ 5400,
-      v907a %in% c("5500") ~ 5500,
-      v907a %in% c("20KG AALU", "DHAN 1 KUNTAL GHEHU 50KG", "GAHU150KG", 
-                   "DHAN 150KG", "6000") ~ 6000,
-      v907a %in% c("6150") ~ 6150,
-      v907a %in% c("6350") ~ 6350,
-      v907a %in% c("2 MURI", "4 MAN DHAN DINE GARXAN") ~ 6400,
-      v907a %in% c("6500") ~ 6500,
-      v907a %in% c("RS.7000", "7000") ~ 7000,
-      v907a %in% c("7500") ~ 7500,
-      v907a %in% c("200 KG KHADHAN", "3 MURI DHAN", "DHAN 200KG", 
-                   "DHANN 8000", "KHADHAN BALI 200KG", "8000", 
-                   "2 KUNTAL DHAN PAKO THIYE", "2 QUINTLE") ~ 8000,
-      v907a %in% c("DHAM 3 MURI", "2 QUENTAL DHAN", "2 QUENTEL DHAN", 
-                   "2 QUENTAL 25 KG DHAN MATRA DIYAKO KHARCHA K HI DINA NAPARNE", 
-                   "9000") ~ 9000,
-      v907a %in% c("MAKAI 4MURI", "DHAN 4  MAN GEHU 2MAN") ~ 9600,
+    TRUE ~ as.numeric(triwms(v907a)) 
 
-      v907a %in% c("OVERALL 1.5 QUINTAL VEGETABLE", "MAKAI", "10000") ~ 10000,
-      v907a %in% c("DHAN 2 MASURI 20 KG") ~ 10400,
-      v907a %in% c("3 QUENTAL DHAN") ~ 10884,
-      v907a %in% c("11000") ~ 11000,
-      v907a %in% c("11700") ~ 11700,
-      v907a %in% c("12000(DHAN)", "12000DHAN", "8 MAN DHAN", "12000", "3 QUINTAL DHAN") ~ 12000,
-      v907a %in% c("12500") ~ 12500,
-      v907a %in% c("12600") ~ 12600,
-      v907a %in% c("DHAN4 MURI", "12800") ~ 12800,
-      v907a %in% c("13000") ~ 13000,
-      v907a %in% c("13333") ~ 13333,
-      v907a %in% c("13500") ~ 13500,
-      v907a %in% c("14000 KO DHAN", "14000") ~ 14000,
-      v907a %in% c("14400") ~ 14400,
-      v907a %in% c("15000 KO DHAN", "15000(KODO)(MILLET)", "DHAN,GAHU", 
-                   "RS.15000 PAID FOR LAND LEASE", "15000") ~ 15000,
-      v907a %in% c("1 QUINTAL GAHU 10KG TORI 2 QUINTAL DHAN") ~ 15500,
-      v907a %in% c("15600") ~ 15600,
-      v907a %in% c("4 QUINTLE", "DHAN 4QUENTAL", "DHAN 5 MURI", "5 MURI DHAN", "10 MAN", "16000") ~ 16000,
-      v907a %in% c("17000") ~ 17000,
-      v907a %in% c("17500") ~ 17500,
-      v907a %in% c("18200") ~ 18200,
-      v907a %in% c("18600") ~ 18600,
-      v907a %in% c("6 MURI", "6 MURI DHAN", "19000") ~ 19000,
-      v907a %in% c("19200") ~ 19200,
-      v907a %in% c("18 MAN DHAN", "20000(DHAN)", "5 QUENTAL DHAN", "5 QUENTEL", 
-                   "500KG KHADHYAN", "6 QUENTEL", "DHAN", "DHAN 5 QUENTAL", 
-                   "DHAN 5 QUENTEL", "DHAN 500KG", "DHAN 5QU", 
-                   "5 KUNTAL DHAN", "5 QUINTAL DHAN", "20000", "2") ~ 20000,
-      v907a %in% c("DHAN 10MAN GAHU3MAN") ~ 20800,
-      v907a %in% c("21000 DHAN", "21000") ~ 21000,
-      v907a %in% c("21600") ~ 21600,
-      v907a %in% c("22000 TIRAYKO", "7  MURI DHAN PAYAKO", "7 MURI DHAN", 
-                   "DHAN 6 QUENTAL", "DHAN 6 QUENTEL", "22000 DAM KO ANNA BALI", 
-                   "22000") ~ 22000,
-      v907a %in% c("22150") ~ 22150,
-      v907a %in% c("7MURI") ~ 22400,
-      v907a %in% c("22500") ~ 22500,
-      v907a %in% c("20 MAN DHAN DINU PAR XA", "23000") ~ 23000,
-      v907a %in% c("23100") ~ 23100,
-      v907a %in% c("15 MAN", "6 KUNTAL DHAN", "7.5 MURI", "7.5MURI DHAN", 
-                   "15 MAN DIYAKO", "6 QUINTLE", "DHAN 10 MN GEHU 5 MN", "24000") ~ 24000,
-      v907a %in% c("24500") ~ 24500,
-      v907a %in% c("20  MAN DHAN", "20  MAN DHAN DIYEKO", "25000(DHAN)", 
-                   "RICE", "25000") ~ 25000,
-      v907a %in% c("8 MURI", "8 MURI DHAN", "25600") ~ 25600,
-      v907a %in% c("26000") ~ 26000,
-      v907a %in% c("26250") ~ 26250,
-      v907a %in% c("27000") ~ 27000,
-      v907a %in% c("DHAN 10 MAN GEHU 5 MAN DAL 30 KG") ~ 27600,
-      v907a %in% c("15 MURI DHAN 27750") ~ 27750,
-      v907a %in% c("12 MURI", "7 QUINTEL GAHU PAYEKO", "28000") ~ 28000,
-      v907a %in% c("9 MURI", "28800") ~ 28800,
-      v907a %in% c("29500") ~ 29500,
-      v907a %in% c("30000 DHAN", "AALU", "AALU ", "DHAN ", "DHAN 8", "30000", 
-                   "30000 YO GOVERNMENT KO JAGGA HO TEI NI ARULAU THEKKA MAA DINU BHAKO CHA") ~ 30000,
-      v907a %in% c("31500") ~ 31500,
-      v907a %in% c("31800") ~ 31800,
-      v907a %in% c("10 MURI", "20MAN DHAN", "8 KUNTAL", "8QU", "DHAN 20", "32000") ~ 32000,
-      v907a %in% c("33000") ~ 33000,
-      v907a %in% c("34000") ~ 34000,
-      v907a %in% c("34400") ~ 34400,
-      v907a %in% c("34900") ~ 34900,
-      v907a %in% c("10 QUINTAL DHAN", "35000 (DHAN)", "35000") ~ 35000,
-      v907a %in% c("9  QUINTLE", "9 QUINTLE", "36000") ~ 36000,
-      v907a %in% c("36450") ~ 36450,
-      v907a %in% c("37000") ~ 37000,
-      v907a %in% c("12MURI DHAN", "38000") ~ 38000,
-      v907a %in% c("DHAN 12 MURI", "38400") ~ 38400,
-      v907a %in% c("38500") ~ 38500,
-      v907a %in% c("39000 DHAN KO", "39000") ~ 39000,
-      v907a %in% c("39200") ~ 39200,
-      v907a %in% c("100000 DHAN", "DHAN 10 KUNTAL GHEHU 4 KUNTAL", "DHAN 10 QUINTAL", 
-                   "DANN 10QUENTEL", "25 MAN", "10QU", "DHAN10 KUNTAL", 
-                   "GAHU 10 QUENTEL", "40000", 
-                   "5 BARSA KO LAGI 2 LAKH LIYARA BANDHAKI RAKHEKO RA TYO KHET KO UBJANI. SABAI UNIHARU LE NAI KHANE GARERA DIYAKO  JAHILE 2LAKH TIRINX TYO JAGGA FIRTA HUNE GARI") ~ 40000,
-      v907a %in% c("41600", "DHAN 13 MURI PAYAKO") ~ 41600,
-      v907a %in% c("12 QUENTAL DHAN KHET GARNE LE NAI SABAI KHARCH BEHORX", "42000") ~ 42000,
-      v907a %in% c("42300") ~ 42300,
-      v907a %in% c("1.5 QUINTLE MUSTARD RECEIVED.THE LAND WAS GIVEN TO OTHERS IN THE CHAPTER", "42900") ~ 42900,
-      v907a %in% c("43900") ~ 43900,
-      v907a %in% c("44000") ~ 44000,
-      v907a %in% c("45000(DHAN)", "45000") ~ 45000,
-      v907a %in% c("45600") ~ 45600,
-      v907a %in% c("46000") ~ 46000,
-      v907a %in% c("47250") ~ 47250,
-      v907a %in% c("17 QUENTEL DHAN", "48000(DHAN)", "DHAN 12 QUENTAL ", "DHAN 15MURI", 
-                   "DHAN12", "12 QUINTLE", "DHAN 15 MURI", "48000") ~ 48000,
-      v907a %in% c("20 MURI DHAN", "50(MAN DHAN RA MAIZE)(RS 50000)", "DHAN DAAL(RS50000 NEAR KO)", 
-                   "DHAN GAHU DAAL (50000)", "25 BORA", "12.5 DHAN QUINTAL", "50000") ~ 50000,
-
-      v907a %in% c("13 QUENTEL", "13QUENTAL DHAN") ~ 52000,
-      v907a %in% c("DHAN 55000", "CHAMAL") ~ 55000,
-      v907a %in% c("56000") ~ 56000,
-      v907a %in% c("58800") ~ 58800,
-      v907a %in% c("40 MAN DHAN", "40MAN DHAN", "10 KUNTAL DHAN GAHU 5 KUNTAL GHEHU", 
-                   "15 DHAN 3MURI DAL", "60000") ~ 60000,
-      v907a %in% c("61000") ~ 61000,
-      v907a %in% c("61400") ~ 61400,
-      v907a %in% c("61500") ~ 61500,
-      v907a %in% c("62500(DHAN)") ~ 62500,
-      v907a %in% c("20MURI", "45 MAN", "DHAN25 MAN GEHU 15 MAN", "64000", "DHAN20MURI") ~ 64000,
-      v907a %in% c("65000") ~ 65000,
-      v907a %in% c("DHAN 12GAHU5(QUENTEL)") ~ 68000,
-      v907a %in% c("DHAN 25MURI", "2 QUINTAL TORI", "70000") ~ 70000,
-      v907a %in% c("71100") ~ 71100,
-      v907a %in% c("72000 (DHAN)", "72000") ~ 72000,
-      v907a %in% c("DHAN 40 GEHU 5 MAN 2 MASURI MAN", "DHAN 8 GHEHU 4 MAN") ~ 73600,
-      v907a %in% c("75000") ~ 75000,
-      v907a %in% c("77000 DHAN") ~ 77000,
-      v907a %in% c("79500") ~ 79500,
-      v907a %in% c("60 MAN DHAN DIYEKO", "DHAN 20 QU", "80000") ~ 80000,
-      v907a %in% c("83600") ~ 83600,
-      v907a %in% c("84000") ~ 84000,
-      v907a %in% c("53 MAN DHAN") ~ 84800,
-      v907a %in% c("85000") ~ 85000,
-      v907a %in% c("18DHAN 1.5 MURI DAL") ~ 86400,
-      v907a %in% c("80 MAN DHAN DIYEKO", "90000") ~ 90000,
-      v907a %in% c("95000") ~ 95000,
-      v907a %in% c("30 MURI DHAN DIYEKO", "DHAN 40 GEHU 20", "96000") ~ 96000,
-      v907a %in% c("DHAN GAHU 45 QUENTAL", "100000") ~ 100000,
-      v907a %in% c("100500") ~ 100500,
-      v907a %in% c("104000") ~ 104000,
-      v907a %in% c("105000  DHAN KO", "105000") ~ 105000,
-      v907a %in% c("DHAN 40 GEHU 20  MAN  MASULI 2MAN") ~ 105600,
-      v907a %in% c("27QU") ~ 108000,
-      v907a %in% c("DHAN 35 GEHU 21MAN", "110000") ~ 110000,
-      v907a %in% c("DHAN 40MAN GEHU 30MAN") ~ 112000,
-      v907a %in% c("114000") ~ 114000,
-      v907a %in% c("115000") ~ 115000,
-      v907a %in% c("120000") ~ 120000,
-      v907a %in% c("4500 KG", "125000") ~ 125000,
-      v907a %in% c("130000") ~ 130000,
-      v907a %in% c("140000") ~ 140000,
-      v907a %in% c("144000") ~ 144000,
-      v907a %in% c("145000") ~ 145000,
-      v907a %in% c("148225") ~ 148225,
-      v907a %in% c("150000") ~ 150000,
-      v907a %in% c("40 DHAN MAN GEHU 20 MAN TORI 5 MAN") ~ 166000,
-      v907a %in% c("167500") ~ 167500,
-      v907a %in% c("170000") ~ 170000,
-      v907a %in% c("175000") ~ 175000,
-      v907a %in% c("180000") ~ 180000,
-      v907a %in% c("190000") ~ 190000,
-      v907a %in% c("192000") ~ 192000,
-      v907a %in% c("200000  PAISA DINU BHAKO CHA TYO RETURN NAGARNE SAMMA KHETI GARI KHANA PAUNU HUNCHA", 
-                   "200000 ( 5YEARS KO LAGI LIYEKO RA PAILAI TIREKO )", "50 QUINTLE", 
-                   "200000") ~ 200000,
-      v907a %in% c("215000") ~ 215000,
-      v907a %in% c("216000") ~ 216000,
-      v907a %in% c("220000") ~ 220000,
-      v907a %in% c("225000") ~ 225000,
-      v907a %in% c("240000") ~ 240000,
-      v907a %in% c("250000") ~ 250000,
-      v907a %in% c("260000") ~ 260000,
-      v907a %in% c("275000") ~ 275000,
-      v907a %in% c("300000") ~ 300000,
-      v907a %in% c("315000") ~ 315000,
-      v907a %in% c("350000") ~ 350000,
-      v907a %in% c("400000") ~ 400000,
-      v907a %in% c("480000") ~ 480000,
-      v907a %in% c("500000") ~ 500000,
-      v907a %in% c("800000") ~ 800000,
-      v907a %in% c("2000000") ~ 2000000,
-      v907a %in% c("5000000") ~ 5000000,
-
-      TRUE ~ as.numeric(v907a)
     )
   ) %>%
-  select(-v907a_raw) %>% 
   filter(
     !(v902b == "" & is.na(v903) & is.na(v904a))
   ) %>%
