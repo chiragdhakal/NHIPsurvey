@@ -57,6 +57,7 @@ for (n in ls()) {
   }
 }
 
+rm(lookup)
 
 #SECTION1A
 
@@ -190,6 +191,8 @@ section1a <- section1a %>%
   ) %>%
   select(-new_head)
 
+rm(invalid_hhids, new_heads)
+
 #SECTION1B
 
 for (i in setdiff(1:ncol(section1b), c(2, 7, 8, 21, 22, 23))) {
@@ -286,7 +289,14 @@ for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
   section2a1[[i]] <- as.numeric(gsub("[^0-9]", "", section2a1[[i]]))
 }
 
-mean_v202 <- round(mean(section2a1$v202[section2a1$v202 <= 15], na.rm = TRUE))
+section2a1 <- section2a1 %>%
+  group_by(psu) %>%
+  mutate(
+    mean_v202_psu = round(mean(v202[v202 <= 15 & v202 != 0], na.rm = TRUE)),
+    v202 = ifelse(is.na(v202) | v202 == 0, mean_v202_psu, v202)
+  ) %>%
+  select(-mean_v202_psu) %>%  
+  ungroup()
 
 section2a1 <- section2a1 %>%
   mutate(
@@ -294,11 +304,6 @@ section2a1 <- section2a1 %>%
       is.na(v201), 
       1, 
       v201
-    ), 
-    v202 = if_else(
-      v202 > 15 | is.na(v202),
-      mean_v202, 
-      v202
     ), 
     v203 = if_else(
       is.na(v203), 
@@ -1915,7 +1920,7 @@ section6b3 <- section6b3 %>%
   ) %>%
   select(-v604_num, -v604_txt, -v613, -v613b) 
 
-  section6b3 <- section6b3 %>%
+section6b3 <- section6b3 %>%
   mutate(
     v604a = trimws(v604a),
     
@@ -2166,6 +2171,8 @@ missing_outpatients <- anti_join(
   by = "disease_id"
 )
 
+rm(missing_outpatients)
+
 #SECTION6B4
 
 section6b4 <- section6b4 %>%
@@ -2366,6 +2373,11 @@ missing_inpatients <- anti_join(
   by = "disease_id"
 )
 
+for (i in setdiff(1:ncol(section6b4), c(2, 7, 8, 11))) {
+  section6b4[[i]] <- as.numeric(gsub("[^0-9]", "", section6b4[[i]]))
+}
+
+rm(missing_inpatients, section6b1_added_rows)
 
 #SECTION6C1
 
@@ -2577,7 +2589,7 @@ section6c1 <- section6c1 %>%
 
     v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", 
                 "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
-                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO") ~ "25",
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "ANC CHECKUP IN PRIVATE HOSPITAL") ~ "25",
 
     v630a == "JANMA JATA APANGA" ~ "26",
 
@@ -2631,7 +2643,7 @@ section6c1 <- section6c1 %>%
 
     v630a == "FOKSO KO PROBLEMP" ~ "38",
 
-    v630a %in% c( "ANC CHECKUP IN PRIVATE HOSPITAL", "KEHI VAKO CHHAIN CHHAIN") ~ "6",
+    v630a %in% c("KEHI VAKO CHHAIN CHHAIN") ~ "6",
 
     v630a %in% c("BLOOD AND URINE INFECTION" , "YOUN ROD PANI BAGNE") ~ "10",
 
@@ -2687,7 +2699,7 @@ section6c1 <- section6c1 %>%
 
     v630a == "WORM" ~ "44",
 
-    TRUE ~ v630
+    TRUE ~ as.character(v630)
   )
   )
 
@@ -2709,7 +2721,32 @@ section6c1 <- section6c1 %>%
   ) %>%
   group_by(disease_id) %>%
   slice(1) %>%
-  ungroup() 
+  ungroup() %>%
+  filter(
+    !disease_id %in% c("3109-9-8-NA")
+  )
+
+section6c1 <- section6c1 %>%
+  mutate(
+    v630 = case_when(
+      personid == 14238 ~ 30,
+      personid == 20356 ~ 14,
+      personid == 24940 ~ 15,
+      personid == 27401 ~ 6,
+      personid == 28495 & v630 == 31 ~ 17,
+      personid == 34333 ~ 20,
+      personid == 47002 ~ 12,
+      personid == 53800 ~ 22, 
+      personid == 54346 ~ 22,
+      personid == 54641 ~ 36,
+      personid == 56693 ~ 15,
+      personid == 59916 ~ 41,
+      personid == 9767 ~ 25,
+      personid == 24627 ~ 15,
+      personid == 24940 ~ 17,
+      TRUE ~ v630
+    )
+  )
 
 #SECTION6C4
 
@@ -3063,9 +3100,58 @@ section6c4 <- section6c4 %>%
 
     v630a == "WORM" ~ "44",
 
-    TRUE ~ v630
+    TRUE ~ as.character(v630)
   )
 )
+
+section6c4 <- section6c4 %>%
+  mutate(
+    v630 = case_when(
+      personid == 777 ~ "8",
+      personid == 3421 ~ "22",
+      personid == 8150 ~ "19",
+      personid == 8427 ~ "22",
+      personid == 9616 ~ "41",
+      personid == 16352 ~ "2",
+      personid == 17818 ~ "1", 
+      personid == 18176 ~ "15",
+      personid == 19046 ~ "37",
+      personid == 19684 ~ "22", 
+      personid == 20888 ~ "6",
+      personid == 24132 ~ "32",
+      personid == 24286 ~ "10", 
+      personid == 25246 ~ "41", 
+      personid == 25322 ~ "25", 
+      personid == 25356 ~ "24", 
+      personid == 27238 ~ "28",
+      personid == 27383 ~ "30",
+      personid == 27484 ~ "10",
+      personid == 27815 ~ "37",
+      personid == 33458 ~ "9",
+      personid == 38132 ~ "38",
+      personid == 38711 ~ "32",
+      personid == 47193 ~ "19",
+      personid == 48072 ~ "22", 
+      personid == 53953 ~ "19",
+      personid == 55502 ~ "31",
+      personid == 55737 ~ "22",
+      personid == 59527 ~ "41",
+      personid == 59529 ~ "22", 
+      personid == 15320 ~ "36",
+      TRUE ~ v630
+    ),
+    v630 = as.numeric(v630)
+  ) %>%
+  filter(
+      !personid %in% c(
+        "5093", "7630", "8027", "10459", "12116",
+        "12256", "14617", "15266", "16818", "16821", 
+        "16866", "17880", "19067", "19977", "25665", 
+        "28030", "35113", "43017", "52897", "53896",
+        "58823", "5949841", "5952193", "5952193", 
+        "5952955"
+      )
+  )
 
 section6c1 <- section6c1 %>%
   mutate(
@@ -3076,6 +3162,7 @@ section6c1 <- section6c1 %>%
 
 section6c4 <- section6c4 %>%
   mutate(
+    v630 = as.numeric(v630),
     hhid = paste0(psu, "-", hhld), 
     uniq_id = paste0(psu, "-", hhld, "-", v101),
     disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
@@ -3085,6 +3172,251 @@ missing_acute <- anti_join(
   section6c4, 
   section6c1, 
   by = "disease_id"
+)
+
+section6c4 <- section6c4 %>%
+  mutate(
+    v658_num = suppressWarnings(as.numeric(str_extract(v658, "\\d+"))),
+
+    v658_txt = str_trim(
+      str_remove_all(v658, "\\d+|,")
+    ),
+
+    v658  = v658_num,
+    v658a = if_else(v658_txt != "", v658_txt, NA_character_)
+  ) %>%
+  select(-v658_num, -v658_txt) %>%
+  mutate(
+    v652_num = suppressWarnings(as.numeric(str_extract(v652, "\\d+"))),
+
+    v652_txt = str_trim(
+      str_remove_all(v652, "\\d+|,")
+    ),
+
+    v652  = v652_num,
+    v652a = if_else(v652_txt != "", v652_txt, NA_character_)
+  ) %>%
+  select(-v652_num, -v652_txt) 
+
+for (i in setdiff(1:ncol(section6c4), c(2, 7, 8, 29, 34:36))) {
+  section6c4[[i]] <- as.numeric(gsub("[^0-9]", "", section6c4[[i]]))
+}
+
+rm(missing_acute)
+
+#UPDATING THE COST FOR ACUTE ILLNESS.
+
+s0 <- read_dta("stata_data1/section0.dta")
+s1a <- read_dta("stata_data1/section1a.dta")
+
+acute_costs1 <- read.xlsx("/home/sobaakun/NHIPsurvey/health section arrangement/acute_costs- 22 Jan- reviewed bks.xlsx")
+
+acute_costs1 <- merge(
+  acute_costs1, 
+  s0[, c("hhid", "ID")],
+  by = "hhid"
+)
+
+s1a <- s1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
+acute_costs1 <- merge(
+  acute_costs1, 
+  s1a[, c("uniq_id", "personid")],
+  by = "uniq_id"
+)
+
+acute_costs2 <- read.xlsx("health section arrangement/acute_costs_remaining(dt).xlsx")
+
+acute_costs <- bind_rows(
+  acute_costs1,
+  acute_costs2
+) %>%
+  arrange(disease_id) %>%
+  group_by(disease_id) %>%
+  slice_tail(n = 1) %>%  
+  ungroup()
+
+write.xlsx(acute_costs, "acute_costs.xlsx")
+
+#UPDATING COST FOR CHRONIC INPATIENT.
+
+chronic_inpatient1 <- read.xlsx("health section arrangement/Chronic_inpatient_costs_HB include age and sex- updated BKS Jan 17.xlsx")
+
+chronic_inpatient1 <- merge(
+  chronic_inpatient1, 
+  s1a[, c("uniq_id", "personid")],
+  by = "uniq_id"
+)
+
+chronic_inpatient2 <- read.xlsx("health section arrangement/chronic_inpatient_remaining (dt).xlsx")
+
+chronic_inpatient2 <- chronic_inpatient2 %>%
+  mutate(
+    other_chronic_condition = as.character(other_chronic_condition)
+  )
+
+chronic_inpatient <- bind_rows(
+  chronic_inpatient1, 
+  chronic_inpatient2
+) %>%
+  arrange(disease_id) %>%
+  group_by(disease_id) %>%
+  slice_tail(n = 1) %>%
+  ungroup()
+
+write.xlsx(chronic_inpatient, "chronic_inpatient.xlsx")
+
+#UPDATING COST FOR CHRONIC OUTPATIENT.
+
+chronic_outpatient1 <- read.xlsx("health section arrangement/chronic_outpatient_costs - cost adjusted incl emergency bks 27 Jan.xlsx")
+
+chronic_outpatient1 <- merge(
+  chronic_outpatient1, 
+  s1a[, c("uniq_id", "personid", "hhid")],
+  by = "uniq_id"
+)
+
+chronic_outpatient2 <- read.xlsx("health section arrangement/chronic_outpatient_remaining (dt).xlsx")
+
+chronic_outpatient <- bind_rows(
+  chronic_outpatient1, 
+  chronic_outpatient2
+) %>%
+  arrange(disease_id) %>%
+  group_by(disease_id) %>%
+  slice_tail(n = 1) %>%
+  ungroup()
+
+write.xlsx(chronic_outpatient, "chronic_outpatient.xlsx")
+
+#TRANSLATING THE COST DATAFRAMES INTO THE MAIN DATAFRAMES
+
+#TRANSLATION FOR SECTION6C4
+
+acute_costs <- acute_costs %>%
+  rename(
+    v651a = emergency_costs, 
+    v651b = opd_charges, 
+    v651c = laboratory_costs, 
+    v651d = imaging_costs, 
+    v651e = medicine_costs, 
+    v651f = medical_supplies_costs, 
+    v651g = transportation_costs, 
+    v651h = accomodation_costs, 
+    v651i = care_giver_costs, 
+    v651j = other_costs, 
+    v651k = total_costs
+  ) %>%
+  select(personid, v651a:v651k)
+
+section6c4 <- section6c4 %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+acute_costs <- acute_costs %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+section6c4 <- section6c4 %>%
+  left_join(
+    acute_costs %>% select(personid, obs_id, v651a:v651k),
+    by = c("personid", "obs_id"),
+    suffix = c("", "_tmp")
+  ) %>%
+  mutate(across(
+    v651a:v651k,
+    ~ coalesce(get(paste0(cur_column(), "_tmp")), .)
+  )) %>%
+  select(-ends_with("_tmp"), -obs_id)
+
+#TRANSLATING FOR SECTION6B4
+
+chronic_inpatient <- chronic_inpatient %>%
+  rename(
+    v618a = Emergency, 
+    v618b = `Bed.Charges`, 
+    v618c = Laboratory,
+    v618d = Imaging, 
+    v618e = Medicines, 
+    v618f = `Medical.Supplies/.Devices`,
+    v618g = `Trans.portation`, 
+    v618h = `Food.&.Accommo.dation`,
+    v618i = `Care.Giver.Cost`,
+    v618j = Other.Costs,
+    v618k = Total.cost
+  ) %>%
+  select(personid, v618a:v618k)
+
+section6b4 <- section6b4 %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+chronic_inpatient <- chronic_inpatient %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+section6b4 <- section6b4 %>%
+  left_join(
+    chronic_inpatient %>% select(personid, obs_id, v618a:v618k),
+    by = c("personid", "obs_id"),
+    suffix = c("", "_tmp")
+  ) %>%
+  mutate(across(
+    v618a:v618k,
+    ~ coalesce(get(paste0(cur_column(), "_tmp")), .)
+  )) %>%
+  select(-ends_with("_tmp"), -obs_id)
+
+#TRANSLATING FOR SECTION6B3
+
+chronic_outpatient <- chronic_outpatient %>%
+  rename(
+    v614a = emergency_costs, 
+    v614b = opd_charges, 
+    v614c = laboratory_costs,
+    v614d = imaging_costs, 
+    v614e = medicine_costs, 
+    v614f = medical_supplies_costs,
+    v614g = transportation_costs, 
+    v614h = accomodation_costs,
+    v614i = care_giver_costs,
+    v614j = other_costs,
+    v614k = total_costs
+  ) %>%
+  select(personid, v614a:v614k)
+
+section6b3 <- section6b3 %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+chronic_outpatient <- chronic_outpatient %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+section6b3 <- section6b3 %>%
+  left_join(
+    chronic_outpatient %>% select(personid, obs_id, v614a:v614k),
+    by = c("personid", "obs_id"),
+    suffix = c("", "_tmp")
+  ) %>%
+  mutate(across(
+    v614a:v614k,
+    ~ coalesce(get(paste0(cur_column(), "_tmp")), .)
+  )) %>%
+  select(-ends_with("_tmp"), -obs_id)
+
+rm(
+  acute_costs, acute_costs1, acute_costs2, chronic_inpatient, chronic_inpatient1, chronic_inpatient2,
+  chronic_outpatient, chronic_outpatient1, chronic_outpatient2, s0, s1a
 )
 
 #SECTION7
@@ -3774,7 +4106,7 @@ section9a <- section9a %>%
     v907a == "5000000" ~ "5000000",
     v907a == "105000  DHAN KO " ~ "105000",
 
-    TRUE ~ as.numeric(triwms(v907a)) 
+    TRUE ~ (trimws(v907a)) 
 
     )
   ) %>%
@@ -3850,7 +4182,6 @@ section9c <- section9c %>%
 section9c <- section9c %>%
   filter(!is.na(v915))
 
-
 #SECTION9D
 
 for (i in setdiff(1:ncol(section9d), c(2, 7, 8))) { 
@@ -3915,6 +4246,8 @@ section9f2 <- section9f2 %>%
       v943
     )
   )
+
+rm(x, x2)
 
 #SECTION10
 
@@ -4785,7 +5118,13 @@ section2b <- merge(
   by = "hhid"
 )
 
-dir.create("stata_data2", showWarnings = FALSE, recursive = TRUE)
+rm(
+  wealth_index, wealth_rural, wealth_urban, assets, 
+  land_ownership, livestock_ownership, pca_input_rural,
+  pca_input_urban
+)
+
+dir.create("clean_data", showWarnings = FALSE, recursive = TRUE)
 
 df_names <- ls()[sapply(ls(), function(x) is.data.frame(get(x)))]
 
@@ -4795,7 +5134,7 @@ for (nm in df_names) {
   
   write_dta(
     df,
-    file.path("stata_data2", paste0(nm, ".dta"))
+    file.path("clean_data", paste0(nm, ".dta"))
   )
 }
 

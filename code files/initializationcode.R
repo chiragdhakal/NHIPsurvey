@@ -20,6 +20,8 @@ section0 <- section0 %>%
     ssf_enrollment_date = Social.Health.Insurence,
     employer_name = name
   ) 
+
+section0 <- section0 %>%
   mutate(
   ID = labelled(
     ID, 
@@ -375,7 +377,6 @@ section1a <- section1a %>%
     v103 = labelled(
       v103, 
       label = "sex", 
-      labels = c(Male = 1, Female = 2, Others = 96)
     ), 
     v104a = labelled(
       v104a, 
@@ -388,7 +389,6 @@ section1a <- section1a %>%
     v105 = labelled(
       v105, 
       label = "ethnicity", 
-      labels = c(Aryan = 1, Janajati = 2, Madhesi = 3, Dalit = 4, Muslim = 5)
     ), 
     v105a = labelled(
       v105a, 
@@ -397,7 +397,6 @@ section1a <- section1a %>%
     v106 = labelled(
       v106, 
       label = "religion", 
-      labels = c(Hindu = 1, Buddhist = 2, Islam = 3, Kirat = 4, Christian = 5, Others = 6)
     ), 
     v106a = labelled(
       v106a, 
@@ -406,7 +405,6 @@ section1a <- section1a %>%
     v107 = labelled(
       v107, 
       label = "what is your relationship with the household head?",
-      labels = c(Householdhead = 1, Spouse = 2, Children = 3, Grandchildren = 4, Parents = 5, Siblings = 6, BhatijBhatiji = 7, JwaiBuhari = 8, DajuBhauju = 9, Inlaws = 10, Others = 11)
     ), 
     v108 = labelled(
       v108,
@@ -415,12 +413,10 @@ section1a <- section1a %>%
     v109 = labelled(
       v109,
       label = "category of household member",
-      labels = c(Familymember = 1, AbroadReturnee = 2, AbsentNepal = 3, AbsentForeign = 4)
     ), 
     v110 = labelled(
       v110,
       label = "what is your current marital status?",
-      labels = c(Unmarried = 1, Married = 2, Separated = 3, Divorced = 4, Widowed = 5)
     )
   )
 
@@ -462,47 +458,38 @@ section1b <- section1b %>%
     v111 = labelled(
       v111,
       label = "is currently covered by any type of health insurance?", 
-      labels = c(Yes = 1, No = 2)
     ),
     v112a = labelled(
       v112a, 
       label = "Health Insurance Board (HIB)",
-      labels = c(Yes = 1, No = 0)
     ),
     v112b = labelled(
       v112b, 
       label = "Social Security Fund (SSF)",
-      labels = c(Yes = 1, No = 0)
     ), 
     v112c = labelled(
       v112c, 
       label = "Insured through employer", 
-      labels = c(Yes = 1, No = 0)
     ),
     v112d = labelled(
       v112d, 
       label = "Private Insurance", 
-      labels = c(Yes = 1, No = 0)
     ),
     v112e = labelled(
       v112e, 
       label = "Insured through BFIs", 
-      labels = c(Yes = 1, No = 0)
     ),
     v112f = labelled(
       v112f, 
       label = "Hospital/Health institution insurance", 
-      labels = c(Yes = 1, No = 0)
     ),
     v112g = labelled(
       v112g, 
       label = "Community health insurance", 
-      labels = c(Yes = 1, No = 0)
     ), 
     v112h = labelled(
       v112h, 
       label = "Others", 
-      labels = c(Yes = 1, No = 0)
     ),
     v112h_1 = labelled(
       v112h_1, 
@@ -519,19 +506,15 @@ section1b <- section1b %>%
     v114 = labelled(
       v114, 
       label = "Can the respondent read and write in any language?", 
-      labels = c(Both =  1, "Read only" = 2, Neither = 3)
     ), 
     v115 = labelled(
       v115, 
       label = "Is respondent currently attending school/college?", 
-      labels = c(Never = 1, "Used to" = 2, "Currently going" = 3)
     ),
     v116 = labelled(
       v116, 
       label = "What is the highest level of education respondent has completed?", 
-      labels = c(Kindergarten = 0, "Class 1" = 1, "Class 2" = 2, "Class 3" = 3, "Class 4" = 4, "Class 5" = 5, "Class 6" = 6,
-      "Class 7" = 7, "Class 8" = 8, "Class 9" = 9, "Class 10" = 10, "SEE/SLC" = 11, "+2 or equivalent" = 12, Bachelors = 13, 
-      Masters = 14, PhD = 15, "Literate - Level less" = 16, Illiterate = 17)
+      
     ),
     v117 = labelled(
       v117, 
@@ -540,7 +523,6 @@ section1b <- section1b %>%
     v118 = labelled(
       v118, 
       label = "Does your father live in this household?", 
-      labels = c(Yes = 1, No = 2, Death = 3)
     ), 
     v119 = labelled(
       v119, 
@@ -549,7 +531,6 @@ section1b <- section1b %>%
     v120 = labelled(
       v120, 
       label = "Does your mother live in this household?", 
-      labels = c(Yes = 1, No = 2, Death = 3)
     ), 
     v121 = labelled(
       v121, 
@@ -636,7 +617,6 @@ for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
   v201 = labelled(
     v201, 
     label = "Is this dwelling unit occupied by your household only?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v202 = labelled(
     v202, 
@@ -645,7 +625,6 @@ for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
   v203 = labelled(
     v203, 
     label = "What is the foundation of the house?",
-    labels = c("Mud bonded bricks/stone" = 1, "Cement bonded bricks/stones" = 2, "Concrete with pillar" = 3, "Wooden pillar" = 4, Others = 5)
   ), 
   v203a = labelled(
     v203a, 
@@ -654,7 +633,6 @@ for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
   v204 = labelled(
     v204, 
     label = "What is the outer wall of the house?",
-    labels = c("Mud bonded bricks/stone" = 1, "Cement bonded bricks/stone" = 2, "Wood/planks" = 3, "Bamboo" = 4, "Unbaked bricks" = 5, "Galvanized sheet" = 6, Others = 7)
   ), 
   v204a = labelled(
     v204a, 
@@ -663,7 +641,6 @@ for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
   v205 = labelled(
     v205, 
     label = "What is the roof of the house?", 
-    labels = c("Galvanized sheet" = 1, "Cement Concrete (RCC)" = 2, Tile = 3, "Stone/Slate" = 4, "Wood/planks" = 5, "Straw/thatch" = 6, Other = 7)
   ), 
   v205a = labelled(
     v205a, 
@@ -672,7 +649,6 @@ for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
   v206 = labelled(
     v206, 
     label = "What type of material does the floor made of?",
-    labels = c("Earth/mud" = 1, "Cement" = 2, "Ceramic tile" = 3, "Wood planks/bamboo" = 4, "Parquet" = 5, Other = 6)
   ), 
   v206a = labelled(
     v206a, 
@@ -728,7 +704,6 @@ section2a2 <- section2a2 %>%
   v208 = labelled(
     v208, 
     label = "Does this dwelling belong to your family?", 
-    labels = c(Yes = 1, No = 2)
   ), 
   v209 = labelled(
     v209, 
@@ -741,7 +716,6 @@ section2a2 <- section2a2 %>%
   v211 = labelled(
     v211, 
     label = "Do you rent out part of this dwelling unit?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v212 = labelled(
     v212, 
@@ -750,7 +724,6 @@ section2a2 <- section2a2 %>%
   v213 = labelled(
     v213, 
     label = "What is your present occupancy status?",
-    labels = c(Renter = 1, "Provided free of charge" = 2, Squatting = 3, Other = 4)
   ), 
   v213a = labelled(
     v213a, 
@@ -815,7 +788,6 @@ section2a3 <- section2a3 %>%
   v216 = labelled(
     v216, 
     label = "Which is the main source of your drinking water? (drinking and cooking)",
-    labels = c("Piped water (Within compound)" = 1, "Piped water (outside compound)" = 2, "Tubewell/Hand pump" = 3, "Covered well/Kuwa" = 4, "Uncovered well/Kuwa" = 5, "Spout water" = 6, "River/Stream" = 7, Others = 8)
   ), 
   v216a = labelled(
     v216a, 
@@ -828,7 +800,6 @@ section2a3 <- section2a3 %>%
   v218 = labelled(
     v218, 
     label = "What is the main type of fuel used for cooking in your household?",
-    labels = c("Wood/Firewood" = 1, "LP Gas" = 2, Biogas = 3, Kerosene = 4, "Dung Cake" = 5, Electricity = 6, Others = 7)
   ), 
   v218a = labelled(
     v218a, 
@@ -837,22 +808,18 @@ section2a3 <- section2a3 %>%
   v219a = labelled(
     v219a, 
     label = "Have you spent on firewood over the past 12 months?", 
-    labels = c(Yes = 1, No = 2)
   ), 
   v219b = labelled(
     v219b, 
     label = "Have you spent on LPG over the past 12 months?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v219c = labelled(
     v219c, 
     label = "Have you spent on kerosene over the past 12 months?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v219d = labelled(
     v219d, 
     label = "Have you spent on dung cake over the past 12 months?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v219a1 = labelled(
     v219a1, 
@@ -873,7 +840,6 @@ section2a3 <- section2a3 %>%
   v220 = labelled(
     v220, 
     label = "What is the main source of lighting in your household?",
-    labels = c(Electricity = 1, Solar = 2, Kerosene = 3, Biogas = 4, Others = 5)
   ), 
   v220a = labelled(
     v220a, 
@@ -886,17 +852,14 @@ section2a3 <- section2a3 %>%
   v222a = labelled(
     v222a, 
     label = "Have you spent on smart/phones?", 
-    labels = c(Yes = 1, No = 2)
   ), 
   v222b = labelled(
     v222b, 
     label = "Have you spent on cable/satellite TV?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v222c = labelled(
     v222c, 
     label = "Have you spent on internet facility?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v222a1 = labelled(
     v222a1, 
@@ -913,7 +876,6 @@ section2a3 <- section2a3 %>%
   v223 = labelled(
     v223, 
     label = "How does your household dispose of its garbage mainly?",
-    labels = c("Collected by municipality" = 1, "Private/community collector" = 2, "Dumped/thrown away" = 3, "Burned/buried" = 4, "Used for fertilizer/compost" = 5, Other = 6)
   ), 
   v223a = labelled(
     v223a, 
@@ -926,7 +888,6 @@ section2a3 <- section2a3 %>%
   v225 = labelled(
     v225, 
     label = "What type of toilet facility are you using in your household?",
-    labels = c("Flush toilet (Public Sewage)" = 1, "Flush toilet (Septic tank)" = 2, "Ordinary toilet" = 3, "Public toilet" = 4, "No toilet" = 5)
   )
 )
 
@@ -1001,7 +962,6 @@ section2b <- section2b %>%
   v226 = labelled(
     v226, 
     label = "Are you aware of any health insurance programme that are available in Nepal?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v227a = labelled(
     v227a, 
@@ -1042,7 +1002,6 @@ section2b <- section2b %>%
   v228 = labelled(
     v228, 
     label = "Are you enrolled in any of these programmes?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v229 = labelled(
     v229, 
@@ -1055,13 +1014,7 @@ section2b <- section2b %>%
   v230 = labelled(
     v230, 
     label = "If you received free enrollment, who paid your amount?",
-    labels = c(
-      Self = 1, 
-      "Health Insurance Board" = 2, 
-      "Provincial Government" = 3, 
-      "Local Government" = 4, 
-      Employer = 5, 
-      Other = 6)
+    
   ), 
   v230a = labelled(
     v230a, 
@@ -1070,7 +1023,6 @@ section2b <- section2b %>%
   v231 = labelled(
     v231, 
     label = "Are you aware that the annual NHIP premium is NPR 3,500 and the benefit package is NPR 100,000 per household per year?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v232a = labelled(
     v232a, 
@@ -1163,12 +1115,10 @@ section2b <- section2b %>%
   v235 = labelled(
     v235, 
     label = "In past 12 months, did you get referral to receive your treatment under NHIP?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v236 = labelled(
     v236, 
     label = "Did NHIP cover most of your health expenses during these visits?",
-    labels = c("Yes - Fully" = 1, "Yes - Partially" = 2, "No" = 3)
   ), 
   v237a = labelled(
     v237a, 
@@ -1197,10 +1147,7 @@ section2b <- section2b %>%
   v239 = labelled(
     v239, 
     label = "Did SSF cover most of your health expenses during these visits?", 
-    labels = c(
-      "Yes - Fully" = 1, 
-      "Yes - Partially" = 2, 
-      "No" = 3)
+    
   ), 
   v240a = labelled(
     v240a, 
@@ -1225,19 +1172,15 @@ section2b <- section2b %>%
   v241 = labelled(
     v241, 
     label = "Do you find the NPR 3,500 annual premium affordable under NHIP?",
-    labels = c("Very affordable" = 1, 
-    "Somewhat affordable" = 2, 
-    "Not affordable" = 3)
+  
   ), 
   v242 = labelled(
     v242, 
     label = "Would you be willing to continue paying NPR 3,500 next year under NHIP?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v243 = labelled(
     v243, 
     label = "Would you be willing to pay a slightly higher amount if the benefit package improved?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v244 = labelled(
     v244, 
@@ -1246,7 +1189,6 @@ section2b <- section2b %>%
   v245 = labelled(
     v245, 
     label = "Would you pay NPR 3,500 for insurance with 100,000 ceiling? (for non-insured)",
-    labels = c(Yes = 1, No = 2)
   ), 
   v246 = labelled(
     v246, 
@@ -1267,12 +1209,10 @@ section2b <- section2b %>%
   v250 = labelled(
     v250, 
     label = "Could you afford your current or proposed premium without reducing essentials?",
-    labels = c(Yes = 1, No = 2, "Not sure" = 3)
   ), 
   v251 = labelled(
     v251, 
     label = "In past 12 months, did you borrow, sell assets, or reduce essentials to pay for health care?",
-    labels = c(Yes = 1, No = 2)
   ), 
   v252 = labelled(
     v252, 
