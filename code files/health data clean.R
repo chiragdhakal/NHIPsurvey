@@ -417,13 +417,11 @@ section6c1 <- section6c1 %>%
     v630a = trimws(v630a),
     v630 = case_when(
 
-      # Cold / cough
       v630a %in% c(
         "रुघाखोकी", "खोकी", "RUGHA KHOKI", "RUGAKHOKI", "ROUGHA KHOLA",
         "KHOKI", "COLD ALLERGY", "COLD", "CHISO RUGHA"
       ) ~ 6,
 
-      # Abdominal / gastric / appendix
       v630a %in% c(
         "एपेन्डिसाइड", "PETKO SAMSYA", "PETKO SAMASYAA",
         "PETKO OPERATION GAREKO", "PETDUKHERA", "PETDUKHEKO",
@@ -441,10 +439,8 @@ section6c1 <- section6c1 %>%
         "STOMACH PAIN", "STOMACH ACHE"
       ) ~ 18,
 
-      # Tonsils
       v630a %in% c("TONSILS", "TONSILLITIS", "TONSIL") ~ 19,
 
-      # Pregnancy / gynecological
       v630a %in% c(
         "PREGNANT", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW",
         "PREGNANCY CHECK UP", "SUTKERI",
@@ -453,7 +449,6 @@ section6c1 <- section6c1 %>%
         "PATHEGHAR KO SAMASYA", "PATHEGHAR KO OPERATION"
       ) ~ 20,
 
-      # Headache / head injury
       v630a %in% c(
         "THAUKO DUKHANE", "TAUKO MA GHAU", "TAUKO DUKHNE",
         "TAUKO DUKHEKO VYERW", "TAUKO DUKHEKO",
@@ -461,12 +456,10 @@ section6c1 <- section6c1 %>%
         "HEADACHE", "HEADACE", "HEAD INJURIES"
       ) ~ 21,
 
-      # Urinary problems
       v630a %in% c(
         "PISABMA KHARABI", "PISAB THAILIKO PATHARI", "PISAB ROKIYAKO"
       ) ~ 10,
 
-      # ENT / ear
       v630a %in% c("ENT", "EAR PROBLEM") ~ 13,
 
       TRUE ~ v630
@@ -851,4 +844,282 @@ outpatient_na_costs <- section6b3 %>%
 outpatient_no_costs <- section6b3 %>%
   filter(
     if_all(v614a:v614k, ~ is.na(.) | . == 0)
+  )
+
+
+#CODE FOR REMAINING WORK ON HEALTH SECTION COST BREAKDOWN
+
+chronic_outpatient_costs <- read.xlsx("health section arrangement/chronic_outpatient_costs - cost adjusted incl emergency bks 27 Jan.xlsx")
+
+chronic_outpatient_remaining <- chronic_outpatient_costs %>%
+  filter(
+  (is.na(emergency_costs) | emergency_costs == 0) & 
+  (is.na(opd_charges) | opd_charges == 0) &
+  (is.na(laboratory_costs) | laboratory_costs == 0) &
+  (is.na(imaging_costs) | imaging_costs == 0) & 
+  (is.na(medicine_costs) | medicine_costs == 0) & 
+  (is.na(medical_supplies_costs) | medical_supplies_costs == 0) &
+  (is.na(transportation_costs) | transportation_costs == 0) &
+  (is.na(accomodation_costs) | accomodation_costs == 0) &
+  (is.na(care_giver_costs) | care_giver_costs == 0) &
+  (is.na(other_costs) | other_costs == 0) &
+  (is.na(total_costs) | total_costs == 0)
+  )
+
+section0 <- section0 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  )
+
+chronic_outpatient_remaining <- merge(
+  chronic_outpatient_remaining,
+  section0[, c("ID", "hhid")],
+  by = "ID"
+)
+
+section1a <- section1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101), 
+    hhid = paste0(psu, "-", hhld)
+  )
+
+chronic_outpatient_remaining <- merge(
+  chronic_outpatient_remaining,
+  section1a[, c("uniq_id", "personid", "district")],
+  by = "uniq_id"
+)
+
+chronic_outpatient_remaining <- merge(
+  chronic_outpatient_remaining,
+  expenditure_hhld[, c("hhid", "reported_oop", "copay_amount")],
+  by = "hhid"
+)
+
+chronic_outpatient_remaining <- chronic_outpatient_remaining %>%
+  select(ID, hhid, personid, uniq_id, disease_id, district, everything())
+
+write.xlsx(chronic_outpatient_remaining, "health section arrangement/chronic_outpatient_remaining.xlsx")
+
+acute_costs <- read.xlsx("health section arrangement/acute_costs- 22 Jan- reviewed bks.xlsx")
+
+acute_costs_remaining <- acute_costs %>%
+  filter(
+  (is.na(emergency_costs) | emergency_costs == 0) & 
+  (is.na(opd_charges) | opd_charges == 0) &
+  (is.na(laboratory_costs) | laboratory_costs == 0) &
+  (is.na(imaging_costs) | imaging_costs == 0) & 
+  (is.na(medicine_costs) | medicine_costs == 0) & 
+  (is.na(medical_supplies_costs) | medical_supplies_costs == 0) &
+  (is.na(transportation_costs) | transportation_costs == 0) &
+  (is.na(accomodation_costs) | accomodation_costs == 0) &
+  (is.na(care_giver_costs) | care_giver_costs == 0) &
+  (is.na(other_costs) | other_costs == 0) &
+  (is.na(total_costs) | total_costs == 0)
+  )
+
+acute_costs_remaining <- merge(
+  acute_costs_remaining,
+  expenditure_hhld[, c("hhid", "reported_oop", "copay_amount")],
+  by = "hhid"
+)
+
+acute_costs_remaining <- merge(
+  acute_costs_remaining, 
+  section1a[, c("uniq_id", "ID", "personid", "district")],
+  by = "uniq_id"
+)
+
+acute_costs_remaining <- acute_costs_remaining %>%
+  select(ID, hhid, personid, uniq_id, disease_id, district, everything())
+
+write.xlsx(acute_costs_remaining, "health section arrangement/acute_costs_remaining.xlsx")
+
+
+chronic_inpatient_costs <- read.xlsx("health section arrangement/Chronic_inpatient_costs_HB include age and sex- updated BKS Jan 17.xlsx")
+
+chronic_inpatient_remaining <- chronic_inpatient_costs %>%
+  filter(
+  (is.na(Emergency) | Emergency == 0) & 
+  (is.na(`Bed.Charges`) | `Bed.Charges` == 0) &
+  (is.na(Laboratory) | Laboratory == 0) &
+  (is.na(Imaging) | Imaging == 0) & 
+  (is.na(Medicines) | Medicines == 0) & 
+  (is.na(`Medical.Supplies/.Devices`) | `Medical.Supplies/.Devices` == 0) &
+  (is.na(`Trans.portation`) | `Trans.portation` == 0) &
+  (is.na(`Food.&.Accommo.dation`) | `Food.&.Accommo.dation` == 0) &
+  (is.na(`Care.Giver.Cost`) | `Care.Giver.Cost` == 0) &
+  (is.na(`Other.Costs`) | `Other.Costs` == 0) &
+  (is.na(`Total.cost`) | `Total.cost` == 0)
+  )
+
+chronic_inpatient_remaining <- merge(
+  chronic_inpatient_remaining,
+  expenditure_hhld[, c("hhid", "reported_oop", "copay_amount")],
+  by = "hhid"
+)
+
+chronic_inpatient_remaining <- merge(
+  chronic_inpatient_remaining, 
+  section1a[, c("uniq_id", "personid", "district")], 
+  by = "uniq_id"
+) 
+
+chronic_inpatient_remaining <- chronic_inpatient_remaining %>%
+  select(ID, hhid, personid, uniq_id, disease_id, district, everything())
+
+write.xlsx(chronic_inpatient_remaining, "health section arrangement/chronic_inpatient_remaining.xlsx")
+
+acute_others <- read.xlsx("health section arrangement/Acute_illness- categorization_HB.xlsx")
+
+acute_others_empty <- acute_others %>%
+  filter(is.na(v630a))
+
+acute_others_empty <- merge(
+  acute_others_empty,
+  expenditure_hhld[, c("hhid", "reported_oop", "copay_amount")],
+  by = "hhid"
+)
+
+acute_others_empty <- merge(
+  acute_others_empty, 
+  section1a[, c("uniq_id", "ID", "personid")]
+)
+
+acute_others_empty <- acute_others_empty %>%
+  select(ID, hhid, personid, uniq_id, disease_id, everything())
+
+write.xlsx(acute_others_empty, "health section arrangement/acute_others_empty.xlsx")
+
+chronic_checkup_counts <- read.xlsx("health section arrangement/chronic_checkup_count.xlsx")
+
+chronic_checkup_counts <- merge(
+  chronic_checkup_counts, 
+  section1a[, c("uniq_id", "hhid", "ID", "personid", "district")],
+  by = "uniq_id"
+)
+
+chronic_checkup_counts <- merge(
+  chronic_checkup_counts, 
+  expenditure_hhld[, c("hhid", "reported_oop", "copay_amount")],
+  by = "hhid"
+)
+
+chronic_checkup_counts <- chronic_checkup_counts %>%
+  select(ID, hhid, personid, uniq_id, disease_id, , district, everything())
+
+write.xlsx(chronic_checkup_counts, "health section arrangement/chronic_checkup_counts.xlsx")
+
+chronic_outpatient_remaining <- read.xlsx("health section arrangement/chronic_outpatient_remaining.xlsx")
+
+chronic_inpatient_remaining <- read.xlsx("health section arrangement/chronic_inpatient_remaining.xlsx")
+
+acute_costs_remaining <- read.xlsx("health section arrangement/acute_costs_remaining.xlsx")
+
+section0 <- section0 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  )
+
+acute_costs_remaining <- merge(
+  acute_costs_remaining, 
+  section0[, c("hhid", "district")], 
+  by = "hhid"
+)
+
+acute_costs_remaining <- acute_costs_remaining %>%
+  mutate(
+    district = case_when(
+      district == 101 ~ "Taplejung",
+    district == 102 ~ "Sankhuwasabha",
+    district == 103 ~ "Solukhumbu",
+    district == 104 ~ "Okhaldhunga",
+    district == 105 ~ "Khotang",
+    district == 106 ~ "Bhojpur",
+    district == 107 ~ "Dhankuta",
+    district == 108 ~ "Terhathum",
+    district == 109 ~ "Panchthar",
+    district == 110 ~ "Ilam",
+    district == 111 ~ "Jhapa",
+    district == 112 ~ "Morang",
+    district == 113 ~ "Sunsari",
+    district == 114 ~ "Udayapur",
+    
+    # Province 2: Madhesh
+    district == 201 ~ "Saptari",
+    district == 202 ~ "Siraha",
+    district == 203 ~ "Dhanusha",
+    district == 204 ~ "Mahottari",
+    district == 205 ~ "Sarlahi",
+    district == 206 ~ "Rautahat",
+    district == 207 ~ "Bara",
+    district == 208 ~ "Parsa",
+    
+    # Province 3: Bagmati
+    district == 301 ~ "Dolakha",
+    district == 302 ~ "Sindhupalchok",
+    district == 303 ~ "Rasuwa",
+    district == 304 ~ "Dhading",
+    district == 305 ~ "Nuwakot",
+    district == 306 ~ "Kathmandu",
+    district == 307 ~ "Bhaktapur",
+    district == 308 ~ "Lalitpur",
+    district == 309 ~ "Kavrepalanchok",
+    district == 310 ~ "Ramechhap",
+    district == 311 ~ "Sindhuli",
+    district == 312 ~ "Makwanpur",
+    district == 313 ~ "Chitwan",
+    
+    # Province 4: Gandaki
+    district == 401 ~ "Gorkha",
+    district == 402 ~ "Manang",
+    district == 403 ~ "Mustang",
+    district == 404 ~ "Myagdi",
+    district == 405 ~ "Kaski",
+    district == 406 ~ "Lamjung",
+    district == 407 ~ "Tanahu",
+    district == 408 ~ "Nawalparasi (East)",
+    district == 409 ~ "Syangja",
+    district == 410 ~ "Parbat",
+    district == 411 ~ "Baglung",
+    
+    # Province 5: Lumbini
+    district == 501 ~ "Rukum (East)",
+    district == 502 ~ "Rolpa",
+    district == 503 ~ "Pyuthan",
+    district == 504 ~ "Gulmi",
+    district == 505 ~ "Arghakhanchi",
+    district == 506 ~ "Palpa",
+    district == 507 ~ "Nawalparasi (West)",
+    district == 508 ~ "Rupandehi",
+    district == 509 ~ "Kapilbastu",
+    district == 510 ~ "Dang",
+    district == 511 ~ "Banke",
+    district == 512 ~ "Bardiya",
+    
+    # Province 6: Karnali
+    district == 601 ~ "Dolpa",
+    district == 602 ~ "Mugu",
+    district == 603 ~ "Humla",
+    district == 604 ~ "Jumla",
+    district == 605 ~ "Kalikot",
+    district == 606 ~ "Dailekh",
+    district == 607 ~ "Jajarkot",
+    district == 608 ~ "Rukum (West)",
+    district == 609 ~ "Salyan",
+    district == 610 ~ "Surkhet",
+    
+    # Province 7: Sudurpashchim
+    district == 701 ~ "Bajura",
+    district == 102 ~ "Bajhang", # Note: Sometimes written as 702
+    district == 702 ~ "Bajhang",
+    district == 703 ~ "Darchula",
+    district == 704 ~ "Baitadi",
+    district == 705 ~ "Dadeldhura",
+    district == 706 ~ "Doti",
+    district == 707 ~ "Achham",
+    district == 708 ~ "Kailali",
+    district == 709 ~ "Kanchanpur",
+    
+    TRUE ~ "Unknown"
+    )
   )

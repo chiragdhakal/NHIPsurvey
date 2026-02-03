@@ -11,7 +11,7 @@ library(officer)
 library(flextable)
 library(stringr)
 
-in_dir <- "stata_data1"
+in_dir <- "stata_data"
 
 files <- list.files(in_dir, pattern = "\\.dta$", full.names = TRUE)
 
@@ -126,6 +126,14 @@ section0 <- section0 %>%
       enrollment == 2 ~ "Non NHIP",
       enrollment == 3 ~ "SSF", 
       enrollment == 4 ~ "Non SSF"
+    )
+  )
+
+section0 <- section0 %>%
+  mutate(
+    rural_urban = case_when(
+      palika_type %in% c(1, 2, 3) ~ 1, 
+      palika_type %in% c(4) ~ 2
     )
   )
 
