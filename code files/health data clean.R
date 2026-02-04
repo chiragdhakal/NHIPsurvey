@@ -1123,3 +1123,365 @@ acute_costs_remaining <- acute_costs_remaining %>%
     TRUE ~ "Unknown"
     )
   )
+
+chronic_outpatient_costs <- read_dta("clean_data/section6b3.dta")
+chronic_inpatient_costs <- read_dta("clean_data/section6b4.dta")
+acute_costs <- read_dta("clean_data/section6c4.dta")
+s6b1 <- read_dta("clean_data/section6b1.dta")
+s6c1 <- read_dta("clean_data/section6c1.dta")
+
+acute_costs <- acute_costs %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
+  )
+
+chronic_outpatient_costs <- chronic_outpatient_costs %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+chronic_inpatient_costs <- chronic_inpatient_costs %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+s6b1 <- s6b1 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+s6c1 <- s6c1 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
+  )
+
+acute_costs <- acute_costs %>%
+  select(ID, uid, hhid, personid, uniq_id, disease_id, v630, v651a, v651b, v651c, v651d, v651e, v651f, v651g, v651h, v651i, v651j, v651k)
+
+chronic_inpatient_costs <- chronic_inpatient_costs %>%
+  select(ID, uid, hhid, personid, uniq_id, disease_id, v604, v618a, v618b, v618c, v618d, v618e, v618f, v618g, v618h, v618i, v618j, v618k)
+
+chronic_outpatient_costs <- chronic_outpatient_costs %>%
+  select(ID, uid, hhid, personid, uniq_id, disease_id, v604, v614a, v614b, v614c, v614d, v614e, v614f, v614g, v614h, v614i, v614j, v614k)
+
+chronic_outpatient_costs <- merge(
+  chronic_outpatient_costs, 
+  s6b1[, c("disease_id", "v605a", "v605b", "v606", "v607", "v611")],
+  by = "disease_id"
+)
+
+chronic_inpatient_costs <- merge(
+  chronic_inpatient_costs, 
+  s6b1[, c("disease_id", "v605a", "v605b", "v606", "v607", "v611")],
+  by = "disease_id"
+)
+
+acute_costs <- merge(
+  acute_costs, 
+  s6c1[, c("disease_id", "v631a", "v631b", "v636")],
+  by = "disease_id"
+)
+
+facility_map <- c(
+  "1"  = "Health Post", 
+  "2"  = "Primary Health Centre", 
+  "3"  = "Government Hospital", 
+  "4"  = "Government Outreach Clinic", 
+  "5"  = "Government Ayurveda Centre",
+  "6"  = "Pharmacy/Drug Seller", 
+  "7"  = "Private Clinic", 
+  "8"  = "Private/Community Hospital", 
+  "9"  = "Private Ayurveda Centre", 
+  "10" = "Health Worker's Home", 
+  "11" = "Alternative/Traditional Healer", 
+  "12" = "Abroad (India/Other)", 
+  "96" = "Others"
+)
+
+chronic_inpatient_costs <- chronic_inpatient_costs %>%
+  mutate(
+    health_facility_label = map_chr(
+      str_split(v611, ",\\s*"),
+      ~ paste(recode(.x, !!!facility_map), collapse = ", ")
+    )
+  ) %>%
+  select(-v611)
+
+chronic_outpatient_costs <- chronic_outpatient_costs %>%
+  mutate(
+    health_facility_label = map_chr(
+      str_split(v611, ",\\s*"),
+      ~ paste(recode(.x, !!!facility_map), collapse = ", ")
+    )
+  ) %>%
+  select(-v611)
+
+chronic_inpatient_costs <- chronic_inpatient_costs %>%
+  rename(
+    emergency_costs          = v618a,
+    bed_charges              = v618b, 
+    laboratory_costs         = v618c, 
+    imaging_costs            = v618d, 
+    medicine_costs           = v618e, 
+    medical_supplies_costs   = v618f, 
+    transportation_costs     = v618g, 
+    accomodation_costs       = v618h,
+    care_giver_costs         = v618i, 
+    other_costs              = v618j, 
+    total_costs              = v618k
+  )
+
+chronic_outpatient_costs <- chronic_outpatient_costs %>%
+  rename(
+    emergency_costs          = v614a,
+    opd_charges              = v614b, 
+    laboratory_costs         = v614c, 
+    imaging_costs            = v614d, 
+    medicine_costs           = v614e, 
+    medical_supplies_costs   = v614f, 
+    transportation_costs     = v614g, 
+    accomodation_costs       = v614h,
+    care_giver_costs         = v614i, 
+    other_costs              = v614j, 
+    total_costs              = v614k
+  )
+
+chronic_outpatient_costs <- chronic_outpatient_costs %>%
+  rename(chronic_condition = v604) %>%
+  mutate(
+    chronic_condition = case_when(
+      chronic_condition == 1  ~ "Heart Diseases",
+      chronic_condition == 2  ~ "Hypertension",
+      chronic_condition == 3  ~ "Diabetes",
+      chronic_condition == 4  ~ "Asthma/COPD",
+      chronic_condition == 5  ~ "Rheumatism/Arthritis",
+      chronic_condition == 6  ~ "Kidney Diseases",
+      chronic_condition == 7  ~ "Liver Diseases",
+      chronic_condition == 8  ~ "Cancer",
+      chronic_condition == 9  ~ "Epilepsy",
+      chronic_condition == 10 ~ "Tuberculosis",
+      chronic_condition == 11 ~ "HIV/AIDS",
+      chronic_condition == 12 ~ "Thyroid Disorders",
+      chronic_condition == 13 ~ "Chronic Gastrointestinal Diseases",
+      chronic_condition == 14 ~ "Gynaecological Problems",
+      chronic_condition == 15 ~ "Chronic Orthopaedic Problems",
+      chronic_condition == 16 ~ "Neurological Conditions",
+      chronic_condition == 17 ~ "Alzheimer's/Parkinson's",
+      chronic_condition == 18 ~ "Mental Illness",
+      chronic_condition == 20 ~ "Uric Acid",
+      chronic_condition == 21 ~ "Male Reproductive Disease", 
+      chronic_condition == 22 ~ "ENT", 
+      chronic_condition == 23 ~ "Skin Diseases", 
+      chronic_condition == 24 ~ "Eye diseases", 
+      chronic_condition == 26 ~ "Trauma/Injury",
+      chronic_condition == 27 ~ "Lung Diseases", 
+      chronic_condition == 28 ~ "Blood and Blood Vessel Diseases", 
+      chronic_condition == 29 ~ "Infectious Diseases", 
+      chronic_condition == 30 ~ "Disability",
+      TRUE ~ NA_character_
+    )
+  )
+
+chronic_inpatient_costs <- chronic_inpatient_costs %>%
+  rename(chronic_condition = v604) %>%
+  mutate(
+    chronic_condition = case_when(
+      chronic_condition == 1  ~ "Heart Diseases",
+      chronic_condition == 2  ~ "Hypertension",
+      chronic_condition == 3  ~ "Diabetes",
+      chronic_condition == 4  ~ "Asthma/COPD",
+      chronic_condition == 5  ~ "Rheumatism/Arthritis",
+      chronic_condition == 6  ~ "Kidney Diseases",
+      chronic_condition == 7  ~ "Liver Diseases",
+      chronic_condition == 8  ~ "Cancer",
+      chronic_condition == 9  ~ "Epilepsy",
+      chronic_condition == 10 ~ "Tuberculosis",
+      chronic_condition == 11 ~ "HIV/AIDS",
+      chronic_condition == 12 ~ "Thyroid Disorders",
+      chronic_condition == 13 ~ "Chronic Gastrointestinal Diseases",
+      chronic_condition == 14 ~ "Gynaecological Problems",
+      chronic_condition == 15 ~ "Chronic Orthopaedic Problems",
+      chronic_condition == 16 ~ "Neurological Conditions",
+      chronic_condition == 17 ~ "Alzheimer's/Parkinson's",
+      chronic_condition == 18 ~ "Mental Illness",
+      chronic_condition == 20 ~ "Uric Acid",
+      chronic_condition == 21 ~ "Male Reproductive Disease", 
+      chronic_condition == 22 ~ "ENT", 
+      chronic_condition == 23 ~ "Skin Diseases", 
+      chronic_condition == 24 ~ "Eye diseases", 
+      chronic_condition == 26 ~ "Trauma/Injury",
+      chronic_condition == 27 ~ "Lung Diseases", 
+      chronic_condition == 28 ~ "Blood and Blood Vessel Diseases", 
+      chronic_condition == 29 ~ "Infectious Diseases", 
+      chronic_condition == 30 ~ "Disability",
+      TRUE ~ NA_character_
+    )
+  )
+
+
+acute_costs <- acute_costs %>%
+  mutate(
+    v631a_d = as.Date(v631a, format = "%Y/%m/%d"),
+    v631b_d = as.Date(v631b, format = "%Y/%m/%d"),
+    disease_duration = as.integer(v631b_d - v631a_d)
+  ) %>%
+  select(-v631a_d, -v631b_d, -v631a, -v631b)
+
+acute_costs <- acute_costs %>%
+  mutate(
+    v630 = case_when(
+      v630 == 1  ~ "Diarrhoea",
+      v630 == 2  ~ "Typhoid",
+      v630 == 3  ~ "Dengue",
+      v630 == 4  ~ "Malaria",
+      v630 == 5  ~ "Acute Respiratory Infection",
+      v630 == 6  ~ "Cold/Flu/Fever",
+      v630 == 7  ~ "Pneumonia",
+      v630 == 8  ~ "Measles",
+      v630 == 9  ~ "Jaundice",
+      v630 == 10 ~ "UTI",
+      v630 == 11 ~ "Dental Problem",
+      v630 == 12 ~ "Acute Eye Infection",
+      v630 == 13 ~ "Acute Ear Infection",
+      v630 == 14 ~ "Skin Disease",
+      v630 == 15 ~ "Injury",
+      v630 == 16 ~ "Accident",
+      v630 == 17 ~ "Other Fever",
+      v630 == 18 ~ "Animal Bite", 
+      v630 == 19 ~ "Arthritis", 
+      v630 == 20 ~ "Blood Diseases", 
+      v630 == 21 ~ "Cancer",
+      v630 == 22 ~ "Gastrointestinal Diseases",
+      v630 == 23 ~ "Congenital Anomaly",
+      v630 == 24 ~ "COPD",
+      v630 == 25 ~ "Pregnancy/Postpartum", 
+      v630 == 26 ~ "Disability", 
+      v630 == 27 ~ "ENT", 
+      v630 == 28 ~ "Eye Problems",
+      v630 == 29 ~ "Fungal Infections",
+      v630 == 30 ~ "Geriatric Problem", 
+      v630 == 31 ~ "Gynecological Problem", 
+      v630 == 32 ~ "Heart Disease", 
+      v630 == 33 ~ "Hernia", 
+      v630 == 34 ~ "HIV",
+      v630 == 35 ~ "Infectious Disease", 
+      v630 == 36 ~ "Kidney Disease", 
+      v630 == 37 ~ "Liver Disease",
+      v630 == 38 ~ "Lungs Disease", 
+      v630 == 39 ~ "Male Reproductive Diseases", 
+      v630 == 40 ~ "Mental Illness", 
+      v630 == 41 ~ "Neurological Conditions",
+      v630 == 42 ~ "Uric Acid", 
+      v630 == 43 ~ "Warts", 
+      v630 == 44 ~ "Worms",
+      TRUE ~ NA_character_
+    ), 
+    v636 = case_when(
+      v636 == 1  ~ "Health Post",
+      v636 == 2  ~ "Primary Health Centre",
+      v636 == 3  ~ "Government Hospital",
+      v636 == 4  ~ "Government Outreach Clinic",
+      v636 == 5  ~ "Government Ayurveda Centre",
+      v636 == 6  ~ "Pharmacy/Drug Seller",
+      v636 == 7  ~ "Private Clinic",
+      v636 == 8  ~ "Private/Community Hospital",
+      v636 == 9  ~ "Private Ayurveda Centre",
+      v636 == 10 ~ "Health Worker’s Home",
+      v636 == 11 ~ "Alternative/Traditional Healer",
+      v636 == 12 ~ "Abroad (India/Other)",
+      v636 == 13 ~ "Other (Specify)",
+      v636 == 14 ~ "Others",
+      TRUE       ~ NA_character_
+    )
+  ) 
+
+s1a <- read_dta("clean_data/section1a.dta")
+
+chronic_inpatient_costs <- merge(
+  chronic_inpatient_costs, 
+  s1a[, c("uniq_id", "v103", "v104a")],
+  by = "uniq_id"
+)
+
+chronic_outpatient_costs <- merge(
+  chronic_outpatient_costs, 
+  s1a[, c("uniq_id", "v103", "v104a")],
+  by = "uniq_id"
+)
+
+acute_costs <- merge(
+  acute_costs, 
+  s1a[, c("uniq_id", "v103", "v104a")],
+  by = "uniq_id"
+)
+
+chronic_inpatient_costs <- chronic_inpatient_costs %>%
+  mutate(
+    gender = case_when(
+      v103 == 1 ~ "Male", 
+      v103 == 2 ~ "Female", 
+      TRUE ~ NA_character_
+    ),
+    receiving_treatment = case_when(
+      v607 == 1 ~ "Yes", 
+      v607 == 2 ~ "No", 
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  rename(
+    age = v104a, 
+    checkup_counts = v605a, 
+    hospitalized_counts = v605b, 
+    disease_onset_years = v606
+  ) %>%
+  select(-v607, -v103)
+
+
+chronic_outpatient_costs <- chronic_outpatient_costs %>%
+  mutate(
+    gender = case_when(
+      v103 == 1 ~ "Male", 
+      v103 == 2 ~ "Female", 
+      TRUE ~ NA_character_
+    ),
+    receiving_treatment = case_when(
+      v607 == 1 ~ "Yes", 
+      v607 == 2 ~ "No", 
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  rename(
+    age = v104a, 
+    checkup_counts = v605a, 
+    hospitalized_counts = v605b, 
+    disease_onset_years = v606
+  ) %>%
+  select(-v607, -v103)
+
+acute_costs <- acute_costs %>%
+  mutate(
+    gender = case_when(
+      v103 == 1 ~ "Male", 
+      v103 == 2 ~ "Female", 
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  rename(
+    age = v104a
+  ) %>%
+  select(-v103)
+
+write.xlsx(chronic_inpatient_costs, "chronic_inpatient_costs.xlsx")
+write.xlsx(chronic_outpatient_costs, "chronic_outpatient_costs.xlsx")
+write.xlsx(acute_costs, "acute_costs.xlsx")
+

@@ -119,7 +119,39 @@ section1a <- section1a %>%
       ID %in% c("14468") ~ "2",
       TRUE ~ v106
     ),
-    v107  = as.numeric(gsub("[^0-9]", "", v107))
+    v107  = as.numeric(gsub("[^0-9]", "", v107)),
+    v107 = case_when(
+      v107a %in% c(
+        "VAI KO CHORI", "DAIKO XORI", " SAUTHELO XORA", " PALEKO XORI"
+      ) ~ 3, 
+      v107a %in% c(
+        " PANATINI", "PALATI"
+      ) ~ 4,
+      v107a %in% c(
+        "BAINI PARNE", " BHADAINI", "BHADA", "BHADAINI", "SADU DIDI", " DIDI", 
+        " PHUPU", " DIDI", " BHADAI"
+      ) ~ 6, 
+      v107a %in% c(
+        " BAHINI KO CHHORI", " BAHINI KO XORA", "BAINIKO XORA", "VANJA", "BAHENIKO CHORA", "BHANJA",
+        "BHANJI", "SALI KO CHHORA", " BHANJA", " BHANJI", " BHANJA"
+      ) ~ 7,
+      v107a %in% c(
+        "JAWAI", "NATINI JWAI", "NATINI BUHARI", " NATINI BUHARI", " SAUTELEY BUHARI"
+      ) ~ 8,
+      v107a %in% c(
+        "DEWAR", "DEWARANI", " DEURANI", " DEWAR", " NANDA", " JETHAJU", " JETHANI", " NANDA"
+      ) ~ 9, 
+      v107a %in% c(
+        " FUPU SASU", " BUDHI SASU", " SASURA"
+      ) ~ 10, 
+      v107a %in% c(
+        "XORI MANNU VAYERA RAAKHNU VAKO"
+      ) ~ 11,
+      v107a %in% c(
+        " HAJUR AAMA", " GRANDMOTHER", " HAJURAAMA", "हजुरआमा", " HAJUR BABA", " HAJUR BABA", " HAJUR AAMA",
+        " HAJURAMA", 
+      ) ~ 12, 
+    )
   ) %>%
   mutate(
     ID   = as.numeric(ID),
@@ -315,11 +347,14 @@ section2a1 <- section2a1 %>%
         "BASLE BANEKO", "BASA LE BANEKO", " BAMBOO", "MATO BASA LE BANEKO", "MATO BAS", 
         "BASA RA MATO KO", "BASA RA MATO", "MATO RA BASA LE BANEKO", "MATO BASALE", 
         "BASA LE BANEKO", "MATO BASA", "BASA RA MATO LE BANEKO", "MATO MA TRUST BANAUNA MATERIAL GADEKO",
-        " BAMBOO", "JASTA KO", "JASTAPATA", "JASTA", "JASTA"
+        " BAMBOO", "BASA KO MATO", "MATO RA BASH KO KACHI GHAR"
       ) ~ 4, 
       v203a %in% c(
         "BLOCK", "FALAM CEMENT", "FALAM RA CEMENT", "IRON"
       ) ~ 3, 
+      v203a %in% c(
+        "JASTA KO", "JASTAPATA", "JASTA", "JASTA"
+      ) ~ 5,
       TRUE ~ v203
     ),
     v204 = case_when(
@@ -336,6 +371,9 @@ section2a1 <- section2a1 %>%
       v204a %in% c(
         "BLOCK", "CEMENT KO BLOCK", " BASA RA CEMENT LE BANE KO"
       ) ~ 2,
+      v204a %in% c(
+        " CHAINA"
+      ) ~ 1,
       TRUE ~ v204
     ),
     v205 = case_when(
@@ -347,6 +385,9 @@ section2a1 <- section2a1 %>%
         "MATO KATHA", "MATO RA KATHA", "MATO DHUNGA", "MATO KO KHAPADA", "KHAPADA", 
         "KHAPATA", "KHPADA", "KHPADA KO XANO", "MAATO", "MATOKO TILE PLUS JASTA"
        ) ~ 5,
+       v205a %in% c(
+        "MATO KO KHAPADA RA TAYAL"
+       ) ~ 3,
        v205a %in% c(
         "ALBESTER", " ALBESTER"
        ) ~ 1,
@@ -671,7 +712,7 @@ section2a3 <- section2a3 %>%
       2 
     ), 
     v223 = if_else(
-      is.na(v223), 
+      is.na(v223) | v223 == 96, 
       1,
       v223
     ), 
@@ -4745,6 +4786,99 @@ wealth_index <- section2a1 %>%
   ) %>%
   select(hhid, v202, v203, v204, v205, v206)
 
+wealth_index <- wealth_index %>%
+  mutate(
+    mud_bonded_foundation = case_when(
+      v203 == 1 ~ 1, 
+      TRUE ~ 0
+    ),
+    cement_bonded_foundation = case_when(
+      v203 == 2 ~ 1, 
+      TRUE ~ 0
+    ),
+    concrete_pillar_foundation = case_when(
+      v203 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    wooden_pillar_foundation = case_when(
+      v203 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    sheets_foundation = case_when(
+      v203 == 5 ~ 1, 
+      TRUE ~ 0
+    ),
+    mud_bonded_wall = case_when(
+      v204 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    cement_bonded_wall = case_when(
+      v204 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    wooden_wall = case_when(
+      v204 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    bamboo_wall = case_when(
+      v204 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    unbaked_brick_wall = case_when(
+      v204 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    sheets_wall = case_when(
+      v204 == 6 ~ 1, 
+      TRUE ~ 0
+    ), 
+    sheets_roof = case_when(
+      v205 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    rcc_roof = case_when(
+      v205 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    tile_roof = case_when(
+      v205 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    stone_roof = case_when(
+      v205 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    wood_roof = case_when(
+      v205 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    straw_roof = case_when(
+      v205 == 6 ~ 1, 
+      TRUE ~ 0
+    ), 
+    mud_floor = case_when(
+      v206 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    cement_floor = case_when(
+      v206 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    tile_floor = case_when(
+      v206 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    plank_floor = case_when(
+      v206 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    parquet_floor = case_when(
+      v206 == 5 ~ 1, 
+      TRUE ~ 0
+    )
+  ) %>%
+  select(-v203, -v204, -v205, -v206)
+
 section2a2 <- section2a2 %>%
   mutate(
     hhid = paste0(psu, "-", hhld)
@@ -4756,6 +4890,19 @@ wealth_index <- merge(
   by = "hhid"
 )
 
+wealth_index <- wealth_index %>%
+  mutate(
+    dwelling_ownership = case_when(
+      v208 == 1 ~ 1, 
+      TRUE ~ 0
+    ),
+    owner_occupancy = case_when(
+      v213 == 1 ~ 1, 
+      TRUE ~ 0
+    )
+  ) %>%
+  select(-v208, -v213)
+
 section2a3 <- section2a3 %>%
   mutate(
     hhid = paste0(psu, "-", hhld)
@@ -4766,6 +4913,131 @@ wealth_index <- merge(
   section2a3[, c("hhid", "v216", "v223", "v225", "v218", "v220", "v222a", "v222b", "v222c")], 
   by = "hhid"
 )
+
+wealth_index <- wealth_index %>%
+  mutate(
+    piped_water_private = case_when(
+      v216 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    piped_water_shared = case_when(
+      v216 == 2 ~ 1, 
+      TRUE ~ 0,
+    ),
+    handpump = case_when(
+      v216 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    covered_well = case_when(
+      v216 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    uncovered_well = case_when(
+      v216 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    spout_water = case_when(
+      v216 == 6 ~ 1, 
+      TRUE ~ 0
+    ), 
+    river = case_when(
+      v216 == 7 ~ 1, 
+      TRUE ~ 0
+    ), 
+    jar = case_when(
+      v216 == 8 ~ 1, 
+      TRUE ~ 0
+    ), 
+    tanker = case_when(
+      v216 == 9 ~ 1, 
+      TRUE ~ 0
+    ), 
+    municipality = case_when(
+      v223 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    private_collector = case_when(
+      v223 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    dumping = case_when(
+      v223 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    burned = case_when(
+      v223 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    fertilizer = case_when(
+      v223 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    public_sewage = case_when(
+      v225 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    septic_tank = case_when(
+      v225 == 2 ~ 1, 
+      TRUE ~ 0 
+    ), 
+    ordinary_toilet = case_when(
+      v225 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    public_toilet = case_when(
+      v225 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    no_toilet = case_when(
+      v225 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    firewood = case_when(
+      v218 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    lp_gas = case_when(
+      v218 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    biogas_cooking = case_when(
+      v218 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    kerosene_cooking = case_when(
+      v218 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    dung_cake = case_when(
+      v218 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    electricity_cooking = case_when(
+      v218 == 6 ~ 1, 
+      TRUE ~ 0
+    ),
+    electricity_light = case_when(
+      v220 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    solar = case_when(
+      v220 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    kerosene_lighting = case_when(
+      v220 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    biogas_lighting = case_when(
+      v220 == 4 ~ 1, 
+      TRUE ~ 0
+    ),
+    internet = case_when(
+      v222c == 1 ~ 1, 
+      TRUE ~ 0
+    )
+  ) %>%
+  select(-v216, -v223, -v225, -v218, -v220, -v222a, -v222b, -v222c)
 
 assets <- section4c %>%
   mutate(hhid = paste0(psu, "-", hhld)) %>%
@@ -4851,78 +5123,15 @@ wealth_index <- merge(
 )
 
 wealth_index <- wealth_index %>%
+  rename(
+    land_ownership = v901, 
+    livestock_ownership = v934
+  ) %>%
   mutate(
     hhld_member_t = as.numeric(hhld_member_t),
     hhld_member_t = if_else(is.na(hhld_member_t), 11, hhld_member_t),
     rooms_per_capita = v202 / hhld_member_t, 
-  ) %>%
-  rename(
-    dwelling_ownership = v208,
-    foundation_improved = v203, 
-    wall_improved = v204, 
-    roof_improved = v205, 
-    floor_improved = v206, 
-    owner_occupancy = v213, 
-    improved_water = v216, 
-    improved_toilet = v225, 
-    improved_waste = v223, 
-    clean_cooking_fuel = v218, 
-    electricity_access = v220, 
-    phone_access = v222a,
-    internet_access = v222c, 
-    tv_access = v222b,
-    land_ownership = v901, 
-    livestock_ownership = v934     
-  ) %>%
-  mutate(
-    dwelling_ownership = if_else(
-      dwelling_ownership == 2, 0, 1
-    ),
-    foundation_improved = case_when(
-      foundation_improved %in% c(2, 3) ~ 1,
-      TRUE ~ 0
-    ),
-    wall_improved = case_when(
-      wall_improved %in% c(2, 6) ~ 1, 
-      TRUE ~ 0
-    ),
-    roof_improved = case_when(
-      roof_improved %in% c(1, 2, 3, 4) ~ 1,
-      TRUE ~ 0
-    ),
-    floor_improved = case_when(
-      floor_improved %in% c(2, 3, 5) ~ 1, 
-      TRUE ~ 0
-    ),
-    improved_water = case_when(
-      improved_water %in% c(1, 2, 3, 4, 8, 9) ~ 1,
-      TRUE ~ 0
-    ),
-    improved_toilet = case_when(
-      improved_toilet %in% c(1, 2) ~ 1, 
-      TRUE ~ 0
-    ),
-    improved_waste = case_when(
-      improved_waste %in% c(1, 2) ~ 1, 
-      TRUE ~ 0
-    ),
-    phone_access = if_else(
-      phone_access == 2, 0, 1
-    ),
-    tv_access = if_else(
-      tv_access == 2, 0, 1
-    ),
-    internet_access = if_else(
-      internet_access == 2, 0, 1
-    ),
-    clean_cooking_fuel = case_when(
-      clean_cooking_fuel %in% c(2, 3, 6) ~ 1, 
-      TRUE ~ 0
-    ),
-    electricity_access = case_when(
-      electricity_access %in% c(1, 2) ~ 1, 
-      TRUE ~ 0
-    ),
+    rooms_per_capita = scale(rooms_per_capita),
     radio = if_else(
       radio == 2, 0, 1
     ),
@@ -5011,9 +5220,9 @@ wealth_index <- wealth_index %>%
     livestock_ownership = case_when(
       livestock_ownership == 2 | is.na(livestock_ownership) ~ 0,
       TRUE ~ 1
-    ),
+    )
   ) %>%
-  select(-v202, -hhld_member_t, -owner_occupancy)
+  select(-v202, -hhld_member_t)
 
 wealth_index <- wealth_index %>%
   left_join(
@@ -5027,14 +5236,35 @@ wealth_urban <- wealth_index %>%
 wealth_rural <- wealth_index %>%
   filter(urban_rural == 2)
 
+pca_common <- rbind(
+  wealth_urban,
+  wealth_rural
+)
+
+pca_common <- pca_common %>%
+  select(-hhid, -urban_rural)
+
 pca_input_urban <- wealth_urban %>%
   select(-hhid, -urban_rural) 
 
 pca_input_rural <- wealth_rural %>%
-  select(-hhid, -urban_rural, -bus) 
+  select(-hhid, -urban_rural) 
 
+zero_var_common <- sapply(pca_common, function(x) sd(x, na.rm = TRUE) == 0)
+zero_var_urban <- sapply(pca_input_urban, function(x) sd(x, na.rm = TRUE) == 0)
+zero_var_rural <- sapply(pca_input_rural, function(x) sd(x, na.rm = TRUE) == 0)
+
+pca_common <- pca_common[, !zero_var_common]
+pca_input_urban <- pca_input_urban[, !zero_var_urban]
+pca_input_rural <- pca_input_rural[, !zero_var_rural]
+
+pca_common <- prcomp(pca_common, scale. = TRUE, center = TRUE)
 pca_urban <- prcomp(pca_input_urban, scale. = TRUE, center = TRUE)
 pca_rural <- prcomp(pca_input_rural, scale. = TRUE, center = TRUE)
+
+summary(pca_urban)
+summary(pca_rural)
+summary(pca_common)
 
 wealth_urban <- wealth_urban %>%
   mutate(
