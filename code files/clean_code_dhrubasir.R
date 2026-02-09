@@ -10,10 +10,8 @@ library(labelled)
 library(officer)
 library(flextable)
 library(stringr)
-library(stringdist)
-library(purrr)
 
-in_dir <- "stata_data"
+in_dir <- "data_dhrubasir"
 
 files <- list.files(in_dir, pattern = "\\.dta$", full.names = TRUE)
 
@@ -27,148 +25,13 @@ rm(sections)
 
 gc()
 
-#SECTION0
-
-normalize_name <- function(x) {
-  x %>%
-    str_to_upper() %>%
-    str_replace_all("&", " AND ") %>%
-    str_replace_all("/", " ") %>%
-    str_replace_all("\\.", "") %>%
-    str_replace_all("[^A-Z ]", " ") %>% 
-    str_squish()
-}
-
-manual_fix <- function(x) {
-  x %>%
-    str_replace_all("\\bNOB[IA]*L\\b", "NOBEL") %>%
-    str_replace_all("^(NOBEL )?(GAS UDHYOG|GAS INDUSTRY|GAS|GAS UDHOGH).*", "NOBEL GAS UDHYOG") %>%
-    str_replace_all("\\bJANAK?R?I\\b", "JANAKI") %>%
-    str_replace_all("JANAKI HEALTH.*", "JANAKI HEALTH CARE AND TEACHING HOSPITAL") %>%
-    str_replace_all("K[HSY]+[AEY]+MADEVI.*", "KSHAMADEVI BUILDING MATERIALS") %>%
-    
-    str_replace_all(".*[VB]I[ZJ]U.*POLITE.*", "VIZU POULTRY FARM") %>%
-    str_replace_all(".*[VB]I[ZJ]U.*POULTRY.*", "VIZU POULTRY FARM") %>%
-    
-    str_replace_all(".*GEFONT.*", "GENERAL FEDERATION OF NEPALESE TRADE UNIONS") %>%
-    str_replace_all("GENERAL FEDERATION OF NEPALESE TRADE UNION(S)?", "GENERAL FEDERATION OF NEPALESE TRADE UNIONS") %>%
-    
-    str_replace_all("NA[Z]+A[R]+[E]+NE.*", "NAZARENE COMPASSIONATE MINISTRIES") %>%
-    str_replace_all("UJHAN INTERNATION.*", "UJHAN INTERNATIONAL TRADERS") %>%
-    
-    str_replace_all("SAMA PRINT.*", "SAMA PRINTERS") %>%
-    str_replace_all("GEMS SCHOOL", "GEMS HIGHER SECONDARY SCHOOL") %>% 
-    
-    str_replace_all("SAVING(S)? AND CREDIT COOPERATIVE(S)?( SOCIETY)?( LTD)?", "SACCOS_TOKEN") %>%
-    str_replace_all("SAVING(S)? AND CREDIT CO OPERATIVE", "SACCOS_TOKEN") %>%
-    
-    str_replace_all("\\b(UDHOGH|UDYOG|UDJOY|UDDHOG|BEKARI)\\b", "UDHYOG") %>%
-    str_replace_all("\\b(INDSUTRY|INDUSTRY)\\b", "UDHYOG")
-}
-
-restore_formal_names <- function(x) {
-  x %>%
-    str_replace_all("SACCOS_TOKEN", "SAVING AND CREDIT CO-OPERATIVE")
-}
-
-remove_legal_tokens <- function(x) {
-  x %>%
-    str_remove_all("\\b(PVT|LTD|PRIVATE|LIMITED|LTM|P LTD|PRALTD|PLC)\\b") %>%
-    str_squish()
-}
-
-standardize_entries <- function(vec, threshold = 0.15) {
-  if(all(is.na(vec)) || length(vec) == 0) return(vec)
-  
-  clean_names <- vec %>%
-    normalize_name() %>%
-    manual_fix()
-  
-  match_keys <- clean_names %>% remove_legal_tokens()
-  
-  uniq_keys <- unique(match_keys[match_keys != ""])
-  if(length(uniq_keys) <= 1) return(clean_names %>% restore_formal_names())
-
-  dmat <- stringdistmatrix(uniq_keys, uniq_keys, method = "jw", p = 0.1)
-  hc <- hclust(as.dist(dmat), method = "average")
-  groups <- cutree(hc, h = threshold)
-  
-  key_map <- tibble(match_key = uniq_keys, group = groups) %>%
-    group_by(group) %>%
-    mutate(canonical = match_key[which.max(nchar(match_key))]) %>%
-    ungroup()
-
-  results <- tibble(match_key = match_keys) %>%
-    left_join(key_map, by = "match_key") %>%
-    mutate(final = ifelse(is.na(canonical), match_key, canonical)) %>%
-    mutate(final = restore_formal_names(final)) %>% 
-    pull(final)
-  
-  return(results)
-}
-
-section0 <- section0 %>%
-  mutate(
-    employer_name_std = standardize_entries(employer_name),
-    address_province = case_when(
-      is.na(address_province) & address_district %in% c("SUNSARI", "MORANG", "UDAYAPUR") ~ 1,
-      is.na(address_province) & address_district %in% c("SAPTARI", "RAUTAHAT", "SARLAHI", "MAHOTTARI", "DHANUSHA", "SIRAHA") ~ 2,
-      is.na(address_province) & address_district %in% c("KAILALI") ~ 7, 
-      TRUE ~ address_province
-    )
-  ) %>%
-  group_by(employer_name_std) %>%
-  mutate(
-    ref_province = first(na.omit(address_province)),
-    
-    address_province = case_when(
-      is.na(address_province) & address_district == "" & address_palika == "" ~ ref_province,
-      TRUE ~ address_province  
-    )
-  ) %>%
-  select(-ref_province) %>% 
-  mutate(
-    ref_palika = first(address_palika[address_palika != "" & !is.na(address_palika)]),
-
-    address_palika = case_when(
-      (address_palika == "" | is.na(address_palika)) ~ ref_palika,
-      TRUE ~ address_palika
-    )
-  ) %>%
-  select(-ref_palika, -employer_name) %>%
-  ungroup() %>%
-  rename(
-    employer_name = employer_name_std
-  )
-
 #SECTION1A
 
 section1a <- section1a %>%
   mutate(
     hhid = paste0(psu, "-", hhld),
-    uniq_id = paste0(psu, "-", hhld, "-", v101),
-
-    v105_num  = grepl("[0-9]", v105a),
-    v105_tmp  = if_else(v105_num, v105a, v105),
-    v105a_tmp = if_else(v105_num, v105,  v105a),
-
-    v106_num  = grepl("[0-9]", v106a),
-    v106_tmp  = if_else(v106_num, v106a, v106),
-    v106a_tmp = if_else(v106_num, v106,  v106a),
-
-    v107_num  = grepl("[0-9]", v107a),
-    v107_tmp  = if_else(v107_num, v107a, v107),
-    v107a_tmp = if_else(v107_num, v107,  v107a)
+    uniq_id = paste0(psu, "-", hhld, "-", v101) 
   ) %>%
-  mutate(
-    v105  = v105_tmp,
-    v105a = v105a_tmp,
-    v106  = v106_tmp,
-    v106a = v106a_tmp,
-    v107  = v107_tmp,
-    v107a = v107a_tmp
-  ) %>%
-  select(-ends_with("_num"), -ends_with("_tmp")) %>%
   mutate(
     v104a = as.numeric(gsub("[^0-9]", "", v104a)),
     v103 = case_when(
@@ -177,71 +40,9 @@ section1a <- section1a %>%
     ),
     v103 = if_else(v103 == 96, 3, v103),
     v104a = if_else(is.na(v104a), 0, v104a),
-    v105 = case_when(
-      grepl("KUMHAL", v105, ignore.case = TRUE) ~ "3",
-      grepl("NEWAR|SHRESTHA|THARU|SIMANTRAKIT|SIMANTAKRIT", v105, ignore.case = TRUE) ~ "2",
-      v105a %in% c(
-        " SIMANTRAKRIT", " ATI SIMANTAKRIT", " ATI SIMANTKRIT", " ATISIMANTKRIT",
-        " ATISEMANTKRIT", " ATI SEMANTKRIT", " ATI SEMANTRAKRIT", " SIMANTAKRIT",
-        " SIMANTRAKIT", " SIMANTRAKRIT", " ATI SIMANTRAKRIT",
-        "CHEPANG", "CEPANG", " NEWAR", " THARU"
-      ) ~ "2",
-      v105a %in% c(" KUMHAR") ~ "3",
-      v105a %in% c(" SANYASI", " JOGI") ~ "1",
-      hhid %in% c("3101-19", "3101-20") ~ "2",
-      hhid %in% c("5104-16") ~ "3",
-      personid %in% c(5952789) ~ "1", 
-      ID %in% c(14569) ~ "2", 
-      ID %in% c(14526) ~ "1",
-      TRUE ~ v105
-    ),
-    v106 = case_when(
-      v106a %in% c(" SACHHAI") ~ "5",
-      v106a %in% c(" NEWAR") ~ "1",
-      personid %in% c("5952247", "PUJA RANABHAT") ~ "1", 
-      ID %in% c("14468") ~ "2",
-      ID %in% c("11084", "11085") ~ "1",
-      v106a %in% c(" YUMA") ~ "6",
-      v102 %in% c("IRFAN AALAM") ~ "3",
-      TRUE ~ v106
-    ),
-    v107  = as.numeric(gsub("[^0-9]", "", v107)),
-    v107 = case_when(
-      v107a %in% c(
-        "VAI KO CHORI", "DAIKO XORI", " SAUTHELO XORA", " PALEKO XORI"
-      ) ~ 3, 
-      v107a %in% c(
-        " PANATINI", "PALATI", " PANATI"
-      ) ~ 4,
-      v107a %in% c(
-        "BAINI PARNE", " BHADAINI", "BHADA", "BHADAINI", "SADU DIDI", " DIDI", 
-        " PHUPU", " DIDI", " BHADAI"
-      ) ~ 6, 
-      v107a %in% c(
-        " BAHINI KO CHHORI", " BAHINI KO XORA", "BAINIKO XORA", "VANJA", "BAHENIKO CHORA", "BHANJA",
-        "BHANJI", "SALI KO CHHORA", " BHANJA", " BHANJI", " BHANJA"
-      ) ~ 7,
-      v107a %in% c(
-        "JAWAI", "NATINI JWAI", "NATINI BUHARI", " NATINI BUHARI", " SAUTELEY BUHARI"
-      ) ~ 8,
-      v107a %in% c(
-        "DEWAR", "DEWARANI", " DEURANI", " DEWAR", " NANDA", " JETHAJU", " JETHANI", " NANDA"
-      ) ~ 9, 
-      v107a %in% c(
-        " FUPU SASU", " BUDHI SASU", " SASURA"
-      ) ~ 10, 
-      v107a %in% c(
-        "XORI MANNU VAYERA RAAKHNU VAKO"
-      ) ~ 11,
-      v107a %in% c(
-        " HAJUR AAMA", " GRANDMOTHER", " HAJURAAMA", "हजुरआमा", " HAJUR BABA", " HAJUR BABA", " HAJUR AAMA",
-        " HAJURAMA", "HAJURAMA"
-      ) ~ 12, 
-      TRUE ~ v107
-    )
   ) %>%
   mutate(
-    ID   = as.numeric(ID),
+    id   = as.numeric(id),
     psu  = as.numeric(psu),
     ward = as.numeric(ward),
     hhld = as.numeric(hhld),
@@ -265,21 +66,21 @@ section1a <- section1a %>%
   )
 
 section1a <- section1a %>%
-  group_by(hhid, v102) %>%
+  group_by(uid, v102) %>%
   slice(1) %>%
   ungroup() %>%
   mutate(
     v107 = case_when(
-      v102 == "MITRA KUMARI DHAMALA" & hhid == "3211-6" ~ 2,
-      v102 == "KAMALA DEVI SARU" & hhid == "4206-3" ~ 2,
-      v102 == "RISHI KUMAR MAHATO" & hhid == "2205-15" ~ 3,
-      v102 == "PARBATI TIMILSINA" & hhid == "5111-7" ~ 2,
-      v102 == "GANGA DEI SHRESTHA" & hhid == "5111-9" ~ 2, 
-      v102 == "SAURAV BHANDARI" & hhid == "5209-15" ~ 3,
-      v102 == "AABHASH DHAMI" & hhid == "7104-15" ~ 3,
-      v102 == "RADHA KC" & hhid == "5211-16" ~ 2, 
-      v102 == "KARNA BDR BUDHA MAGAR" & hhid == "6103-21" ~ 2, 
-      v102 == "MANISHA TAMANG" & hhid == "3444-3" ~ 3,
+      v102 == "MITRA KUMARI DHAMALA" & uid == "1c9178d5-c539-48e1-836e-3880b0131890" ~ 2,
+      v102 == "KAMALA DEVI SARU" & uid == "a5038ea7-63f1-484b-b6e9-5088271e557e" ~ 2,
+      v102 == "RISHI KUMAR MAHATO" & uid == "90be971d-e640-4b67-9636-e3c7cb9489be" ~ 3,
+      v102 == "PARBATI TIMILSINA" & uid == "90b2f87e-f550-4ad6-b373-810017d55c43" ~ 2,
+      v102 == "GANGA DEI SHRESTHA" & uid == "a5d932aa-ea5d-4ab3-a01c-b024ad9760f8" ~ 2, 
+      v102 == "SAURAV BHANDARI" & uid == "8d2d87dd-b8d1-4f6c-a5f9-870e6f14f0ca" ~ 3,
+      v102 == "AABHASH DHAMI" & uid == "04d15d9e-2fd2-4cf6-a3eb-5d3e8a6d12e0" ~ 3,
+      v102 == "RADHA KC" & uid == "0eff21da-ce58-4fe0-a758-fcbd3b8df20f" ~ 2, 
+      v102 == "KARNA BDR BUDHA MAGAR" & uid == "a0179b02-cbc4-41d3-8283-55dde072bfa9" ~ 2, 
+      v102 == "MANISHA TAMANG" & uid == "add79ed7-0423-4118-a09f-41a568ac1484" ~ 3,
       v107 == 96 ~ 11,
       TRUE ~ v107
     )
@@ -315,7 +116,7 @@ rm(invalid_hhids, new_heads)
 
 #SECTION1B
 
-for (i in setdiff(1:ncol(section1b), c(2, 7, 8, 21, 22, 23))) {
+for (i in setdiff(1:ncol(section1b), c(10, 21, 22, 23, 34, 35))) {
   section1b[[i]] <- as.numeric(section1b[[i]])
 }
 
@@ -412,50 +213,7 @@ section1b <- section1b %>%
 
 #SECTION2A1 
 
-section2a1 <- section2a1 %>%
-  mutate(
-    v203_num = grepl("[0-9]", v203a),   
-    
-    v203_new  = if_else(v203_num, v203a, v203),
-    v203a_new = if_else(v203_num, v203,  v203a),
-    
-    v203  = v203_new,
-    v203a = v203a_new
-  ) %>%
-  select(-v203_num, -v203_new, -v203a_new) %>%
-  mutate(
-    v204_num = grepl("[0-9]", v204a),   
-    
-    v204_new  = if_else(v204_num, v204a, v204),
-    v204a_new = if_else(v204_num, v204,  v204a),
-    
-    v204  = v204_new,
-    v204a = v204a_new
-  ) %>%
-  select(-v204_num, -v204_new, -v204a_new) %>%
-  mutate(
-    v205_num = grepl("[0-9]", v205a),   
-    
-    v205_new  = if_else(v205_num, v205a, v205),
-    v205a_new = if_else(v205_num, v205,  v205a),
-    
-    v205  = v205_new,
-    v205a = v205a_new
-  ) %>%
-  select(-v205_num, -v205_new, -v205a_new) %>%
-  mutate(
-    v206_num = grepl("[0-9]", v206a),   
-    
-    v206_new  = if_else(v206_num, v206a, v206),
-    v206a_new = if_else(v206_num, v206,  v206a),
-    
-    v206  = v206_new,
-    v206a = v206a_new
-  ) %>%
-  select(-v206_num, -v206_new, -v206a_new) 
-
-
-for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
+for (i in setdiff(1:ncol(section2a1), c(10, 14, 16, 18, 20, 21, 24))) {
   section2a1[[i]] <- as.numeric(gsub("[^0-9]", "", section2a1[[i]]))
 }
 
@@ -677,24 +435,7 @@ section2a1 <- section2a1 %>%
       as.integer(stringr::str_extract(v207, "\\b(19|20)\\d{2}\\b"))
     )  )
 
-#SECTION2A2
-
-section2a2 <- section2a2 %>%
-  rename(
-    v213 = v213a, 
-    v213a = v213b
-  ) %>%
-  mutate(
-    v213_num = grepl("[0-9]", v213a),   
-    
-    v213_new  = if_else(v213_num, v213a, v213),
-    v213a_new = if_else(v213_num, v213,  v213a),
-    
-    v213  = v213_new,
-    v213a = v213a_new
-  ) %>%
-  select(-v213_num, -v213_new, -v213a_new) 
-  
+#SECTION2A2  
 
 for (i in setdiff(1:ncol(section2a2), c(2, 7, 8, 16))) {
   section2a2[[i]] <- as.numeric(gsub("[^0-9]", "", section2a2[[i]]))
@@ -712,35 +453,6 @@ section2a2 <- section2a2 %>%
 
     v213 = ifelse(v211 == 1 & !is.na(v212), NA_real_, v213),
 
-    v213 = case_when(
-      v213a %in% c(
-        " AAFANTA LE DINU BHAKO", " QUARTER IN COMPANY", " QUARTER PROVIDED BY COMPANY",
-        " SAWSYASASTHAKO LE DIYAKO ROOM", " KAM GARE BAPAT KO ACCOMODATIONS HOTEL LE UPLABDH",
-        " COMPANY'S ROOM", " COMPANY PROVIDED", " OFFICE RESIDENCE", " QUARTER MA"
-      ) ~ 2,
-
-      v213a %in% c(
-        " GHAR KO ROOM MATRA VADA MA LEYAKO", " ROOM EUTA LEKO", " EUTA ROOM LEYEKO",
-        " FLAT VADA MA LEYEKO", " 96", " SAJHEDARI MA BASEKO",
-        " GHAR KO 2 TA ROOM VADA MA LEYEKO", " TWO ROOM RENT MA LEYEKO",
-        " 1UTA ROOM VADA MA LEYEKO", " EUTA ROOM LEKO", " FLAT LEYEKO",
-        " JAGGA LEEJ MA LIYERA AFAILE TEMPORARY TAHARA HALERA BASEKO RA ANNUALLY 32000 RUPAYA BUJHAUNE GAREKO",
-        " AFNO GHAR BANAI RAKHEKO BHAYERA KAILA PAISA TIRNEY KAILA NATIRNEY",
-        " LAND KO RENT TIREKO RA AAFULIE TESMA GHAR BANAYEKO",
-        " EUTA ROOM RENT MA", " FLAT MA LEYEKO", " 2 TA ROOM LEYEKO",
-        " GHAR MA BASEKO BAAPAT KAKA LAI KHETI PAATI KO 50 DINU PARNEY",
-        " BANDAKI LIYEKO 450000 3YRS CHODA SABAI PAISSA RETURN HUNCHA",
-        " RENT MA BASEKO", " 1 ROOM RENT MA LEYEKO",
-        " HOSTEL", " 1 ROOM MA BASEKO", " 2 ROOM RENT MA",
-        " HOSTEL MA BASEKO", " FLAT RENT MA LEYAKO"
-      ) ~ 1,
-
-      v208 == 2 & is.na(v213a) ~ 2,
-      v213 == 96 ~ 1,
-      TRUE ~ v213
-    ),
-
-    v213a = ifelse(v211 == 1 & !is.na(v212), NA_character_, v213a),
     v214  = ifelse(v211 == 1 & !is.na(v212), NA_real_, v214),
     v215  = ifelse(v211 == 1 & !is.na(v212), NA_real_, v215),
     v213 = if_else(v213 > 3, 2, v213),
@@ -751,66 +463,12 @@ section2a2 <- section2a2 %>%
 
 #SECTION2A3 
 
-section2a3 <- section2a3 %>%
-  mutate(
-    v216_num = grepl("[0-9]", v216a),   
-    
-    v216_new  = if_else(v216_num, v216a, v216),
-    v216a_new = if_else(v216_num, v216,  v216a),
-    
-    v216  = v216_new,
-    v216a = v216a_new
-  ) %>%
-  select(-v216_num, -v216_new, -v216a_new) %>%
-  mutate(
-    v218_num = grepl("[0-9]", v218a),   
-    
-    v218_new  = if_else(v218_num, v218a, v218),
-    v218a_new = if_else(v218_num, v218,  v218a),
-    
-    v218  = v218_new,
-    v218a = v218a_new
-  ) %>%
-  select(-v218_num, -v218_new, -v218a_new)
-
 for (i in setdiff(1:ncol(section2a3), c(2, 7, 8, 11, 14, 24, 33))) {
   section2a3[[i]] <- as.numeric(gsub("[^0-9]", "", section2a3[[i]]))
 }
 
 section2a3 <- section2a3 %>%
   mutate(
-    v216 = case_when(
-      v216a %in% c(
-        "BORING KO PANI", "DEEP BORING", "DIP BORNING",
-        " UNDERGROUND WATER", " BOARDING BATA"
-      ) ~ 3,
-
-      v216a %in% c(
-        "COMMON TAP", "GHAR XEU KO MANXE  KO DHARO USE GAREKO",
-        "SARBAJANIK", "SARBAJANIK DHARA",
-        "SARBJANIK", "SARBJANIK DHARA",
-        "XIMAKINKO GHAR BATA PAISA DEYERA",
-        "XIMEKI KO GHAR MA MAGERA KHANU HUNCHA",
-        " DHUGEDHARA"
-      ) ~ 2,
-      v216a %in% c(
-        "HOSTEL MA PAY GAREKO", "v216a"
-      ) ~ 1,
-      v216a %in% c(
-        "JAAR", "JAAR AND TANKER",
-        "JAR", "JAR  KO PANI", "JAR KO",
-        "JAR KO PANI", "JARKO", "JARKO KO",
-        "JARKO PANI",
-        "जार", "जारको पानी",
-        " JAAR", " JAAR KO PANI",
-        " JAR", " JAR KO PANI"
-      ) ~ 8,
-      v216a %in% c(
-        "TANKER", "TYANKAR KINEKO", "TYANKER KINNE",
-        " TANKER BATA LERA AAUNE"
-      ) ~ 9,
-      TRUE ~ v216
-    ), 
     v216 = if_else(
       is.na(v216), 
       8, 
@@ -1059,7 +717,7 @@ section2b <- section2b %>%
         " AAKHA SARKAR LE AADHA AAFAILE", " COMPANY LE",      
         " 50 PERCENT GOVERNMENT RA 50 PERCENT AAFAILE TIRNE",  
         " 50%GOVERNMENT LE .50% AFAI LE"
-      ) ~ "3",
+      ) ~ 3,
       TRUE ~ v230
     ),
     v232k = trimws(v232k),
@@ -1346,177 +1004,6 @@ section3a <- section3a %>%
     )
   )
 
-section3a <- section3a %>%
-  mutate(
-    across(v303:v305, ~ na_if(.x, 0))
-  ) %>%
-   mutate(
-    v305 = case_when(
-      v301 %in% c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15) & v304 == v305 ~ NA_real_,
-      TRUE ~ v305
-    )
-  )
-
-section3a  <- section3a %>%
-  group_by(psu, v301) %>%
-  mutate(
-  v303 = case_when(
-    v301 == 1 & v302 == 1 & v303 > 1500 ~ mean(v303[v303 <= 1500], na.rm = TRUE),
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 1 & v302 == 1 & v304 > 1500 ~ mean(v304[v304 <= 1500], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v304 = case_when(
-    v301 == 2 & v302 == 1 & v304 > 400 ~ mean(v304[v304 <= 400], na.rm = TRUE),
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 2 & v302 == 1 & v303 > 400 ~ mean(v303[v303 <= 400], na.rm = TRUE), 
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 3 & v302 == 1 & v304 > 1000 ~ mean(v304[v304 <= 1000], na.rm = TRUE),
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 3 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 4 & v302 == 1 & v304 > 500 ~ mean(v304[v304 <= 500], na.rm = TRUE),
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 4 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 5 & v302 == 1 & v304 > 500 ~ mean(v304[v304 <= 500], na.rm = TRUE),
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 5 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE),
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 6 & v302 == 1 & v304 > 300 ~ v304/10,
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 6 & v302 == 1 & v303 > 300 ~ v303/10,
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 7 & v302 == 1 & v304 > 500 ~ mean(v304[v304 <= 500], na.rm = TRUE), 
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 7 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE), 
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 8 & v302 == 1 & v304 > 600 ~ mean(v304[v304 <= 600], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 8 & v302 == 1 & v303 > 300 ~ mean(v303[v303 <= 300], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 9 & v302 == 1 & v304 > 500 ~ mean(v304[v304 <= 500], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 9 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 10 & v302 == 1 & v304 > 300 ~ mean(v304[v304 <= 300], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 10 & v302 == 1 & v303 > 100 ~ mean(v303[v303 <= 100], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 11 & v302 == 1 & v304 > 100 ~ mean(v304[v304 <= 100], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 11 & v302 == 1 & v303 > 50 ~ mean(v303[v303 <= 50], na.rm = TRUE), 
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 12 & v302 == 1 & v304 > 250 ~ mean(v304[v304 <= 250], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 12 & v302 == 1 & v303 > 50 ~ mean(v303[v303 <= 50], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 13 & v302 == 1 & v304 > 2000 ~ mean(v304[v304 <= 2000], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 13 & v302 == 1 & v303 > 100 ~ mean(v303[v303 <= 100], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 14 & v302 == 1 & v304 > 300 ~ mean(v304[v304 <= 300], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 14 & v302 == 1 & v303 > 20 ~ mean(v303[v303 <= 20], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 15 & v302 == 1 & v304 > 350 ~ mean(v304[v304 <= 350], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 15 & v302 == 1 & v303 > 50 ~ mean(v303[v303 <= 50], na.rm = TRUE), 
-    TRUE ~ v303
-  )
-  ) %>%
-  ungroup() %>%
-  group_by(v301) %>%
-  mutate(
-  v304 = case_when(
-    v301 == 1 & v302 == 1 & is.na(v303) & is.na(v304) & is.na(v305) ~ mean(v304[v304 <= 1500], na.rm = TRUE),
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 6 & v302 == 1 & v303 > 300 ~ mean(v303[v303 <= 300], na.rm = TRUE),
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 6 & v302 == 1 & v304 > 300 ~ mean(v304[v304 <= 300], na.rm = TRUE),
-    TRUE ~ v304
-  )
-  ) %>%
-  ungroup()
-  
-section3a <- section3a %>%
-  mutate(
-    hhid = paste0(psu, "-", hhld),
-    v304 = case_when(
-      hhid %in% c("3341-3","3421-4","3602-1","3622-2","6309-1", "3502-3", "7308-3") & v301 == 1 ~ 500,
-      hhid %in% c("3341-3","3421-4","3602-1","3622-2","6309-1", "3502-3", "7308-3") & v301 == 2 ~ 200,
-      TRUE ~ v304
-    )
-  )
-
-section3a <- section3a %>%
-  mutate(
-    v302 = case_when(
-      (is.na(v303) | is.nan(v303)) & (is.na(v304) | is.nan(v304)) & (is.na(v305) | is.nan(v305)) ~ 2, 
-      TRUE ~ 1
-    )
-  )
-
 #SECTION3B
 
 for (i in setdiff(1:ncol(section3b), c(2, 8, 7))) {
@@ -1529,48 +1016,8 @@ section3b <- section3b %>%
       (is.na(v308) | v308 == 0) &
       (is.na(v309) | v309 == 0) ~ 2,
       TRUE ~ 1
-    ),
-    across(v308:v309, ~ na_if(.x, 0))
+    )
   )
-
-
-section3b <- section3b %>%
-  group_by(psu, v306) %>%
-  mutate(
-    v308 = case_when(
-      v306 == 4 & v307 == 1 & v308 > 150 ~ round(mean(v308[v308 <= 150], na.rm = TRUE)),
-      TRUE ~ v308
-    ), 
-    v309 = case_when(
-      v306 == 4 & v307 == 1 & v309 > 150 ~ round(mean(v309[v309 <= 150], na.rm = TRUE)),
-      TRUE ~ v309
-    ),
-    v308 = case_when(
-      v306 == 6 & v307 == 1 & v308 > 300 ~ round(mean(v308[v308 <= 300], na.rm = TRUE)),
-      TRUE ~ v308
-    ), 
-    v309 = case_when(
-      v306 == 6 & v307 == 1 & v309 > 300 ~ round(mean(v309[v309 <= 300], na.rm = TRUE)),
-      TRUE ~ v309
-    ),
-    v308 = case_when(
-      v306 == 7 & v307 == 1 & v308 > 2000 ~ round(mean(v308[v308 <= 2000], na.rm = TRUE)),
-      TRUE ~ v308
-    ), 
-    v309 = case_when(
-      v306 == 7 & v307 == 1 & v309 > 2000 ~ round(mean(v309[v309 <= 2000], na.rm = TRUE)),
-      TRUE ~ v309
-    ),
-    v308 = case_when(
-      v306 == 8 & v307 == 1 & v308 > 1000 ~ round(mean(v308[v308 <= 2000], na.rm = TRUE)),
-      TRUE ~ v308
-    ), 
-    v309 = case_when(
-      v306 == 8 & v307 == 1 & v309 > 500 ~ round(mean(v309[v309 <= 2000], na.rm = TRUE)),
-      TRUE ~ v309
-    )     
-  ) %>%
-  ungroup()
 
 #SECTION4A
 
@@ -1595,188 +1042,6 @@ section4a <- section4a %>%
       ID == 3058 ~ 10000, 
       TRUE ~ v403b
     ), 
-    across(v403a:v403b, ~ na_if(.x, 0))
-  )
-
-section4a <- section4a %>%
-  group_by(psu, v401) %>%
-  mutate(
-    v403a = case_when(
-      v401 == 1 & v402 == 1 & v403a > 100000 ~ round(mean(v403a[v403a <= 100000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 1 & v402 == 1 & v403b > 20000 ~ round(mean(v403b[v403b <= 20000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      v401 == 2 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 2 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      v401 == 3 & v402 == 1 & v403a > 1000000 ~ round(mean(v403a[v403a <= 1000000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 3 & v402 == 1 & v403b > 1000000 ~ round(mean(v403b[v403b <= 1000000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      v401 == 4 & v402 == 1 & v403a > 126000 ~ round(mean(v403a[v403a <= 126000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 4 & v402 == 1 & v403b > 11000 ~ round(mean(v403b[v403b <= 11000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      ID == 12142 & v401 == 5 ~ 600000,
-      TRUE ~ v403a
-    ), 
-    v403a = case_when(
-      ID == 12142 & v401 == 6 ~ 150000,
-      ID == 2863 & v401 == 6 ~ 150000,
-      TRUE ~ v403a
-    ),
-    v403a = case_when(
-      v401 == 8 & v402 == 1 & v403a > 100000 ~ round(mean(v403a[v403a <= 100000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 8 & v402 == 1 & v403b > 10000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      v401 == 9 & v402 == 1 & v403a > 75000 ~ round(mean(v403a[v403a <= 75000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 9 & v402 == 1 & v403b > 12000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      v401 == 10 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 10 & v402 == 1 & v403b > 2000 ~ round(mean(v403b[v403b <= 2000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      ID == 6874 & v401 == 12 & v402 == 1 ~ 270000, 
-      TRUE ~ v403a
-    ), 
-    v403a = case_when(
-      v401 == 13 & v402 == 1 & v403a > 40000 ~ round(mean(v403a[v403a <= 40000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 13 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      v401 == 14 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 14 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE)),
-      TRUE ~ v403b
-    ),
-    v403a = case_when(
-      v401 == 15 & v402 == 1 & v403a > 150000 ~ v403a / 10, 
-      TRUE ~ v403a
-    ),
-    v403b = case_when(
-      v401 == 15 & v402 == 1 & v403b > 100000 ~ v403b / 10, 
-      TRUE ~ v403b
-    ), 
-    v403a = case_when(
-      v401 == 18 & v402 == 1 & v403a > 70000 ~ round(mean(v403a[v403a <= 70000], na.rm = TRUE)), 
-      TRUE ~ v403a
-    ),
-    v403b = case_when(
-      v401 == 18 & v402 == 1 & v403b > 10000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE)), 
-      TRUE ~ v403b
-    ), 
-    v403a = case_when(
-      v401 == 19 & v402 == 1 & v403a > 35000 ~ round(mean(v403a[v403a <= 35000], na.rm = TRUE)), 
-      TRUE ~ v403a
-    ),
-    v403b = case_when(
-      v401 == 19 & v402 == 1 & v403b > 25000 ~ round(mean(v403b[v403b <= 25000], na.rm = TRUE)), 
-      TRUE ~ v403b
-    ), 
-    v403a = case_when(
-      v401 == 20 & v402 == 1 & v403a > 150000 ~ v403a / 10, 
-      TRUE ~ v403a
-    ),
-    v403a = case_when(
-      v401 == 21 & v402 == 1 & v403a > 400000 ~ v403a / 10, 
-      TRUE ~ v403a
-    ),
-    v403b = case_when(
-      v401 == 21 & v402 == 1 & v403b > v403a ~ v403b / 10, 
-      TRUE ~ v403b
-    ),
-    v403b = case_when(
-      v401 == 21 & v402 == 1 & v403b == 1000000 ~ 100000,
-      TRUE ~ v403b
-    ), 
-    v403a = case_when(
-      v401 == 21 & v402 == 1 & is.na(v403a) & !is.na(v403b) ~ v403b,
-      TRUE ~ v403a
-    ), 
-    v403a = case_when(
-      v401 == 22 & v402 == 1 & v403a > 50000 ~ round(mean(v403a[v403a <= 50000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 22 & v402 == 1 & v403a > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE))
-    ), 
-    v403a = case_when(
-      v401 == 22 & v402 == 1 & v403a > 50000 ~ round(mean(v403a[v403a <= 50000], na.rm = TRUE)),
-      TRUE ~ v403a
-    ), 
-    v403b = case_when(
-      v401 == 22 & v402 == 1 & v403a > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE)), 
-      TRUE ~ v403b
-    ), 
-    v403a = case_when(
-      v401 == 24 & v402 == 1 & v403a > 10000 ~ v403a/10,
-      TRUE ~ v403a
-    ),
-    v403a = case_when(
-      v401 == 25 & v402 == 1 & v403a > 150000 ~ v403a/10, 
-      TRUE ~ v403a
-    ),
-    v403a = case_when(
-      v401 == 26 & v402 == 1 & v403a > 350000 ~ v403a/10,
-      TRUE ~ v403a
-    ), 
-    v403a = case_when(
-      v401 == 27 & v402 == 1 & v403a > 35000 ~ v403a/10, 
-      TRUE ~ v403a
-    ),
-    v403a = case_when(
-      v401 == 29 & v402 == 1 & v403a == 4000000 ~ 400000,
-      TRUE ~ v403a
-    ), 
-    v403a = case_when(
-      v401 == 30 & v402 == 1 & v403a > 360000 ~ v403a/10,
-      TRUE ~ v403a
-    )
-  )
-
-section4a <- section4a %>%
-  mutate(
-    v403b = case_when(
-      v401 == 21 & v402 == 1 & v403a == v403b ~ NA_real_,
-      TRUE ~ v403b
-    )
   )
 
 #SECTION4B
@@ -1792,22 +1057,6 @@ section4b <- section4b %>%
       TRUE ~ v404
     )
   )
-
-section4b <- section4b %>%
-  group_by(psu, v405) %>%
-  mutate(
-    across(
-      c(v407a, v407b),
-      ~ {
-        p5   <- quantile(.x, 0.05, na.rm = TRUE)
-        p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
-
-        if_else(.x < p5 | .x > p95, mu, .x)
-      }
-    )
-  ) %>%
-  ungroup()
 
 #SECTION 4C 
 
@@ -1853,43 +1102,11 @@ section4c <- section4c %>%
   ungroup() %>%
   select(-commodity_mean)
 
-section4c <- section4c %>%
-  group_by(psu, v408) %>%
-  mutate(
-    across(
-      c(v410, v411a, v411b, v411a, v411b, v413),
-      ~ {
-        p5   <- quantile(.x, 0.05, na.rm = TRUE)
-        p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
-
-        if_else(.x < p5 | .x > p95, mu, .x)
-      }
-    )
-  ) %>%
-  ungroup()
-
 #SECTION4D
 
 for (i in setdiff(1:ncol(section4d), c(2, 7, 8))) {
   section4d[[i]] <- as.numeric(gsub("[^0-9]", "", section4d[[i]]))
 }
-
-section4d <- section4d %>%
-  group_by(psu, v414) %>%
-  mutate(
-    across(
-      c(v416a, v416b),
-      ~ {
-        p5   <- quantile(.x, 0.05, na.rm = TRUE)
-        p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
-
-        if_else(.x < p5 | .x > p95, mu, .x)
-      }
-    )
-  ) %>%
-  ungroup()
 
 section4d <- section4d %>%
   mutate(
@@ -1918,22 +1135,6 @@ section5 <- section5 %>%
       TRUE ~ 2
     )
   )
-
-section5 <- section5 %>%
-  group_by(psu) %>%
-  mutate(
-    across(
-      c(v502a, v502b, v502c, v502d, v502e, v502f, v502g),
-      ~ {
-        p5   <- quantile(.x, 0.05, na.rm = TRUE)
-        p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
-
-        if_else(.x < p5 | .x > p95, mu, .x)
-      }
-    )
-  ) %>%
-  ungroup()
 
 #SECTION6
 
@@ -2009,79 +1210,11 @@ section6a <- section6a %>%
 
 section6b1 <- section6b1 %>%
   mutate(
-    v604a = trimws(v604a),
     v604 = case_when(
-    
-    v604a %in% c("MUTUROG", "COLESTEROL", "CHLOSTROAL", "CHOLEDTEROL", 
-                 "CHORESTEROL", "COLDSTORE", "COLESTER", "COLESTROME", 
-                 "COLSTORE", "COLSTRORE", "कोलेस्ट्रोल", "CHOLESTEROL") ~ "1",
-    
-    v604a %in% c("BP", "PRESSURE", "PRESSURE RA MANASIK ROG", 
-                 "PRESSURE/SUGAR/THYROID", "LOW BLOOD PRESSURE", "96") ~ "2",
-    
-    v604 == "96" & v604a %in% c("") ~ "2",
-    
-    v604a %in% c("DIABETES", "DIABETIC", "SUGAR", "SUGAR BLOOD PRESSURE") ~ "3",
-    
-    v604a %in% c("BATH", "GHUNDAKO HADDI KHIYEKO.", "LUNGS KO BATHH VANNI", "LUPUS", "LUPUS") ~ "5",
-    
-    v604a %in% c("KIDNEY STONES KO UPRESAN GAREKO", "PATHTHARI", "PIABKO SAMASYAA", 
-                 "PISAB BANDA HUNE GAREKO", "STONE", "STONE IN URINE PIPE", "PATTHARI") ~ "6",
-    
-    v604a %in% c("JNDISH", "HEPATITIS", "JAUNDICE", "LIVER KO SAMSYA") ~ "7",
-    
-    v604a %in% c("BONE MARROW TRANSPLANT", "BRAIN TUMOR", "CANCER", "TONGUE CANCER") ~ "8",
-    
-    v604a %in% c("MIRGI", "SEIZURE", "SIJAR") ~ "9",
-    
-    v604a %in% c("GANL TB", "TUBOC") ~ "10",
-    
-    v604a %in% c("THOYRED", "THYROID") ~ "12",
-    
-    v604a %in% c("ULCER", "AANDRA KO OPERATION GAREKO PIPE BAT STOOL GARNE GAREKO 2081_01-12 DEKHI", 
-                 "ALSAR", "ANDRA MA GHAU", "APPENDIX", "BABASHIL", "GALLBLADDER STONES", 
-                 "GATRIC", "PAYALS", "PET DUKHNA", "PILES", "PIT KO THAILIMA PATHALI") ~ "13",
-    
-    v604a %in% c("BACK PA", "THERAPY", "DHARD PET DUKHNA", "LEGAMENT KO SURGERY VKO", 
-                 "SARIR MANOJ HATT JODA DUKHNA") ~ "15",
-    
-    v604a %in% c("NEURO DISEASE", "SNAYU", "परलासिस", "CEREBRAL PAIN", 
-                 "MASTISK PAKSHYAGHAT(CP)", "MIGRAIN", "MIGRAINE", "MIGRANE", 
-                 "NEURO", "PARALYSIS", "PARALYZED", "TAU KO DUKHNA SAMYASYA", 
-                 "TAUKO DUKHNE PURANO ROG", "TAUKO KO", "TAUKO KO DUKAI", 
-                 "LEFT HAND NACHALNEY") ~ "16",
-    
-    v604a %in% c("DEPRESSION", "ANJEITY", "ANXIETY", "HALLUCINATIONS") ~ "18",
-    
-    v604a %in% c("URIC ACID", "URIC ACID RA PROSTHETICS", "URIK ASID", "URIQE ACID", "URIC  ACID") ~ "20",
-    
-    v604a %in% c("POSTATE", "POSTED", "POSTERT", "PROSTATE", "PROSTED", "PROSTHETIC", 
-                 "PROSTRATE", "PROTESTED KO SAMASYA", "URINE INFECTION") ~ "21",
-    
-    v604a %in% c("EAR PROBLEM", "ENT BIRAMI", "GHATI DUKHNAY", "PINASH") ~ "22",
-    
-    v604a %in% c("ACNE ISSUES", "ALLERGY", "CHHALA ROG DAJ", "DAJ", "SKIN ALLERGIES", 
-                 "SKIN ALLERGY", "SKIN ELERGY", "SKIN PROBLEM", "SKIN ROG", "XALA SAMBANDHI") ~ "23",
-    
-    v604a %in% c("AAKHAKO SAMASYA", "EYE", "EYE INFECTION", "EYE ISSUES", "EYE PROBLEM", 
-                 "EYE PROBLEMS", "JALABINDU", "JALBINDU", "JALBINDU VAYEKO", 
-                 "JALBINDU VAYEKO REGULAR MEDICINE LAGAUNE PARXA") ~ "24",
-    
-    v604a %in% c("ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA MAA CHOT PAREKO", 
-                 "DISLOCATED BACKBONE", "RIGHT HAND DISABLE DUE TO INJURY", "LEGAMENT KO  SURGERY VKO") ~ "26",
-    
-    v604a %in% c("LUNGS PROBLEM") ~ "27",
-    
-    v604a %in% c("BLOOD BAKLO VAYEKO", "BLOOD PATALO GARAUNAY", "NASA KO DABAI", 
-                 "NASA SAMBANDHI", "OVER WEIGHT", "SICKLE CELL ANEMIA", 
-                 "SICKLECELL ANIMIYA", "SPLEEN PROBLEM", "ANEMIA", "VARICOSE VEINS") ~ "28",
-    
-    v604a %in% c("AUTISTIC", "DISABLE", "PURNA APANGA") ~ "30",
-
     v604 %in% c("CHLORESTROL", "CHLOSTROAL", "CHOLESTEROL", "COLDSTORE", 
                 "COLESTER", "COLSTRORE", "COLESTEROL") ~ "1",
     
-    v604 %in% c("MUTUROG BLOOD PRESSURE", "PRESSURE LOW", "SUGAR BLOOD PRESSURE") ~ "2",
+    v604 %in% c("MUTUROG BLOOD PRESSURE", "PRESSURE LOW", "SUGAR BLOOD PRESSURE", "96") ~ "2",
     
     v604 %in% c("DIABETES", "SUGAR") ~ "3",
     
@@ -2136,6 +1269,7 @@ section6b1 <- section6b1 %>%
     v610n_1 = v610b
   ) %>%
   mutate(
+    v604 = as.numeric(v604),
     v610_new = ifelse(grepl("\\b1\\b", v610a), 1, 0), 
     v610b = ifelse(grepl("\\b2\\b", v610a), 1, 0),
     v610c = ifelse(grepl("\\b3\\b", v610a), 1, 0),
@@ -2687,8 +1821,7 @@ section6b3 <- section6b3 %>%
 
       TRUE ~ as.numeric(v604)
     ) 
-  ) %>%
-  filter(personid != 60249)
+  ) 
 
 for (i in setdiff(1:ncol(section6b3), c(2, 7, 8, 29))) {
   section6b3[[i]] <- as.numeric(gsub("[^0-9]", "", section6b3[[i]]))
@@ -3064,8 +2197,7 @@ section6c1 <- section6c1 %>%
                 "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
                 "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
                 "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
-                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", 
-                "BACKPAINEYE DRYNESS") ~ "19",
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने") ~ "19",
 
     v630 %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI") ~ "20",
 
@@ -3095,7 +2227,7 @@ section6c1 <- section6c1 %>%
                 "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
                 "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल") ~ "27",
 
-    v630 %in% c("AKHAMA CHO", "EYE PROBLEM", "EYE CHECK GARNA GAYEKO") ~ "28",
+    v630 %in% c("AKHAMA CHO", "EYE PROBLEM") ~ "28",
 
     v630 == "DAAD" ~ "29",
 
@@ -3113,7 +2245,7 @@ section6c1 <- section6c1 %>%
 
     v630 == "SCROP TRIFECTA" ~ "35",
 
-    v630 %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI", "KIDNEY INFECTION SYMPTOM OF CANCER") ~ "36",
+    v630 %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI") ~ "36",
 
     v630 %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
                 "PATTHARIKO AUSADHI", "STONE", 
@@ -3170,7 +2302,7 @@ section6c1 <- section6c1 %>%
 
     v630a %in% c("KAMJORI", "KAMJORI BHAYEKO", "KAMJORI BP LOW", "KAMJORI VAYEKO") ~ "30",
 
-    v630a %in% c("MINS VAYAKO BELA PET DUKHEKO", "PATHAGHAR SAMANDI SAMASYA IS", "SHIST KO SURGERY",
+    v630a %in% c("MINS VAYAKO BELA PET DUKHEKO", "PATHAGHAR SAMANDI SAMASYA IS", 
                  "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", "PERIOD ANIYAMIT HUNE", 
                  "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", "SHIST SURGERY") ~ "31",
 
@@ -3396,367 +2528,9 @@ section6c1 <- section6c1 %>%
       personid == 9767 ~ 25,
       personid == 24627 ~ 15,
       personid == 24940 ~ 17,
-      v630 == 96 ~ 19,
       TRUE ~ v630
     )
-  ) 
-
-#SECTION6C2
-
-section6c2 <- section6c2 %>%
-  mutate(
-    v630_num = suppressWarnings(as.numeric(str_extract(v630, "\\d+"))),
-
-    v630_txt = str_trim(
-      str_remove_all(v630, "\\d+|,")
-    ),
-
-    v630  = v630_num,
-    v630a = if_else(v630_txt != "", v630_txt, NA_character_)
-  ) %>%
-  select(-v630_num, -v630_txt)  
-
-section6c2 <- section6c2 %>%
-  mutate(
-  v630 = case_when(
-    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", "RUGAKHOKI",
-                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी", "RUGHA KHOKI",
-                "ROUGHA KHOLA", "COLD", "COLD") ~ "6",
-
-    v630a == "JONDISH LIVAR PHET MA PANI VKO" ~ "9",
-
-    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
-
-    v630a %in% c("DATA KO SAMASYA", "DAAT KO SAMASYA", "DAAT KO SAMASYA") ~ "11",
-
-    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", 
-                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL") ~ "14",
-
-    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
-                "HAND FRACTURE", "LIGAMENT TEARING", "LEGAMENT SMSYA") ~ "15",
-
-    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE", "SNAKE BITE") ~ "18",
-
-    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
-                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
-                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", "GHUDA DUKHEKO",
-                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", "DHARD DUKHNA",
-                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
-                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
-                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
-                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
-                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
-                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
-                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
-                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "HADDI",
-                "KARANG DUKHEKO", "JIU HATH DUKHEKO", "DHARD DUKHNA", "HAT DUKHNE SAMASAYA",
-                "DHARD DUKHNA") ~ "19",
-
-    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "KAMJORIBP LOW", 
-                 "INCREASES IN CHOLESTEROL LEVEL", "ANEMIA") ~ "20",
-
-    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST") ~ "21",
-
-    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
-                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
-                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
-                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
-                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
-                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
-                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", "PET DUKNE",
-                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION", "PET DUKHYAKO",
-                "PETDUKHERA", "DOCTOR DOESN'T KNOW ABOUT THEIR CONDITION THEY SAY HE HAS GASTRITIS.",
-                "PET DUKHERA FOOD POISON BHAKO", "PET DHUKERA", "GASTRIC PROBLEM", "APPENDIX KO OPTION",
-                "PET KO SAMASYAA VAAKO BU K HO VANERA THA NAVAAKO HOSPITAL MA.", "ANDRA MA GHAU",
-                "PETKO SAMASYAA") ~ "22",
-
-    v630a == "OTH TALU FATEKO" ~ "23",
-
-    v630a == "DAMM" ~ "24",
-
-    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", "DELIVERY CONDITION",
-                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
-                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "ANC CHECKUP VISIT IN PRIVATE HOSPITAL") ~ "25",
-
-    v630a == "JANMA JATA APANGA" ~ "26",
-
-    v630a %in% c("EAR PROBLEM", "ENT", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
-                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", "ENT",
-                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
-                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE TONSIL") ~ "27",
-
-    v630a %in% c("AKHAMA CHO", "EYE PROBLEM") ~ "28",
-
-    v630a == "DAAD" ~ "29",
-
-    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO",
-                 "NORMAL", "OVERALL WHOLE BODY CHECK", "BODEYSCHE", "DUKHAI") ~ "30",
-
-    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
-                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
-                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
-                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
-                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM", "GAINO PATHEGHAR",
-                "PERIOD ANIYAMIT", "GYENO O KO PROBLEM") ~ "31",
-
-    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
-
-    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "FOLLOWUP OF HERNIA OPERATION", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA",
-                 "FOLLOWUP OF HERNIA OPERATION") ~ "33",
-
-    v630a == "SCROP TRIFECTA" ~ "35",
-
-    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI",
-                 "KIDNEY MA PATHARIYA") ~ "36",
-
-    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
-                "PATTHARIKO AUSADHI", "STONE", "GAL BLADOR PROBLAM", "LIVER KO SAMASYA",
-                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO",
-                "PITKO THAILI MA PATHALI VAYEKO MA OPRESAN GAREKO") ~ "37",
-
-    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
-                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS") ~ "38",
-
-    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
-
-    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
-                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
-                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
-                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
-                "THAUKO DUKHANE", "TUKO DUKHAYA", "TAU KO DUKHNA", "HEAD INJURIES") ~ "41",
-
-    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID", "URIKASID") ~ "42",
-
-    v630a == "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO" ~ "43",
-
-    v630a == "RAGATMA KHARABI" ~ "20",
-
-    v630a %in% c("KHOKI", "KHOKI LAGEKO", "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO") ~ "6",
-
-    v630a %in% c("KHUTTA MA ALLERGY AAKO", "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", 
-                 "PANI FOKA BATA PANI NILAKELL", "SARIR MA PANIKO PHOKA AYEKO") ~ "14",
-
-    v630a == "LIGAMENT TEARING" ~ "15",
-
-    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
-
-    v630a %in% c("KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
-                 "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
-                 "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
-                 "MULTIPLE JOINT PAIN", "PAIN IN LEG") ~ "19",
-
-    v630a == "LUMP IN BREAST" ~ "21",
-
-    v630a %in% c("LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", "PET DUKHER", "PAYELSH",
-                 "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
-                 "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", 
-                 "PET KO CHECK", "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", 
-                 "PETA DUKHEKO", "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE",
-                 "BHOMIT BHAYERA NAROKIYEKO", "PETDUKHEKO") ~ "22",
-
-    v630a == "OTH TALU FATEKO" ~ "23",
-
-    v630a %in% c("PERGINENC", "PREGENCY", "PREGNANCY CHECK UP", 
-                 "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", "PREGNANT", 
-                 "SUTKERI", "SUTKERI BHAYEKO") ~ "25",
-
-    v630a %in% c("MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", 
-                 "NAK RA MUKHA BATA BLOOD AKO", "NAKKO SAMSHYA", "TANSIL", 
-                 "TONSIL", "TONSILLITIS", "TONSILS") ~ "27",
-
-    v630a %in% c("KAMJORI", "KAMJORI BHAYEKO", "KAMJORI BP LOW", "KAMJORI VAYEKO", "JIUDUKHE KO",
-                 "JIU DUKHNE") ~ "30",
-
-    v630a %in% c("MINS VAYAKO BELA PET DUKHEKO", "PATHAGHAR SAMANDI SAMASYA IS", 
-                 "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", "PERIOD ANIYAMIT HUNE", 
-                 "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", "SHIST SURGERY",
-                 "EK DAMAI GARO VAYO MAHINA BARI NIHAMIT NAVAYERA", "PATHAGHAR SAMANDI",
-                 "PATHAGHAR SAMANDI SAMASYA", "LOW ABDOMINAL PAIN WHITE VAGINAL DISCHARGE BURNING MICTURITION") ~ "31",
-
-    v630a %in% c("MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
-
-    v630a == "SCROP TRIFECTA" ~ "35",
-
-    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI") ~ "36",
-
-    v630a %in% c("LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
-                 "PATTHARIKO AUSADHI", "STONE") ~ "37",
-
-    v630a == "TUBERCULOSIS" ~ "38",
-
-    v630a == "MANASIK SAMASYA" ~ "40",
-
-    v630a %in% c("MIGRAINE", "MIGREN HEADACHE", "NASA", "NASA DABE KO", 
-                 "NASA SAMBANDHI", "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", 
-                 "TAUKO DUKHANE", "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", 
-                 "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", "THAUKO DUKHANE", "TUKO DUKHAYA") ~ "41",
-
-    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", 
-                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी") ~ "6",
-
-    v630a %in% c("JONDISH LIVAR PHET MA PANI VKO", "JANDIS") ~ "9",
-
-    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
-
-    v630a == "DATA KO SAMASYA" ~ "11",
-
-    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", "PANI FOKA BATA PANI NIKALEKO",
-                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL", "KHATERA",
-                "KHUTTA MA ELERGY BHAYEKO") ~ "14",
-
-    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
-                "HAND FRACTURE", "LIGAMENT TEARING", "TAUKO MA GHAU") ~ "15",
-
-    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
-
-    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
-                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
-                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", "DHADA DUKHE KO",
-                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", "HADIKHIYERA",
-                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
-                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
-                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
-                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
-                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
-                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
-                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
-                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "KAMAR GHUDA DUKHEKO") ~ "19",
-
-    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "NASAKO SAMASYA",
-                 "RAGATKO KHARABI") ~ "20",
-
-    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST",
-                 "SYMPTOMS OF CANCER KIDNEY INFECTION", "CANCER") ~ "21",
-
-    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
-                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
-                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
-                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
-                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
-                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
-                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", 
-                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION", "EPIGASTRIC PAIN",
-                "INTESTINE OPERATION", "APPENDICITIS") ~ "22",
-
-    v630a == "OTH TALU FATEKO" ~ "23",
-
-    v630a == "DAMM" ~ "24",
-
-    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", 
-                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
-                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "PERGINENC TEST") ~ "25",
-
-    v630a == "JANMA JATA APANGA" ~ "26",
-
-    v630 %in% c("EAR PROBLEM", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
-                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", 
-                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
-                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE BLEEDING") ~ "27",
-
-    v630a %in% c("AKHAMA CHO", "EYE PROBLEM", "EYE CHECK GARNA GAYEKO") ~ "28",
-
-    v630a == "DAAD" ~ "29",
-
-    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "NORMAL", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO") ~ "30",
-
-    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
-                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
-                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
-                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
-                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM", "PREGNANT NA BHAYERA CHECK UP") ~ "31",
-
-    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
-
-    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA") ~ "33",
-
-    v630a == "SCROP TRIFECTA" ~ "35",
-
-    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI", "PAYHARI") ~ "36",
-
-    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
-                "PATTHARIKO AUSADHI", "STONE", "PITA THAILIKO PATHARI", "JONDISH LIVAR PHET MA PANI",
-                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO") ~ "37",
-
-    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
-                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS", "FOKSO KO PROBLEM") ~ "38",
-
-    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
-
-    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
-                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
-                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
-                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
-                "THAUKO DUKHANE", "TUKO DUKHAYA", "KHUTTA JHAMJHAMAUNE") ~ "41",
-
-    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID") ~ "42",
-
-    v630a %in% c("KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", "OPERATION KHUTTA KOMKHIL") ~ "43",
-
-    v630a == "FOOD POISON" ~ "22",
-
-    v630a %in% c("CHEST & STOMACH PROBLEM", "TIFID", "TYPHOID", "THYPHOID", "CHEST & STOMACH PAIN") ~ "2",
-
-    v630a == "FOKSO KO PROBLEMP" ~ "38",
-
-    v630a %in% c( "ANC CHECKUP IN PRIVATE HOSPITAL", "KEHI VAKO CHHAIN CHHAIN") ~ "6",
-
-    v630a %in% c("BLOOD AND URINE INFECTION" , "YOUN ROD PANI BAGNE") ~ "10",
-
-    v630a %in% c("BLOOD INFECTION") ~ "20",
-
-    v630a == "EYE CHECK GARDA" ~ "28",
-
-    v630a == "BRUSELA" ~ "17",
-
-    v630a %in% c("BACK PAIN", "BACK PAIN KO SAMASYA BHAKO THIYO", "BACKPAIN", 
-                 "DHAD DUKHE", "DHAD DUKHNE", "DHAD DUKHNE KHUTTA DUKHNE", 
-                 "DHADA DUKHEKO", "DISCOGENIC LBD(LOWER BACK PAIN)", "GHUDA DUKHANE", 
-                 "HADJORANI DUKHEKO", "HATH DUKHEKO", "HATH KHUTTA DUKHAI", 
-                 "KAMAR GHUDA DUKHEKOLE", "KURKUCHA DUKHNE POLNE", 
-                 "BODY ACHE", "BODY PAIN", "हात खुट्टा कम्मर दुखेको") ~ "19",
-
-    v630a %in% c("ABDOMEN PAIN", "APPENDIX", "GALLSTONE", "GASTIC", "GASTIK", "STOMACH  INFECTION",
-                 "GASTRIC INFECTION", "GASTRITIS", "HEART BURN", "DISHA GOTA PAREKO",
-                 "INTESTINE OPERATION SUDDENLY AS THERE WAS GROWTH IN HIS INTESTINE", 
-                 "KABJIYAT", "KAMMAR DUKHEKO", "KOKHA DUKHEKO", "PAYALSH", "PAYELS", 
-                 "PET DUKHANE", "PET DUKHERA", "PET DUKHERA VOMIT BHAKO", "PET KO SAMASAYA", 
-                 "PETKO OPERATION GAREKO", "PILES", "STOMACH", "STOMACH INFECTION", 
-                 "STOMACH ACHE", "STOMACH PAIN", "एपेन्डिसाइड", "ABDOMINAL PAIN",
-                 "THEY DON'T KNOW ABOUT THE ACTUAL DISEASE AS PER THE DOCTOR THEY ALSO DON'T KNOW THE ACTUAL DISEASE . GASTRIC") ~ "22",
-
-    v630a %in% c("PREGNANCY CHECK UP", "PREGNANT", 
-                 "UHA KO BREAST FEEDING GARNA KO LAGI AWASHEK MATRA MA DUDH NAPAKO HUNALEY BIGAT EK HAFTA DEKHI AAUSADHI SEWAN GARDAI HUNUNXA") ~ "25",
-
-    v630a %in% c("GHATI KO SAMASYA", "NAAK MA MASU PALAKO", "PINASH", "TONSIL", "NOSE BLEEDING") ~ "27",
-
-    v630a == "OVERALL" ~ "30",
-
-    v630a %in% c("MAHINA BARI NIHAMIT NAVAYERA", "PATHAK GHAR SAMANDI SAMASYA", 
-                 "PATHEGHAR KO OPERATION", "PATHEGHAR KO SAMASYA", "PATHEGHAR SAMBANDI SAMASYA THIYO") ~ "31",
-
-    v630a == "HEART PROBLEM" ~ "32",
-
-    v630a %in% c("HARNIYA KO OPERATION GAREKO", "HARNIYA KO OPERATION  GAREKO") ~ "33",
-
-    v630a == "HIV AIDS" ~ "34",
-
-    v630a %in% c("KIDANEY MA PATHARIYA", "KIDNEY INFECTION", "KIDNEY STONE", "KIDANEY  MA PATHARIYA",
-                 "KIDNI JACHA RA UPACHAR", "PISABMA KHARABI", "STONE OPERATION") ~ "36",
-
-    v630a %in% c("MILD LIVER DISEASE", "PATHARI", "PATHARI KO OPERATION", "PATTHARIYA", 
-                 "PITA THAILIMA PATHARI KO", "PITKO THAILI MA PATHALI", "PITTATHAILI KO OPERATION") ~ "37",
-
-    v630a == "PROSTATE" ~ "39",
-
-    v630a %in% c("BEHOSH VAYEKO EKKASHI", "DHARD KO NASA CHAPIYA KO", "MIGRAINE", 
-                 "PARALYSIS", "RINGADA CHALEKO", "RINGATA", "TAUKO DUKHAI", 
-                 "TAUKO DUKHEKO", "YAUTA LEG NACHALEKO", "RINGADA CHALNE") ~ "41",
-
-    v630a == "WORM" ~ "44",
-
-    TRUE ~ as.character(v630)
   )
-)
 
 #SECTION6C4
 
@@ -3778,13 +2552,13 @@ section6c4 <- section6c4 %>%
   v630 = case_when(
     v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", "RUGAKHOKI",
                 "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी", "RUGHA KHOKI",
-                "ROUGHA KHOLA", "COLD", "COLD") ~ "6",
+                "ROUGHA KHOLA", "COLD") ~ "6",
 
     v630a == "JONDISH LIVAR PHET MA PANI VKO" ~ "9",
 
     v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
 
-    v630a %in% c("DATA KO SAMASYA", "DAAT KO SAMASYA", "DAAT KO SAMASYA") ~ "11",
+    v630a %in% c("DATA KO SAMASYA", "DAAT KO SAMASYA") ~ "11",
 
     v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", 
                 "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL") ~ "14",
@@ -3806,8 +2580,7 @@ section6c4 <- section6c4 %>%
                 "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
                 "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
                 "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "HADDI",
-                "KARANG DUKHEKO", "JIU HATH DUKHEKO", "DHARD DUKHNA", "HAT DUKHNE SAMASAYA",
-                "DHARD DUKHNA") ~ "19",
+                "KARANG DUKHEKO", "JIU HATH DUKHEKO", "DHARD DUKHNA", "HAT DUKHNE SAMASAYA") ~ "19",
 
     v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "KAMJORIBP LOW", 
                  "INCREASES IN CHOLESTEROL LEVEL", "ANEMIA") ~ "20",
@@ -3837,7 +2610,7 @@ section6c4 <- section6c4 %>%
 
     v630a == "JANMA JATA APANGA" ~ "26",
 
-    v630a %in% c("EAR PROBLEM", "ENT", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+    v630a %in% c("EAR PROBLEM", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
                 "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", "ENT",
                 "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
                 "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE TONSIL") ~ "27",
@@ -3858,7 +2631,7 @@ section6c4 <- section6c4 %>%
 
     v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
 
-    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "FOLLOWUP OF HERNIA OPERATION", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA",
+    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA",
                  "FOLLOWUP OF HERNIA OPERATION") ~ "33",
 
     v630a == "SCROP TRIFECTA" ~ "35",
@@ -4430,131 +3203,6 @@ rm(
   chronic_outpatient, chronic_outpatient1, chronic_outpatient2, s0, s1a
 )
 
-#SECOND TRANSLATION FOR SECTION 6.2.3 
-
-chronic_outpatient <- read.xlsx("health section arrangement/CHRONIC-opd-COST-EDITED.xlsx")
-
-chronic_outpatient <- chronic_outpatient %>%
-  group_by(disease_id) %>%
-  slice(1) %>%
-  ungroup() %>%
-  rename(
-    v614a = emergency_costs, 
-    v614b = opd_charges, 
-    v614c = laboratory_costs, 
-    v614d = imaging_costs, 
-    v614e = medicine_costs, 
-    v614f = medical_supplies_costs, 
-    v614g = transportation_costs, 
-    v614h = accomodation_costs, 
-    v614i = care_giver_costs, 
-    v614j = other_costs, 
-    v614k = total_costs
-  )
-
-section6b3 <- section6b3 %>%
-  mutate(
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
-  ) %>%
-  group_by(disease_id) %>%
-  slice(1) %>%
-  ungroup()
-
-section6b3 <- section6b3 %>%
-  rows_update(
-    chronic_outpatient %>% select(disease_id, v614a:v614k), 
-    by = "disease_id", 
-    unmatched = "ignore"
-  )
-
-section6b3 <- section6b3 %>%
-  mutate(
-    across(v614a:v614k, ~ na_if(.x, 0))
-  )
-
-rm(chronic_outpatient)
-
-#SECOND TRANSLATION FOR SECTION 6.2.4
-
-chronic_inpatient <- read.xlsx("health section arrangement/chronic_inpatient_costs 4 Feb rev sent.xlsx")
-
-chronic_inpatient <- chronic_inpatient %>%
-  rename(
-    v618a = emergency_costs, 
-    v618b = bed_charges, 
-    v618c = laboratory_costs, 
-    v618d = imaging_costs, 
-    v618e = medicine_costs, 
-    v618f = medical_supplies_costs, 
-    v618g = transportation_costs, 
-    v618h = accomodation_costs, 
-    v618i = care_giver_costs, 
-    v618j = other_costs, 
-    v618k = total_costs
-  ) %>%
-  select(disease_id, v618a:v618k)
-
-section6b4 <- section6b4 %>%
-  mutate(
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
-  )
-
-section6b4 <- section6b4 %>%
-  rows_update(
-    chronic_inpatient %>% select(disease_id, v618a:v618k),
-    by = "disease_id"
-  )
-
-section6b4 <- section6b4 %>%
-  mutate(
-    across(v618a:v618k, ~ na_if(.x, 0))
-  )
-
-rm(chronic_inpatient)
-
-#SECOND TRANSLATION FOR SECTION 6.3.4
-
-acute_costs <- read.xlsx("health section arrangement/acute_costs 4 Feb.xlsx")
-
-acute_costs <- acute_costs %>%
-  rename(
-    v651a = `Emergency.v651a`, 
-    v651b = `OPD/IPD.v651b`, 
-    v651c = Lab.v651c,
-    v651d = Imagingv651d, 
-    v651e = Med.v651e,
-    v651f = Supply.v651f, 
-    v651g = Transp.v651g, 
-    v651h = Accomod.v651h, 
-    v651i = Care.Giverv651i,
-    v651j = Other.v651j,
-    v651k = Total.Cost.v651k, 
-  )
-
-section6c4 <- section6c4 %>%
-  mutate(
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
-  ) 
-
-section6c4 <- section6c4 %>%
-  rows_update(
-    acute_costs %>% select(disease_id, v651a:v651k),
-    by = "disease_id"
-  )
-
-section6c4 <- section6c4 %>%
-  mutate(
-    across(v651a:v651k, ~ na_if(.x, 0)),
-    v630 = if_else(
-    v630 == 96, 
-    19, 
-    v630
-    )
-  ) 
-
-
-rm(acute_costs)
-
 #SECTION7
 
 section7 <- section7 %>%
@@ -4980,22 +3628,6 @@ section8 <- section8 %>%
   ) %>%
   ungroup()
 
-section8 <- section8 %>%
-  group_by(psu) %>%
-  mutate(
-    across(
-      c(v806, v807, v808a, v808b, v808c, v808d, v808e, v809, v810a, v810b),
-      ~ {
-        p5   <- quantile(.x, 0.05, na.rm = TRUE)
-        p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
-
-        if_else(.x < p5 | .x > p95, mu, .x)
-      }
-    )
-  ) %>%
-  ungroup()  
-
 #SECTION9A1
 
 section9a <- section9a %>%
@@ -5398,6 +4030,8 @@ section9f2 <- section9f2 %>%
       v943
     )
   )
+
+rm(x, x2)
 
 #SECTION10
 
@@ -6500,7 +5134,7 @@ rm(
   pca_input_urban
 )
 
-dir.create("clean_data2", showWarnings = FALSE, recursive = TRUE)
+dir.create("clean_data", showWarnings = FALSE, recursive = TRUE)
 
 df_names <- ls()[sapply(ls(), function(x) is.data.frame(get(x)))]
 
@@ -6510,41 +5144,6 @@ for (nm in df_names) {
   
   write_dta(
     df,
-    file.path("clean_data2", paste0(nm, ".dta"))
+    file.path("clean_data", paste0(nm, ".dta"))
   )
 }
-
-food_grain <- section3a %>%
-  filter(v301 == 1)
-
-food_grain <- food_grain %>%
-  mutate(
-    across(v303:v305, ~ na_if(.x, 0))
-  )
-
-food_grain <- food_grain %>%
-  mutate(
-    total_grains = rowSums(
-      cbind(v303, v304, v305), 
-      na.rm = TRUE
-    )
-  )
-
-q_bounds <- quantile(food_grain$total_grains, probs = c(0.05, 0.95), na.rm = TRUE)
-
-food_grain_adjusted <- food_grain %>%
-  filter(
-    total_grains > 250,
-    total_grains < 1650
-  )
-
-lentils <- section3a %>%
-  filter(v301 == 2)
-
-lentils <- lentils %>%
-  mutate(
-    total_lentils = rowSums(
-      cbind(v303, v304, v305), 
-      na.rm = TRUE
-    )
-  )
