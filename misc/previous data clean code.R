@@ -12,7 +12,6 @@ library(flextable)
 library(stringr)
 library(stringdist)
 library(purrr)
-library(labelled)
 
 in_dir <- "stata_data"
 
@@ -140,114 +139,129 @@ section0 <- section0 %>%
   ungroup() %>%
   rename(
     employer_name = employer_name_std
-  ) %>%
-  mutate(
-    employer_name = case_when(
-    employer_name %in% c("LOO NIVA", "LOONIVA NEPAL") ~ "LOO NIVA CHILD CONCERN GROUP", 
-    employer_name == "JAYA" ~ "JAYA FURNISHERS PVTLTD",
-    employer_name == "GEMS" ~ "GEMS HIGHER SECONDARY SCHOOL",
-    employer_name == "BEVERAGE NEPAL" ~ "VARUN BEVERAGES NEPAL PVTLTD", 
-    employer_name == "SPANDAN COOPERATIVES PVTLTD" ~ "SPANDAN SAVING AND CREDIT CO OPERATION", 
-    employer_name == "LAB ASSISTANT" ~ "HYDRO LAB",
-    employer_name == "KNITTING" ~ "PURNA ENTERPRISES KNITTING", 
-    employer_name == "SUN BEAM ENGLISH SCHOOL SUNSARI" ~ "SUNBEAM ENGLISH SCHOOL", 
-    employer_name %in% c("USAN PRADESHIK BAGWANI KEDRA CENTER", "BAGWANI KENDRA") ~ "USHNA PRADESHIYA BAGBANI KENDRA",
-    employer_name %in% c("UJYALO BACHAT THATHA RIN SAHAKARI") ~ "UJYALO SAVING AND CREDIT CO-OPERATIVE",
-    employer_name %in% c("D TECH", "D TECH TRADING CZOPTICAL FIBER CABLE AND OPTICAL FUSIONS SPLICOR") ~ "D TECH TRADING",
-    employer_name %in% c("LAB TECHNICIAN") ~ "MULTI LAB",
-    employer_name %in% c("WOOD CARVING") ~ "KRITI WOOD CARVING",
-    employer_name %in% c("AFFINITY SAVING AND COOPERATIVE") ~ "AFFINITY SAVING AND CREDIT CO-OPERATIVE",
-    TRUE ~ employer_name
-  ), 
-  address_province = case_when(
-    is.na(address_province) & address_district %in% c("BARA", "PARSA", "RAUTAHAT") ~ 2, 
-    employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ 4,
-    enrollment %in% c(1, 2) ~ NA_real_,
-    TRUE ~ address_province
-  ),
-  address_district = case_when(
-    address_district == "" & address_palika == "PAROHA" ~ "RAUTAHAT", 
-    address_district == "" & address_palika == "TRIBENISUSTA" ~ "NAWALPARASI WEST",
-    address_district == "" & address_palika == "KAWASOTI" ~ "NAWALPARASI EAST", 
-    address_district == "" & address_palika == "DIPAYAL SILGADI" ~ "DOTI",
-    employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ "KASKI",
-    enrollment %in% c(1, 2) ~ "",
-    TRUE ~ address_district
-  ),
-  address_palika = case_when(
-    employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ "POKHARA",
-    enrollment %in% c(1, 2) ~ "",
-    TRUE ~ address_palika
-  ),
-  address_ward = case_when(
-    is.na(address_ward) & employer_name == "JAYA FURNISHERS PVTLTD" ~ 8, 
-    enrollment %in% c(1, 2) ~ NA_real_,
-    TRUE ~ address_ward
-  ),
-  employer_sector = case_when(
-    is.na(employer_sector) & employer_name == "BISHABAZAR COMPANY" ~ 7,
-    is.na(employer_sector) & employer_name == "CASINO MAJHO" ~ 19,
-    is.na(employer_sector) & employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ 20,
-    TRUE ~ employer_sector
-  ),
-  employer_size = case_when(
-    is.na(employer_size) & employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ 20,
-    TRUE ~ employer_size
   )
-)
 
 #SECTION1A
 
 section1a <- section1a %>%
   mutate(
     hhid = paste0(psu, "-", hhld),
-    uniq_id = paste0(psu, "-", hhld, "-", v101)
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+
+    v105_num  = grepl("[0-9]", v105a),
+    v105_tmp  = if_else(v105_num, v105a, v105),
+    v105a_tmp = if_else(v105_num, v105,  v105a),
+
+    v106_num  = grepl("[0-9]", v106a),
+    v106_tmp  = if_else(v106_num, v106a, v106),
+    v106a_tmp = if_else(v106_num, v106,  v106a),
+
+    v107_num  = grepl("[0-9]", v107a),
+    v107_tmp  = if_else(v107_num, v107a, v107),
+    v107a_tmp = if_else(v107_num, v107,  v107a)
   ) %>%
-  select(-v106a) %>%
   mutate(
-    v101 = case_when(
-      personid == 5953297 ~ 1,
-      personid == 5953298 ~ 2,
-      personid == 5953299 ~ 3,
-      personid == 5953300 ~ 4,
-      TRUE ~ v101
-    ),
+    v105  = v105_tmp,
+    v105a = v105a_tmp,
+    v106  = v106_tmp,
+    v106a = v106a_tmp,
+    v107  = v107_tmp,
+    v107a = v107a_tmp
+  ) %>%
+  select(-ends_with("_num"), -ends_with("_tmp")) %>%
+  mutate(
+    v104a = as.numeric(gsub("[^0-9]", "", v104a)),
     v103 = case_when(
       v102 == "PRASANSHA BISTA" ~ 2, 
       TRUE ~ v103
     ),
     v103 = if_else(v103 == 96, 3, v103),
-    v104b = case_when(
-      v104a < 5 & v104a > 0 ~ (v104a * 12),
-      v104b == 0 ~ NA_real_, 
-      TRUE ~ v104b
+    v104a = if_else(is.na(v104a), 0, v104a),
+    v105 = case_when(
+      grepl("KUMHAL", v105, ignore.case = TRUE) ~ "3",
+      grepl("NEWAR|SHRESTHA|THARU|SIMANTRAKIT|SIMANTAKRIT", v105, ignore.case = TRUE) ~ "2",
+      v105a %in% c(
+        " SIMANTRAKRIT", " ATI SIMANTAKRIT", " ATI SIMANTKRIT", " ATISIMANTKRIT",
+        " ATISEMANTKRIT", " ATI SEMANTKRIT", " ATI SEMANTRAKRIT", " SIMANTAKRIT",
+        " SIMANTRAKIT", " SIMANTRAKRIT", " ATI SIMANTRAKRIT",
+        "CHEPANG", "CEPANG", " NEWAR", " THARU"
+      ) ~ "2",
+      v105a %in% c(" KUMHAR") ~ "3",
+      v105a %in% c(" SANYASI", " JOGI") ~ "1",
+      hhid %in% c("3101-19", "3101-20") ~ "2",
+      hhid %in% c("5104-16") ~ "3",
+      personid %in% c(5952789) ~ "1", 
+      ID %in% c(14569) ~ "2", 
+      ID %in% c(14526) ~ "1",
+      TRUE ~ v105
     ),
-    v104a = case_when(
-      personid == 51629 ~ 67, 
-      personid == 5949620 ~ 45, 
-      personid == 51645 ~ 44, 
-      personid == 5951111 ~ 42, 
-      personid == 27500 ~ 14,
-      TRUE ~ v104a
+    v106 = case_when(
+      v106a %in% c(" SACHHAI") ~ "5",
+      v106a %in% c(" NEWAR") ~ "1",
+      personid %in% c("5952247", "PUJA RANABHAT") ~ "1", 
+      ID %in% c("14468") ~ "2",
+      ID %in% c("11084", "11085") ~ "1",
+      v106a %in% c(" YUMA") ~ "6",
+      v102 %in% c("IRFAN AALAM") ~ "3",
+      TRUE ~ v106
     ),
+    v107  = as.numeric(gsub("[^0-9]", "", v107)),
     v107 = case_when(
-      v107 %in% c(11, 16) ~ 9,   #DEWAR/DEWARANI AND NANDA KEPT IN NUMERIC CODE 9 (BROTHER/SISTER-IN-LAW)
-      v107 %in% c(14, 15) ~ 6,   #DIDI/FUPU KEPT IN NUMERIC CODE 6 (BROTHER/SISTER)
-      v107 %in% c(96) ~ 11,      #ALL THE OTHER CATEGORIZED WITH NO DESCRIPTION ARE KEPT IN NON-RELATIVE
+      v107a %in% c(
+        "VAI KO CHORI", "DAIKO XORI", " SAUTHELO XORA", " PALEKO XORI"
+      ) ~ 3, 
+      v107a %in% c(
+        " PANATINI", "PALATI", " PANATI"
+      ) ~ 4,
+      v107a %in% c(
+        "BAINI PARNE", " BHADAINI", "BHADA", "BHADAINI", "SADU DIDI", " DIDI", 
+        " PHUPU", " DIDI", " BHADAI"
+      ) ~ 6, 
+      v107a %in% c(
+        " BAHINI KO CHHORI", " BAHINI KO XORA", "BAINIKO XORA", "VANJA", "BAHENIKO CHORA", "BHANJA",
+        "BHANJI", "SALI KO CHHORA", " BHANJA", " BHANJI", " BHANJA"
+      ) ~ 7,
+      v107a %in% c(
+        "JAWAI", "NATINI JWAI", "NATINI BUHARI", " NATINI BUHARI", " SAUTELEY BUHARI"
+      ) ~ 8,
+      v107a %in% c(
+        "DEWAR", "DEWARANI", " DEURANI", " DEWAR", " NANDA", " JETHAJU", " JETHANI", " NANDA"
+      ) ~ 9, 
+      v107a %in% c(
+        " FUPU SASU", " BUDHI SASU", " SASURA"
+      ) ~ 10, 
+      v107a %in% c(
+        "XORI MANNU VAYERA RAAKHNU VAKO"
+      ) ~ 11,
+      v107a %in% c(
+        " HAJUR AAMA", " GRANDMOTHER", " HAJURAAMA", "हजुरआमा", " HAJUR BABA", " HAJUR BABA", " HAJUR AAMA",
+        " HAJURAMA", "HAJURAMA"
+      ) ~ 12, 
       TRUE ~ v107
-    ),
+    )
+  ) %>%
+  mutate(
+    ID   = as.numeric(ID),
+    psu  = as.numeric(psu),
+    ward = as.numeric(ward),
+    hhld = as.numeric(hhld),
+    v101 = as.numeric(v101),
+    v103 = as.numeric(v103),
+    v105 = as.numeric(v105),
+    v106 = as.numeric(v106),
+    v107 = as.numeric(v107),
+    v108 = as.numeric(v108),
+    v109 = as.numeric(v109),
+    v110 = as.numeric(v110)
+  ) %>%
+  mutate(
     v108 = case_when(
     is.na(v108) & v109 %in% c(3, 4) ~ 0,
     is.na(v108) & v109 == 1 ~ 12,
-    TRUE ~ v108
-    ),
-    v109 = case_when(
-      v108 == 12 & v109 != 1 ~ 1, 
-      TRUE ~ v109
-    )
+    TRUE ~ v108)
   ) %>%
   filter(
-    !personid %in% c(11229)
+    !personid %in% c(5952899, 13355, 13861, 15077)
   )
 
 section1a <- section1a %>%
@@ -256,16 +270,16 @@ section1a <- section1a %>%
   ungroup() %>%
   mutate(
     v107 = case_when(
-      v102 == "MITRA KUMARI DHAMALA" & id == 1602 ~ 2,
-      v102 == "KAMALA DEVI SARU" & id == 9772 ~ 2,
-      v102 == "RISHI KUMAR MAHATO" & id == 11730 ~ 3,
-      v102 == "PARBATI TIMILSINA" & id == 12264 ~ 2,
-      v102 == "GANGA DEI SHRESTHA" & id == 12267 ~ 2, 
-      v102 == "SAURAV BHANDARI" & id == 12281 ~ 3,
-      v102 == "AABHASH DHAMI" & id == 12425 ~ 3,
-      v102 == "RADHA KC" & id == 14105 ~ 2, 
-      v102 == "KARNA BDR BUDHA MAGAR" & id == 14433 ~ 2, 
-      v102 == "MANISHA TAMANG" & id == 14583 ~ 3,
+      v102 == "MITRA KUMARI DHAMALA" & hhid == "3211-6" ~ 2,
+      v102 == "KAMALA DEVI SARU" & hhid == "4206-3" ~ 2,
+      v102 == "RISHI KUMAR MAHATO" & hhid == "2205-15" ~ 3,
+      v102 == "PARBATI TIMILSINA" & hhid == "5111-7" ~ 2,
+      v102 == "GANGA DEI SHRESTHA" & hhid == "5111-9" ~ 2, 
+      v102 == "SAURAV BHANDARI" & hhid == "5209-15" ~ 3,
+      v102 == "AABHASH DHAMI" & hhid == "7104-15" ~ 3,
+      v102 == "RADHA KC" & hhid == "5211-16" ~ 2, 
+      v102 == "KARNA BDR BUDHA MAGAR" & hhid == "6103-21" ~ 2, 
+      v102 == "MANISHA TAMANG" & hhid == "3444-3" ~ 3,
       v107 == 96 ~ 11,
       TRUE ~ v107
     )
@@ -1921,7 +1935,7 @@ section5 <- section5 %>%
   ) %>%
   ungroup()
 
-#SECTION6A
+#SECTION6
 
 section1a <- section1a %>%
   mutate(
@@ -1994,6 +2008,129 @@ section6a <- section6a %>%
 #SECTION6B1
 
 section6b1 <- section6b1 %>%
+  mutate(
+    v604a = trimws(v604a),
+    v604 = case_when(
+    
+    v604a %in% c("MUTUROG", "COLESTEROL", "CHLOSTROAL", "CHOLEDTEROL", 
+                 "CHORESTEROL", "COLDSTORE", "COLESTER", "COLESTROME", 
+                 "COLSTORE", "COLSTRORE", "कोलेस्ट्रोल", "CHOLESTEROL") ~ "1",
+    
+    v604a %in% c("BP", "PRESSURE", "PRESSURE RA MANASIK ROG", 
+                 "PRESSURE/SUGAR/THYROID", "LOW BLOOD PRESSURE", "96") ~ "2",
+    
+    v604 == "96" & v604a %in% c("") ~ "2",
+    
+    v604a %in% c("DIABETES", "DIABETIC", "SUGAR", "SUGAR BLOOD PRESSURE") ~ "3",
+    
+    v604a %in% c("BATH", "GHUNDAKO HADDI KHIYEKO.", "LUNGS KO BATHH VANNI", "LUPUS", "LUPUS") ~ "5",
+    
+    v604a %in% c("KIDNEY STONES KO UPRESAN GAREKO", "PATHTHARI", "PIABKO SAMASYAA", 
+                 "PISAB BANDA HUNE GAREKO", "STONE", "STONE IN URINE PIPE", "PATTHARI") ~ "6",
+    
+    v604a %in% c("JNDISH", "HEPATITIS", "JAUNDICE", "LIVER KO SAMSYA") ~ "7",
+    
+    v604a %in% c("BONE MARROW TRANSPLANT", "BRAIN TUMOR", "CANCER", "TONGUE CANCER") ~ "8",
+    
+    v604a %in% c("MIRGI", "SEIZURE", "SIJAR") ~ "9",
+    
+    v604a %in% c("GANL TB", "TUBOC") ~ "10",
+    
+    v604a %in% c("THOYRED", "THYROID") ~ "12",
+    
+    v604a %in% c("ULCER", "AANDRA KO OPERATION GAREKO PIPE BAT STOOL GARNE GAREKO 2081_01-12 DEKHI", 
+                 "ALSAR", "ANDRA MA GHAU", "APPENDIX", "BABASHIL", "GALLBLADDER STONES", 
+                 "GATRIC", "PAYALS", "PET DUKHNA", "PILES", "PIT KO THAILIMA PATHALI") ~ "13",
+    
+    v604a %in% c("BACK PA", "THERAPY", "DHARD PET DUKHNA", "LEGAMENT KO SURGERY VKO", 
+                 "SARIR MANOJ HATT JODA DUKHNA") ~ "15",
+    
+    v604a %in% c("NEURO DISEASE", "SNAYU", "परलासिस", "CEREBRAL PAIN", 
+                 "MASTISK PAKSHYAGHAT(CP)", "MIGRAIN", "MIGRAINE", "MIGRANE", 
+                 "NEURO", "PARALYSIS", "PARALYZED", "TAU KO DUKHNA SAMYASYA", 
+                 "TAUKO DUKHNE PURANO ROG", "TAUKO KO", "TAUKO KO DUKAI", 
+                 "LEFT HAND NACHALNEY") ~ "16",
+    
+    v604a %in% c("DEPRESSION", "ANJEITY", "ANXIETY", "HALLUCINATIONS") ~ "18",
+    
+    v604a %in% c("URIC ACID", "URIC ACID RA PROSTHETICS", "URIK ASID", "URIQE ACID", "URIC  ACID") ~ "20",
+    
+    v604a %in% c("POSTATE", "POSTED", "POSTERT", "PROSTATE", "PROSTED", "PROSTHETIC", 
+                 "PROSTRATE", "PROTESTED KO SAMASYA", "URINE INFECTION") ~ "21",
+    
+    v604a %in% c("EAR PROBLEM", "ENT BIRAMI", "GHATI DUKHNAY", "PINASH") ~ "22",
+    
+    v604a %in% c("ACNE ISSUES", "ALLERGY", "CHHALA ROG DAJ", "DAJ", "SKIN ALLERGIES", 
+                 "SKIN ALLERGY", "SKIN ELERGY", "SKIN PROBLEM", "SKIN ROG", "XALA SAMBANDHI") ~ "23",
+    
+    v604a %in% c("AAKHAKO SAMASYA", "EYE", "EYE INFECTION", "EYE ISSUES", "EYE PROBLEM", 
+                 "EYE PROBLEMS", "JALABINDU", "JALBINDU", "JALBINDU VAYEKO", 
+                 "JALBINDU VAYEKO REGULAR MEDICINE LAGAUNE PARXA") ~ "24",
+    
+    v604a %in% c("ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA MAA CHOT PAREKO", 
+                 "DISLOCATED BACKBONE", "RIGHT HAND DISABLE DUE TO INJURY", "LEGAMENT KO  SURGERY VKO") ~ "26",
+    
+    v604a %in% c("LUNGS PROBLEM") ~ "27",
+    
+    v604a %in% c("BLOOD BAKLO VAYEKO", "BLOOD PATALO GARAUNAY", "NASA KO DABAI", 
+                 "NASA SAMBANDHI", "OVER WEIGHT", "SICKLE CELL ANEMIA", 
+                 "SICKLECELL ANIMIYA", "SPLEEN PROBLEM", "ANEMIA", "VARICOSE VEINS") ~ "28",
+    
+    v604a %in% c("AUTISTIC", "DISABLE", "PURNA APANGA") ~ "30",
+
+    v604 %in% c("CHLORESTROL", "CHLOSTROAL", "CHOLESTEROL", "COLDSTORE", 
+                "COLESTER", "COLSTRORE", "COLESTEROL") ~ "1",
+    
+    v604 %in% c("MUTUROG BLOOD PRESSURE", "PRESSURE LOW", "SUGAR BLOOD PRESSURE") ~ "2",
+    
+    v604 %in% c("DIABETES", "SUGAR") ~ "3",
+    
+    v604 %in% c("DAM", "DAM KO ROGI") ~ "4",
+    
+    v604 %in% c("KNEE PAIN", "LEG SWELLING") ~ "5",
+    
+    v604 %in% c("KIDNEY MA PATHALI", "KIDNEY STONES", "PATTHARI") ~ "6",
+    
+    v604 %in% c("ALCOLOHISM", "HE HAD TO BE HOSPITALIZED THIS YEAR DUE TO EXCESSIVE ALCOHOL CONSUMPTION") ~ "7",
+    
+    v604 %in% c("BREASTMA GATHO BHAKO", "TUMOR PETMA ( LIPOMA)") ~ "8",
+    
+    v604 %in% c("TB ROG") ~ "10",
+    
+    v604 %in% c("GASTRIC", "PILES", "ULCER", "ULCERS") ~ "13",
+    
+    v604 %in% c("BRAIN PROBLEM", "BRAIN PROBLEM - SCARS", "MIGRAINE", "MIGRAINE SAMBANDI", 
+                "PARALICSES", "PARALYSIS", "PARTIAL PARALYSIS") ~ "16",
+    
+    v604 %in% c("ANZITY") ~ "18",
+    
+    v604 %in% c("URIC ACID") ~ "20",
+    
+    v604 %in% c("HYDROCELE", "PISAB KO SAMASYA PROSTATE", "PISAB ROKKINE SAMASYA", 
+                "PISAB THAILI KO PROBLEM", "PISABKO KHARABI", "PROSTATE", 
+                "PROSTATE PROBLEM", "PROSTED", "PROSTRATE", "URINE INFECTION") ~ "21",
+    
+    v604 %in% c("BODY ALLERGY", "CHALA SAMBANDHI", "KHUTTA MA DAG TAI CHILAUNA", 
+                "SKIN ELERGY", "SKIN PROBLEM", "छालाको समस्या छाला रोग") ~ "23",
+    
+    v604 %in% c("AAKHA SAMBANDHI SAMASYA", "AAKHAKO - MOTIBIDNU SAMASYA", 
+                "AKHA SAMBANDI", "MOTIBINDU", "RETINA PROBLEM JALBINDU") ~ "24",
+    
+    v604 %in% c("CHEST PROBLEM", "CHHATI SAMBANDHI SAMASYA", "PHOKSO KO PROBLEM", 
+                "PLEURAL EFFUSION") ~ "27",
+    
+    v604 %in% c("POLYCYTHEMIA VERA", "RAGAT KO KAMI", "SICKLE CELL") ~ "28",
+    
+    v604 %in% c("AAPANGA", "DIFFERENTLY ABLE", "DISABILITY", "DOWN SYNDROME", 
+                "INTELLECTUAL DISABILITY", "PURNA APANGA BHAYAKO KO") ~ "30",
+    
+    v604 %in% c("BUDO VAYARA KAMJORI VAYO KARAN") ~ "31",
+    
+    TRUE ~ as.character(v604)
+  )
+)
+
+section6b1 <- section6b1 %>%
   mutate(v610 = v610a) %>%
   rename(
     v610n_1 = v610b
@@ -2053,6 +2190,11 @@ section6b1 <- section6b1 %>%
   v611 = v611_1
   ) 
   
+
+for (i in setdiff(1:ncol(section6b1), c(2, 7, 8, 14, 21, 22, 23, 38))) {
+  section6b1[[i]] <- as.numeric(gsub("[^0-9]", "", section6b1[[i]]))
+}
+
 section1a <- section1a %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101)
@@ -2080,7 +2222,7 @@ section6b1 <- section6b1 %>%
     ), 
     v606 = case_when(
       personid == 53948 ~ 1,
-      v606 > 2000 ~ (2082 - v606), 
+      v606 > 2000 ~ 2082 - v606, 
       personid == 54361 ~ 2, 
       personid == 11829 ~ 2, 
       v606 > v104a ~ round(mean(v606)),
@@ -2187,6 +2329,7 @@ section6b1 <- section6b1 %>%
       personid == 32028 & v604 == 2 ~ 21,
       personid == 54293 & v604 == 2 ~ 16,
       personid == 15055 & v604 == 2 ~ 22,
+      personid == 23262 & v604 == 2 ~ 21,
       personid == 53926 & v604 == 2 ~ 8,
       personid == 14761 & v604 == 2 ~ 1,
       personid == 14714 & v604 == 2 ~ 16,
@@ -2236,24 +2379,12 @@ section6b1 <- section6b1 %>%
       personid == 27181 & v604 == 2 ~ 27, 
       personid == 59334 & is.na(v604) ~ 30,
       personid == 3745 & v604 == 2 ~ 16,
-      personid == 5949831 & v604 == 96 ~ 2,
-      personid == 49700 & v604 == 96 ~ 2,
-      personid == 51968 & v604 == 96 ~ 2,
-      personid == 29664 & v604 == 1 ~ 2, 
-      personid == 15089 & v604 == 1 ~ 2,
-      personid == 5949198 & v604 == 96 ~ 2,
-      personid == 15055 & v604 == 96 ~ 22, 
-      personid == 12062 & v604 == 96 ~ 2, 
-      personid == 9556 & v604 == 96 ~ 2,
-      personid == 57983 & v604 == 1 ~ 2,
-
       TRUE ~ v604
     )
-  ) 
-
-section6b1 <- section6b1 %>%
-  mutate(disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604))
-  
+  ) %>%
+  filter(
+      personid != 15077
+  )
 
 section6b1 <- section6b1 %>%
   mutate(
@@ -2279,23 +2410,12 @@ section6b1 <- section6b1 %>%
   ungroup()
 
 section6b1 <- section6b1 %>%
-  select(
-    -`v603 == if_else(!is.na(v604), 1, 2)`, -uniq_id, -v610a1, -v610a2, -v610a3, -v610a4, -v610a5, 
-    -v6111, -v6112, -v6113, -v6114, -v6115, - interviewer, -employer, -employer_name, -employer_sector, 
-    -employer_size, -disease_id, -uniq_id
-  )
+  select(-`v603 == if_else(!is.na(v604), 1, 2)`, -uniq_id)
 
-section6b1_added_rows <- read.xlsx("misc/health section arrangement/section6b1_added_rows.xlsx")
+section6b1_added_rows <- read.xlsx("health section arrangement/input_outpatients.xlsx")
 
 section6b1_added_rows <- section6b1_added_rows %>%
-  mutate(
-    enrollment = as.numeric(enrollment), 
-    province = as.numeric(province), 
-    district = as.numeric(district), 
-    palika_type = as.numeric(palika_type), 
-    v610n_1 = as.character(v610n_1), 
-    v611m_1 = as.character(v611m_1)
-  )
+  select(-uniq_id, -disease_id) 
 
 section6b1 <- rbind(
   section6b1, section6b1_added_rows
@@ -2305,20 +2425,280 @@ section6b1 <- section6b1 %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101),
     disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
-  ) %>%
-  group_by(disease_id) %>%
-  slice(1) %>%
-  ungroup()
+  )
 
-section6b1 <- merge(
-  section6b1, 
-  section0[, c("uid", "interviewer", "employer", "employer_name", "employer_sector", "employer_size")],
-  by = "uid"
+#SECTION6B2
+
+section6b2 <- section6b2 %>%
+  mutate(
+    v604a = trimws(v604a),
+    v604 = case_when(
+    
+    v604a %in% c("MUTUROG", "COLESTEROL", "CHLOSTROAL", "CHOLEDTEROL", 
+                 "CHORESTEROL", "COLDSTORE", "COLESTER", "COLESTROME", 
+                 "COLSTORE", "COLSTRORE", "कोलेस्ट्रोल", "CHOLESTEROL") ~ "1",
+    
+    v604a %in% c("BP", "PRESSURE", "PRESSURE RA MANASIK ROG", 
+                 "PRESSURE/SUGAR/THYROID", "LOW BLOOD PRESSURE", "96") ~ "2",
+    
+    v604 == "96" & v604a %in% c("") ~ "2",
+    
+    v604a %in% c("DIABETES", "DIABETIC", "SUGAR", "SUGAR BLOOD PRESSURE") ~ "3",
+    
+    v604a %in% c("BATH", "GHUNDAKO HADDI KHIYEKO.", "LUNGS KO BATHH VANNI", "LUPUS", "LUPUS") ~ "5",
+    
+    v604a %in% c("KIDNEY STONES KO UPRESAN GAREKO", "PATHTHARI", "PIABKO SAMASYAA", 
+                 "PISAB BANDA HUNE GAREKO", "STONE", "STONE IN URINE PIPE", "PATTHARI") ~ "6",
+    
+    v604a %in% c("JNDISH", "HEPATITIS", "JAUNDICE", "LIVER KO SAMSYA") ~ "7",
+    
+    v604a %in% c("BONE MARROW TRANSPLANT", "BRAIN TUMOR", "CANCER", "TONGUE CANCER") ~ "8",
+    
+    v604a %in% c("MIRGI", "SEIZURE", "SIJAR") ~ "9",
+    
+    v604a %in% c("GANL TB", "TUBOC") ~ "10",
+    
+    v604a %in% c("THOYRED", "THYROID") ~ "12",
+    
+    v604a %in% c("ULCER", "AANDRA KO OPERATION GAREKO PIPE BAT STOOL GARNE GAREKO 2081_01-12 DEKHI", 
+                 "ALSAR", "ANDRA MA GHAU", "APPENDIX", "BABASHIL", "GALLBLADDER STONES", 
+                 "GATRIC", "PAYALS", "PET DUKHNA", "PILES", "PIT KO THAILIMA PATHALI") ~ "13",
+    
+    v604a %in% c("BACK PA", "THERAPY", "DHARD PET DUKHNA", "LEGAMENT KO SURGERY VKO", 
+                 "SARIR MANOJ HATT JODA DUKHNA") ~ "15",
+    
+    v604a %in% c("NEURO DISEASE", "SNAYU", "परलासिस", "CEREBRAL PAIN", 
+                 "MASTISK PAKSHYAGHAT(CP)", "MIGRAIN", "MIGRAINE", "MIGRANE", 
+                 "NEURO", "PARALYSIS", "PARALYZED", "TAU KO DUKHNA SAMYASYA", 
+                 "TAUKO DUKHNE PURANO ROG", "TAUKO KO", "TAUKO KO DUKAI", 
+                 "LEFT HAND NACHALNEY") ~ "16",
+    
+    v604a %in% c("DEPRESSION", "ANJEITY", "ANXIETY", "HALLUCINATIONS") ~ "18",
+    
+    v604a %in% c("URIC ACID", "URIC ACID RA PROSTHETICS", "URIK ASID", "URIQE ACID", "URIC  ACID") ~ "20",
+    
+    v604a %in% c("POSTATE", "POSTED", "POSTERT", "PROSTATE", "PROSTED", "PROSTHETIC", 
+                 "PROSTRATE", "PROTESTED KO SAMASYA", "URINE INFECTION") ~ "21",
+    
+    v604a %in% c("EAR PROBLEM", "ENT BIRAMI", "GHATI DUKHNAY", "PINASH") ~ "22",
+    
+    v604a %in% c("ACNE ISSUES", "ALLERGY", "CHHALA ROG DAJ", "DAJ", "SKIN ALLERGIES", 
+                 "SKIN ALLERGY", "SKIN ELERGY", "SKIN PROBLEM", "SKIN ROG", "XALA SAMBANDHI") ~ "23",
+    
+    v604a %in% c("AAKHAKO SAMASYA", "EYE", "EYE INFECTION", "EYE ISSUES", "EYE PROBLEM", 
+                 "EYE PROBLEMS", "JALABINDU", "JALBINDU", "JALBINDU VAYEKO", 
+                 "JALBINDU VAYEKO REGULAR MEDICINE LAGAUNE PARXA") ~ "24",
+    
+    v604a %in% c("ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA MAA CHOT PAREKO", 
+                 "DISLOCATED BACKBONE", "RIGHT HAND DISABLE DUE TO INJURY", "LEGAMENT KO  SURGERY VKO") ~ "26",
+    
+    v604a %in% c("LUNGS PROBLEM") ~ "27",
+    
+    v604a %in% c("BLOOD BAKLO VAYEKO", "BLOOD PATALO GARAUNAY", "NASA KO DABAI", 
+                 "NASA SAMBANDHI", "OVER WEIGHT", "SICKLE CELL ANEMIA", 
+                 "SICKLECELL ANIMIYA", "SPLEEN PROBLEM", "VARICOSE VEINS") ~ "28",
+    
+    v604a %in% c("AUTISTIC", "DISABLE", "PURNA APANGA") ~ "30",
+
+    v604 %in% c("CHLORESTROL", "CHLOSTROAL", "CHOLESTEROL", "COLDSTORE", 
+                "COLESTER", "COLSTRORE", "COLESTEROL") ~ "1",
+    
+    v604 %in% c("MUTUROG BLOOD PRESSURE", "PRESSURE LOW", "SUGAR BLOOD PRESSURE") ~ "2",
+    
+    v604 %in% c("DIABETES", "SUGAR") ~ "3",
+    
+    v604 %in% c("DAM", "DAM KO ROGI") ~ "4",
+    
+    v604 %in% c("KNEE PAIN", "LEG SWELLING") ~ "5",
+    
+    v604 %in% c("KIDNEY MA PATHALI", "KIDNEY STONES", "PATTHARI") ~ "6",
+    
+    v604 %in% c("ALCOLOHISM", "HE HAD TO BE HOSPITALIZED THIS YEAR DUE TO EXCESSIVE ALCOHOL CONSUMPTION") ~ "7",
+    
+    v604 %in% c("BREASTMA GATHO BHAKO", "TUMOR PETMA ( LIPOMA)") ~ "8",
+    
+    v604 %in% c("TB ROG") ~ "10",
+    
+    v604 %in% c("GASTRIC", "PILES", "ULCER", "ULCERS") ~ "13",
+    
+    v604 %in% c("BRAIN PROBLEM", "BRAIN PROBLEM - SCARS", "MIGRAINE", "MIGRAINE SAMBANDI", 
+                "PARALICSES", "PARALYSIS", "PARTIAL PARALYSIS") ~ "16",
+    
+    v604 %in% c("ANZITY") ~ "18",
+    
+    v604 %in% c("URIC ACID") ~ "20",
+    
+    v604 %in% c("HYDROCELE", "PISAB KO SAMASYA PROSTATE", "PISAB ROKKINE SAMASYA", 
+                "PISAB THAILI KO PROBLEM", "PISABKO KHARABI", "PROSTATE", 
+                "PROSTATE PROBLEM", "PROSTED", "PROSTRATE", "URINE INFECTION") ~ "21",
+    
+    v604 %in% c("BODY ALLERGY", "CHALA SAMBANDHI", "KHUTTA MA DAG TAI CHILAUNA", 
+                "SKIN ELERGY", "SKIN PROBLEM", "छालाको समस्या छाला रोग") ~ "23",
+    
+    v604 %in% c("AAKHA SAMBANDHI SAMASYA", "AAKHAKO - MOTIBIDNU SAMASYA", 
+                "AKHA SAMBANDI", "MOTIBINDU", "RETINA PROBLEM JALBINDU") ~ "24",
+    
+    v604 %in% c("CHEST PROBLEM", "CHHATI SAMBANDHI SAMASYA", "PHOKSO KO PROBLEM", 
+                "PLEURAL EFFUSION") ~ "27",
+    
+    v604 %in% c("POLYCYTHEMIA VERA", "RAGAT KO KAMI", "SICKLE CELL") ~ "28",
+    
+    v604 %in% c("AAPANGA", "DIFFERENTLY ABLE", "DISABILITY", "DOWN SYNDROME", 
+                "INTELLECTUAL DISABILITY", "PURNA APANGA BHAYAKO KO") ~ "30",
+    
+    v604 %in% c("BUDO VAYARA KAMJORI VAYO KARAN") ~ "31",
+    
+    TRUE ~ as.character(v604)
+  )
 )
 
-rm(section6b1_added_rows)
-
 #SECTION6B3
+
+section6b3 <- section6b3 %>%
+  rename(
+    v604 = v614
+  ) %>%
+  mutate(
+    v604_num = as.numeric(str_extract(v604, "\\d+")),
+
+    v604_txt = str_trim(
+      str_remove_all(v604, "\\d+|,")
+    ),
+
+    v604  = v604_num,
+    v604a = if_else(v604_txt != "", v604_txt, NA_character_)
+  ) %>%
+  select(-v604_num, -v604_txt, -v613, -v613b) 
+
+section6b3 <- section6b3 %>%
+  mutate(
+    v604a = trimws(v604a),
+    
+    v604 = case_when(
+      is.na(v604a) & v604 == 96 ~ 2,
+      v604a %in% c("MUTUROG", "COLESTEROL", "CHLOSTROAL", "CHOLEDTEROL", 
+                   "CHORESTEROL", "COLDSTORE", "COLESTER", "COLESTROME", 
+                   "COLSTORE", "COLSTRORE", "कोलेस्ट्रोल", "CHOLESTEROL", 
+                   "CHOLOSTREL", "CHLOSTROL", "CHOLESTEROLPROSTATE", "COLSTROL", 
+                   "COLDSTORAL", "COL", "COL STORE", "CHOLESTEROL PROSTATE", 
+                   "CHLORESTROL", "CHOLESTROL", "WEIGHT LOSS MEDICATION") ~ 1,
+      
+      v604a %in% c("BP", "PRESSURE", "PRESSURE RA MANASIK ROG", "BLOOD PRESSURE$ MOTUROG",
+                   "PRESSURE/SUGAR/THYROID", "LOW BLOOD PRESSURE", "96", 
+                   "MUTUROG BLOOD PRESSURE", "PRESSURE LOW", "BP LOW") ~ 2,
+      
+      (v604 == 96 | v604 == "96") & (v604a == "" | is.na(v604a)) ~ 2,
+      
+      v604a %in% c("DIABETES", "DIABETIC", "SUGAR", "SUGAR BLOOD PRESSURE") ~ 3,
+      
+      v604a %in% c("DAM", "DAM KO ROGI") ~ 4,
+      
+      v604a %in% c("BATH", "GHUNDAKO HADDI KHIYEKO.", "LUNGS KO BATHH VANNI", 
+                   "LUPUS", "KNEE PAIN", "LEG SWELLING", "GHUNDAKO HADDI KHIYEKO") ~ 5,
+      
+      v604a %in% c("KIDNEY STONES KO UPRESAN GAREKO", "PATHTHARI", "PIABKO SAMASYAA", 
+                   "PISAB BANDA HUNE GAREKO", "STONE", "STONE IN URINE PIPE", "PATHARI",
+                   "PATTHARI", "PACHTHARI", "KIDNEY MA PATHALI", "KIDNEY STONES", "PISAB BANDA HUNE",
+                   "PISABKO SAMASYA", "PISAB ROKKINE SAMASYAA", "KIDNEY STONES CAUSE OPESAN") ~ 6,
+      
+      v604a %in% c("JNDISH", "HEPATITIS", "JAUNDICE", "LIVER KO SAMSYA", "EXCESSIVE ALCOHOL CONSUMPTION",
+                   "ALCOLOHISM", "HE HAD TO BE HOSPITALIZED THIS YEAR DUE TO EXCESSIVE ALCOHOL CONSUMPTION",
+                   "LIBAR KO SAMSYA") ~ 7,
+      
+      v604a %in% c("BONE MARROW TRANSPLANT", "BRAIN TUMOR", "CANCER", "BREAST MA GATHO AAKO",
+                   "TONGUE CANCER", "BREASTMA GATHO BHAKO", "TUMOR PETMA ( LIPOMA)",
+                   "PET MA TUMOR ( LIPOMA)") ~ 8,
+      
+      v604a %in% c("MIRGI", "SEIZURE", "SIJAR") ~ 9,
+      
+      v604a %in% c("GANL TB", "TUBOC", "TB ROG") ~ 10,
+      
+      v604a %in% c("THOYRED", "THYROID") ~ 12,
+      
+      v604a %in% c("ULCER", "ULCERS", "ALSAR", "ANDRA MA GHAU", "APPENDIX", "DIGESTIVE",
+                   "BABASHIL", "GALLBLADDER STONES", "GATRIC", "GASTRIC", "ANDRA MA SAMASYA",
+                   "PAYALS", "PET DUKHNA", "PILES", "PIT KO THAILIMA PATHALI", 
+                   "AANDRA KO OPERATION GAREKO PIPE BAT STOOL GARNE GAREKO 2081_01-12 DEKHI",
+                   "PILES KO LAI SHE SOMETIMES USES OINTMENT BUT MOSTLY TAKES AYURVEDIC MEDICINE") ~ 13,
+      
+      v604a %in% c("BACK PA", "THERAPY", "DHARD PET DUKHNA", 
+                   "SARIR MANOJ HATT JODA DUKHNA") ~ 15,
+      
+      v604a %in% c("NEURO DISEASE", "SNAYU", "परलासिस", "CEREBRAL PAIN", 
+                   "MASTISK PAKSHYAGHAT(CP)", "MIGRAIN", "MIGRAINE", "MIGRANE", 
+                   "NEURO", "PARALYSIS", "PARALYZED", "PARALICSES", 
+                   "TAU KO DUKHNA SAMYASYA", "TAUKO DUKHNE PURANO ROG", 
+                   "TAUKO KO", "TAUKO KO DUKAI", "LEFT HAND NACHALNEY", 
+                   "BRAIN PROBLEM", "BRAIN PROBLEM - SCARS", "MIGRAINE SAMBANDI", 
+                   "PARTIAL PARALYSIS", "TAU KO SAMYASYA", "PARALYCIS",
+                   "PARTIAL PARALYSIS LEFT HAND NACHALNEY", "CP") ~ 16,
+      
+      v604a %in% c("DEPRESSION", "ANJEITY", "ANXIETY", "HALLUCINATIONS", "ANZITY") ~ 18,
+      
+      v604a %in% c("URIC ACID", "URIC ACID RA PROSTHETICS", "URIK ASID", 
+                   "URIQE ACID", "URIC  ACID", "URIK ACID") ~ 20,
+      
+      v604a %in% c("POSTATE", "POSTED", "POSTERT", "PROSTATE", "PROSTED", 
+                   "PROSTHETIC", "PROSTRATE", "PROTESTED KO SAMASYA", "URINE INFECTION",
+                   "PROTEST", "POSTERD", "HYDROCELE", "PISAB KO SAMASYA PROSTATE", 
+                   "PISAB ROKKINE SAMASYA", "PISAB THAILI KO PROBLEM", "PISABKO KHARABI",
+                   "PROSTATE PROBLEM", "PISAB THAILI") ~ 21,
+      
+      v604a %in% c("EAR PROBLEM", "ENT BIRAMI", "GHATI DUKHNAY", "PINASH", 
+                   "NOSE KO ALLERGY VAYEKO.", "RUGHA NOSE KO ALLERGY", "GHATIKO SAMASYA") ~ 22,
+      
+      v604a %in% c("ACNE ISSUES", "ALLERGY", "CHHALA ROG DAJ", "DAJ", 
+                   "SKIN ALLERGIES", "SKIN ALLERGY", "SKIN ELERGY", "SKIN PROBLEM", 
+                   "SKIN ROG", "XALA SAMBANDHI", "CHHALAKO ROG", "CHALA ROG", 
+                   "SKIN", "SKIN CONDITION", "छालाको समस्या छाला रोग", "ALARJI",
+                   "CHALA SAMBANDHI", "KHUTTA MA DAG TAI CHILAUNA", "BODY ALLERGY",
+                   "CHHALA SAMBANDHI", "ACNE PRONE SKIN") ~ 23,
+      
+      v604a %in% c("AAKHAKO SAMASYA", "EYE", "EYE INFECTION", "EYE ISSUES", "EYE MOTIBINDU", 
+                   "EYE PROBLEM", "EYE PROBLEMS", "JALABINDU", "JALBINDU", 
+                   "JALBINDU VAYEKO", "JALBINDU VAYEKO REGULAR MEDICINE LAGAUNE PARXA",
+                   "AAKHA SAMBANDHI SAMASYA", "AAKHAKO - MOTIBIDNU SAMASYA", 
+                   "AKHA SAMBANDI", "MOTIBINDU", "RETINA PROBLEM JALBINDU",
+                   "AAKHAKO SAMASYA - MOTIBIDNU", "EYE PROBLEM/INFECTION", "AAKHA KO SAMASYA") ~ 24,
+      
+      v604a %in% c("ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA MAA CHOT PAREKO", 
+                   "DISLOCATED BACKBONE", "RIGHT HAND DISABLE DUE TO INJURY", 
+                   "LEGAMENT KO  SURGERY VKO", "LEGAMENT KO SURGERY VKO", 
+                   "LEGAMENT KO PROBLEM", "ACCIDENT", "BACKBONE DISLOCATED", 
+                   "ADMITTED WITH BROKEN LEG.SHE WAS TAKEN TO TULSIPUR INDIA FOR TREATMENTWHICH COSTS APPROX.NPR..", 
+                   "HAND INJURY", "LIGAMENT KO SMSYA", "ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA NACHALNE") ~ 26,
+      
+      v604a %in% c("LUNGS PROBLEM", "PHOKSO KO PROBLEM", "CHEST PROBLEM", 
+                   "CHHATI SAMBANDHI SAMASYA", "PLEURAL EFFUSION", "PHOKSO") ~ 27,
+      
+      v604a %in% c("BLOOD BAKLO VAYEKO", "BLOOD PATALO GARAUNAY", "NASA KO DABAI", 
+                   "NASA SAMBANDHI", "OVER WEIGHT", "SICKLE CELL ANEMIA", 
+                   "SICKLECELL ANIMIYA", "SPLEEN PROBLEM", "VARICOSE VEINS", 
+                   "RAGAT KO KAMI", "POLYCYTHEMIA VERA", "SICKLE CELL", "NASA",
+                   "NASA KO", "BLOOD BAKLOVAYEKO") ~ 28,
+      
+      v604a %in% c("SCRUBE TIFUS") ~ 29,
+      
+      v604a %in% c("AUTISTIC", "DISABLE", "PURNA APANGA", "DIFFERENTLY ABLE", 
+                   "AAPANGA", "DOWN SYNDROME", "INTELLECTUAL DISABILITY", 
+                   "PURNA APANGA BHAYAKO KO", "COMPLETE DISABILITY", "JANMA JAT APANGA") ~ 30,
+      
+      v604a %in% c("BUDO VAYARA KAMJORI VAYO KARAN", "SARIRA KAMJORI") ~ 31,
+
+      TRUE ~ as.numeric(v604)
+    ) 
+  ) %>%
+  filter(personid != 60249)
+
+for (i in setdiff(1:ncol(section6b3), c(2, 7, 8, 29))) {
+  section6b3[[i]] <- as.numeric(gsub("[^0-9]", "", section6b3[[i]]))
+}
+
+section6b1 <- section6b1 %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101),
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
 
 section6b3 <- section6b3 %>%
   mutate(
@@ -2398,11 +2778,6 @@ section6b3 <- section6b3 %>%
       personid == 5952200 & v604 == 13 ~ 3,
       personid == 12487 & is.na(v604) ~ 12,
       personid == 17644 & v604 == 1 ~ 20,
-      personid == 25176 & v604 == 2 ~ 21,
-      personid == 51957 & v604 == 2 ~ 16, 
-      personid == 55501 & v604 == 26 ~ 15,
-      personid == 54153 & v604 == 2 ~ 6, 
-      personid == 59821 & v604 == 2 ~ 23,
       TRUE ~ v604
     ),
     v101 = case_when(
@@ -2419,10 +2794,21 @@ section6b3 <- section6b3 %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101),
     disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
-  ) %>%
-  filter(
-      !disease_id %in%  c("3353-1-1-2", "5101-19-2-2")
   )
+
+section6b3 <- section6b3 %>%
+  filter(
+    !disease_id %in% c(
+      "1101-20-2-NA", "1105-15-6-13", "1111-13-1-2",
+      "1208-18-NA-16", "1208-18-NA-7", "2207-8-3-12",
+      "1418-3-1-3", "2109-3-2-15", "2207-8-5-12", 
+      "2209-10-1-2", "3101-6-5-NA", "3103-10-1-1", 
+      "3103-14-2-1", "3103-14-2-3", "5321-2-1-15",
+      "5321-2-2-1"
+    ),
+    personid != 15077
+  )
+
 
 section6b1 <- section6b1 %>%
   mutate(
@@ -2438,15 +2824,146 @@ missing_outpatients <- anti_join(
 
 rm(missing_outpatients)
 
-#SECTION6B4  
+#SECTION6B4
+
+section6b4 <- section6b4 %>%
+  rename(
+    v604a = v603
+  ) %>%
+  mutate(
+    v604_num = suppressWarnings(as.numeric(str_extract(v604, "\\d+"))),
+
+    v604_txt = str_trim(
+      str_remove_all(v604, "\\d+|,")
+    ),
+
+    v604  = v604_num,
+    v604a = if_else(v604_txt != "", v604_txt, NA_character_)
+  ) %>%
+  select(-v604_num, -v604_txt)   
 
 section6b4 <- section6b4 %>%
   mutate(
+    v604a = trimws(v604a),
+    
     v604 = case_when(
+      is.na(v604a) & v604 == 96 ~ 2,
+      v604a %in% c("MUTUROG", "COLESTEROL", "CHLOSTROAL", "CHOLEDTEROL", 
+                   "CHORESTEROL", "COLDSTORE", "COLESTER", "COLESTROME", 
+                   "COLSTORE", "COLSTRORE", "कोलेस्ट्रोल", "CHOLESTEROL", 
+                   "CHOLOSTREL", "CHLOSTROL", "CHOLESTEROLPROSTATE", "COLSTROL", 
+                   "COLDSTORAL", "COL", "COL STORE", "CHOLESTEROL PROSTATE", 
+                   "CHLORESTROL", "CHOLESTROL", "WEIGHT LOSS MEDICATION") ~ 1,
+      
+      v604a %in% c("BP", "PRESSURE", "PRESSURE RA MANASIK ROG", "BLOOD PRESSURE$ MOTUROG",
+                   "PRESSURE/SUGAR/THYROID", "LOW BLOOD PRESSURE", "96", 
+                   "MUTUROG BLOOD PRESSURE", "PRESSURE LOW", "BP LOW") ~ 2,
+      
+      (v604 == 96 | v604 == "96") & (v604a == "" | is.na(v604a)) ~ 2,
+      
+      v604a %in% c("DIABETES", "DIABETIC", "SUGAR", "SUGAR BLOOD PRESSURE") ~ 3,
+      
+      v604a %in% c("DAM", "DAM KO ROGI") ~ 4,
+      
+      v604a %in% c("BATH", "GHUNDAKO HADDI KHIYEKO.", "LUNGS KO BATHH VANNI", 
+                   "LUPUS", "KNEE PAIN", "LEG SWELLING", "GHUNDAKO HADDI KHIYEKO") ~ 5,
+      
+      v604a %in% c("KIDNEY STONES KO UPRESAN GAREKO", "PATHTHARI", "PIABKO SAMASYAA", 
+                   "PISAB BANDA HUNE GAREKO", "STONE", "STONE IN URINE PIPE", "PATHARI",
+                   "PATTHARI", "PACHTHARI", "KIDNEY MA PATHALI", "KIDNEY STONES", "PISAB BANDA HUNE",
+                   "PISABKO SAMASYA", "PISAB ROKKINE SAMASYAA", "KIDNEY STONES CAUSE OPESAN", "KIDNEY") ~ 6,
+      
+      v604a %in% c("JNDISH", "HEPATITIS", "JAUNDICE", "LIVER KO SAMSYA", "EXCESSIVE ALCOHOL CONSUMPTION",
+                   "ALCOLOHISM", "HE HAD TO BE HOSPITALIZED THIS YEAR DUE TO EXCESSIVE ALCOHOL CONSUMPTION",
+                   "LIBAR KO SAMSYA", "LIVER PROBLEM") ~ 7,
+      
+      v604a %in% c("BONE MARROW TRANSPLANT", "BRAIN TUMOR", "CANCER", "BREAST MA GATHO AAKO",
+                   "TONGUE CANCER", "BREASTMA GATHO BHAKO", "TUMOR PETMA ( LIPOMA)",
+                   "PET MA TUMOR ( LIPOMA)",
+                  "BREAST TUMER.DURING THE TREATMENT OF BREAST TUMER APPROXIMATELY  LAKH RUPEES WERE SPENT ON GOING TO INDIA FOR TREATMENT.") ~ 8,
+      
+      v604a %in% c("MIRGI", "SEIZURE", "SIJAR") ~ 9,
+      
+      v604a %in% c("GANL TB", "TUBOC", "TB ROG") ~ 10,
+      
+      v604a %in% c("THOYRED", "THYROID") ~ 12,
+      
+      v604a %in% c("ULCER", "ULCERS", "ALSAR", "ANDRA MA GHAU", "APPENDIX", "DIGESTIVE",
+                   "BABASHIL", "GALLBLADDER STONES", "GATRIC", "GASTRIC", "ANDRA MA SAMASYA",
+                   "PAYALS", "PET DUKHNA", "PILES", "PIT KO THAILIMA PATHALI", 
+                   "AANDRA KO OPERATION GAREKO PIPE BAT STOOL GARNE GAREKO 2081_01-12 DEKHI",
+                   "PILES KO LAI SHE SOMETIMES USES OINTMENT BUT MOSTLY TAKES AYURVEDIC MEDICINE") ~ 13,
+      
+      v604a %in% c("BACK PA", "THERAPY", "DHARD PET DUKHNA", 
+                   "SARIR MANOJ HATT JODA DUKHNA") ~ 15,
+      
+      v604a %in% c("NEURO DISEASE", "SNAYU", "परलासिस", "CEREBRAL PAIN", 
+                   "MASTISK PAKSHYAGHAT(CP)", "MIGRAIN", "MIGRAINE", "MIGRANE", 
+                   "NEURO", "PARALYSIS", "PARALYZED", "PARALICSES", 
+                   "TAU KO DUKHNA SAMYASYA", "TAUKO DUKHNE PURANO ROG", 
+                   "TAUKO KO", "TAUKO KO DUKAI", "LEFT HAND NACHALNEY", 
+                   "BRAIN PROBLEM", "BRAIN PROBLEM - SCARS", "MIGRAINE SAMBANDI", 
+                   "PARTIAL PARALYSIS", "TAU KO SAMYASYA", "PARALYCIS",
+                   "PARTIAL PARALYSIS LEFT HAND NACHALNEY", "CP") ~ 16,
+      
+      v604a %in% c("DEPRESSION", "ANJEITY", "ANXIETY", "HALLUCINATIONS", "ANZITY") ~ 18,
+      
+      v604a %in% c("URIC ACID", "URIC ACID RA PROSTHETICS", "URIK ASID", 
+                   "URIQE ACID", "URIC  ACID", "URIK ACID") ~ 20,
+      
+      v604a %in% c("POSTATE", "POSTED", "POSTERT", "PROSTATE", "PROSTED", 
+                   "PROSTHETIC", "PROSTRATE", "PROTESTED KO SAMASYA", "URINE INFECTION",
+                   "PROTEST", "POSTERD", "HYDROCELE", "PISAB KO SAMASYA PROSTATE", 
+                   "PISAB ROKKINE SAMASYA", "PISAB THAILI KO PROBLEM", "PISABKO KHARABI",
+                   "PROSTATE PROBLEM", "PISAB THAILI") ~ 21,
+      
+      v604a %in% c("EAR PROBLEM", "ENT BIRAMI", "GHATI DUKHNAY", "PINASH", 
+                   "NOSE KO ALLERGY VAYEKO.", "RUGHA NOSE KO ALLERGY", "GHATIKO SAMASYA") ~ 22,
+      
+      v604a %in% c("ACNE ISSUES", "ALLERGY", "CHHALA ROG DAJ", "DAJ", 
+                   "SKIN ALLERGIES", "SKIN ALLERGY", "SKIN ELERGY", "SKIN PROBLEM", 
+                   "SKIN ROG", "XALA SAMBANDHI", "CHHALAKO ROG", "CHALA ROG", 
+                   "SKIN", "SKIN CONDITION", "छालाको समस्या छाला रोग", "ALARJI",
+                   "CHALA SAMBANDHI", "KHUTTA MA DAG TAI CHILAUNA", "BODY ALLERGY",
+                   "CHHALA SAMBANDHI", "ACNE PRONE SKIN") ~ 23,
+      
+      v604a %in% c("AAKHAKO SAMASYA", "EYE", "EYE INFECTION", "EYE ISSUES", "EYE MOTIBINDU", 
+                   "EYE PROBLEM", "EYE PROBLEMS", "JALABINDU", "JALBINDU", 
+                   "JALBINDU VAYEKO", "JALBINDU VAYEKO REGULAR MEDICINE LAGAUNE PARXA",
+                   "AAKHA SAMBANDHI SAMASYA", "AAKHAKO - MOTIBIDNU SAMASYA", 
+                   "AKHA SAMBANDI", "MOTIBINDU", "RETINA PROBLEM JALBINDU", "EYE DISEASE.",
+                   "AAKHAKO SAMASYA - MOTIBIDNU", "EYE PROBLEM/INFECTION", "AAKHA KO SAMASYA") ~ 24,
+      
+      v604a %in% c("ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA MAA CHOT PAREKO", 
+                   "DISLOCATED BACKBONE", "RIGHT HAND DISABLE DUE TO INJURY", 
+                   "LEGAMENT KO  SURGERY VKO", "LEGAMENT KO SURGERY VKO", 
+                   "LEGAMENT KO PROBLEM", "ACCIDENT", "BACKBONE DISLOCATED", 
+                   "ADMITTED WITH A BROKEN LEG.SHE WAS TAKEN TO TULSIPUR INDIA FOR TREATMENTWHICH COSTS APPROX.NPR..", 
+                   "HAND INJURY", "LIGAMENT KO SMSYA", "ACCIDENT BHAYERA PARALYSIS JASTO TAUKO HAT KHUTTA NACHALNE",
+                   "LADERA EMERGENCY MA HELICOPTER MA KATHMANDU LAGEKO") ~ 26,
+      
+      v604a %in% c("LUNGS PROBLEM", "PHOKSO KO PROBLEM", "CHEST PROBLEM", 
+                   "CHHATI SAMBANDHI SAMASYA", "PLEURAL EFFUSION", "PHOKSO") ~ 27,
+      
+      v604a %in% c("BLOOD BAKLO VAYEKO", "BLOOD PATALO GARAUNAY", "NASA KO DABAI", 
+                   "NASA SAMBANDHI", "OVER WEIGHT", "SICKLE CELL ANEMIA", 
+                   "SICKLECELL ANIMIYA", "SPLEEN PROBLEM", "VARICOSE VEINS", 
+                   "RAGAT KO KAMI", "POLYCYTHEMIA VERA", "SICKLE CELL", "NASA",
+                   "NASA KO", "BLOOD BAKLOVAYEKO") ~ 28,
+      
+      v604a %in% c("SCRUBE TIFUS") ~ 29,
+      
+      v604a %in% c("AUTISTIC", "DISABLE", "PURNA APANGA", "DIFFERENTLY ABLE", 
+                   "AAPANGA", "DOWN SYNDROME", "INTELLECTUAL DISABILITY", 
+                   "PURNA APANGA BHAYAKO KO", "COMPLETE DISABILITY", "JANMA JAT APANGA") ~ 30,
+      
+      v604a %in% c("BUDO VAYARA KAMJORI VAYO KARAN", "SARIRA KAMJORI") ~ 31,
+
       personid == 20655 & is.na(v604) ~ 16,
       personid == 35802 & is.na(v604) ~ 13, 
       personid == 54033 & is.na(v604) ~ 3,
       personid == 54116 & is.na(v604) ~ 6,
+
       TRUE ~ as.numeric(v604)
     ) 
   ) 
@@ -2487,9 +3004,12 @@ section6b4 <- section6b4 %>%
       personid == 52292 ~ 16, 
       personid == 52294 ~ 14,
       personid == 11225 ~ 2,
-      personid == 55501 & v604 == 26 ~ 15,
-      personid == 54153 & v604 == 2 ~ 6, 
       TRUE ~ v604
+    )
+  ) %>%
+  filter(
+    !disease_id %in% c(
+      "3207-4-2-1", "3441-1-2-16", "1109-20-2-2", "4209-1-1-13"
     )
   )
 
@@ -2504,9 +3024,340 @@ missing_inpatients <- anti_join(
   by = "disease_id"
 )
 
-rm(missing_inpatients)
+for (i in setdiff(1:ncol(section6b4), c(2, 7, 8, 11))) {
+  section6b4[[i]] <- as.numeric(gsub("[^0-9]", "", section6b4[[i]]))
+}
+
+rm(missing_inpatients, section6b1_added_rows)
 
 #SECTION6C1
+
+section6c1 <- section6c1 %>%
+  mutate(
+    v630a = trimws(v630a),
+    v630 = case_when(
+    v630 %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", 
+                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी") ~ "6",
+
+    v630 == "JONDISH LIVAR PHET MA PANI VKO" ~ "9",
+
+    v630 %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
+
+    v630 == "DATA KO SAMASYA" ~ "11",
+
+    v630 %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", 
+                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL") ~ "14",
+
+    v630 %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
+                "HAND FRACTURE", "LIGAMENT TEARING") ~ "15",
+
+    v630 %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630 %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
+                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
+                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", 
+                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", 
+                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
+                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
+                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
+                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
+                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", 
+                "BACKPAINEYE DRYNESS") ~ "19",
+
+    v630 %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI") ~ "20",
+
+    v630 %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST") ~ "21",
+
+    v630 %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
+                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
+                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
+                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
+                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
+                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", 
+                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION") ~ "22",
+
+    v630 == "OTH TALU FATEKO" ~ "23",
+
+    v630 == "DAMM" ~ "24",
+
+    v630 %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", 
+                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO") ~ "25",
+
+    v630 == "JANMA JATA APANGA" ~ "26",
+
+    v630 %in% c("EAR PROBLEM", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", 
+                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
+                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल") ~ "27",
+
+    v630 %in% c("AKHAMA CHO", "EYE PROBLEM", "EYE CHECK GARNA GAYEKO") ~ "28",
+
+    v630 == "DAAD" ~ "29",
+
+    v630 %in% c("BODYSCHE", "JIU DUKHEKO", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO") ~ "30",
+
+    v630 %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
+                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
+                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
+                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
+                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM") ~ "31",
+
+    v630 %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630 %in% c("FOLLOWUP OF HERNIA OPERATIO", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA") ~ "33",
+
+    v630 == "SCROP TRIFECTA" ~ "35",
+
+    v630 %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI", "KIDNEY INFECTION SYMPTOM OF CANCER") ~ "36",
+
+    v630 %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                "PATTHARIKO AUSADHI", "STONE", 
+                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO") ~ "37",
+
+    v630 %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
+                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS") ~ "38",
+
+    v630 %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
+
+    v630 %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
+                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
+                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
+                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
+                "THAUKO DUKHANE", "TUKO DUKHAYA") ~ "41",
+
+    v630 %in% c("BATHA ROGA", "URIC ACID", "URIK ASID") ~ "42",
+
+    v630 == "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO" ~ "43",
+
+    v630a == "RAGATMA KHARABI" ~ "20",
+
+    v630a %in% c("KHOKI", "KHOKI LAGEKO", "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO") ~ "6",
+
+    v630a %in% c("KHUTTA MA ALLERGY AAKO", "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", 
+                 "PANI FOKA BATA PANI NILAKELL") ~ "14",
+
+    v630a == "LIGAMENT TEARING" ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630a %in% c("KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                 "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                 "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                 "MULTIPLE JOINT PAIN", "PAIN IN LEG") ~ "19",
+
+    v630a == "LUMP IN BREAST" ~ "21",
+
+    v630a %in% c("LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", "PET DUKHER", 
+                 "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                 "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", 
+                 "PET KO CHECK", "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", 
+                 "PETA DUKHEKO", "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a %in% c("PERGINENC", "PREGENCY", "PREGNANCY CHECK UP", 
+                 "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", "PREGNANT", 
+                 "SUTKERI", "SUTKERI BHAYEKO") ~ "25",
+
+    v630a %in% c("MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", 
+                 "NAK RA MUKHA BATA BLOOD AKO", "NAKKO SAMSHYA", "TANSIL", 
+                 "TONSIL", "TONSILLITIS", "TONSILS") ~ "27",
+
+    v630a %in% c("KAMJORI", "KAMJORI BHAYEKO", "KAMJORI BP LOW", "KAMJORI VAYEKO") ~ "30",
+
+    v630a %in% c("MINS VAYAKO BELA PET DUKHEKO", "PATHAGHAR SAMANDI SAMASYA IS", "SHIST KO SURGERY",
+                 "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", "PERIOD ANIYAMIT HUNE", 
+                 "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", "SHIST SURGERY") ~ "31",
+
+    v630a %in% c("MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI") ~ "36",
+
+    v630a %in% c("LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                 "PATTHARIKO AUSADHI", "STONE") ~ "37",
+
+    v630a == "TUBERCULOSIS" ~ "38",
+
+    v630a == "MANASIK SAMASYA" ~ "40",
+
+    v630a %in% c("MIGRAINE", "MIGREN HEADACHE", "NASA", "NASA DABE KO", 
+                 "NASA SAMBANDHI", "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", 
+                 "TAUKO DUKHANE", "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", 
+                 "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", "THAUKO DUKHANE", "TUKO DUKHAYA") ~ "41",
+
+    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", 
+                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी") ~ "6",
+
+    v630a == "JONDISH LIVAR PHET MA PANI VKO" ~ "9",
+
+    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
+
+    v630a == "DATA KO SAMASYA" ~ "11",
+
+    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", 
+                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL") ~ "14",
+
+    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
+                "HAND FRACTURE", "LIGAMENT TEARING") ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
+                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
+                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", 
+                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", 
+                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
+                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
+                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
+                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
+                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने") ~ "19",
+
+    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI") ~ "20",
+
+    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST") ~ "21",
+
+    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
+                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
+                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
+                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
+                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
+                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", 
+                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a == "DAMM" ~ "24",
+
+    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", 
+                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "ANC CHECKUP IN PRIVATE HOSPITAL") ~ "25",
+
+    v630a == "JANMA JATA APANGA" ~ "26",
+
+    v630a %in% c("EAR PROBLEM", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", 
+                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
+                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल") ~ "27",
+
+    v630a %in% c("AKHAMA CHO", "EYE PROBLEM") ~ "28",
+
+    v630a == "DAAD" ~ "29",
+
+    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO") ~ "30",
+
+    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
+                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
+                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
+                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
+                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM") ~ "31",
+
+    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA") ~ "33",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI") ~ "36",
+
+    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                "PATTHARIKO AUSADHI", "STONE", 
+                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO") ~ "37",
+
+    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
+                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS") ~ "38",
+
+    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
+
+    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
+                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
+                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
+                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
+                "THAUKO DUKHANE", "TUKO DUKHAYA") ~ "41",
+
+    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID") ~ "42",
+
+    v630a == "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO" ~ "43",
+
+    v630a == "FOOD POISON" ~ "22",
+
+    v630a %in% c("CHEST & STOMACH PROBLEM", "TIFID", "TYPHOID") ~ "2",
+
+    v630a == "FOKSO KO PROBLEMP" ~ "38",
+
+    v630a %in% c("KEHI VAKO CHHAIN CHHAIN") ~ "6",
+
+    v630a %in% c("BLOOD AND URINE INFECTION" , "YOUN ROD PANI BAGNE") ~ "10",
+
+    v630a %in% c("BLOOD INFECTION") ~ "20",
+
+    v630a == "EYE CHECK GARDA" ~ "28",
+
+    v630a == "BRUSELA" ~ "17",
+
+    v630a %in% c("BACK PAIN", "BACK PAIN KO SAMASYA BHAKO THIYO", "BACKPAIN", 
+                 "DHAD DUKHE", "DHAD DUKHNE", "DHAD DUKHNE KHUTTA DUKHNE", 
+                 "DHADA DUKHEKO", "DISCOGENIC LBD(LOWER BACK PAIN)", "GHUDA DUKHANE", 
+                 "HADJORANI DUKHEKO", "HATH DUKHEKO", "HATH KHUTTA DUKHAI", 
+                 "KAMAR GHUDA DUKHEKOLE", "KURKUCHA DUKHNE POLNE", 
+                 "BODY ACHE", "BODY PAIN", "हात खुट्टा कम्मर दुखेको") ~ "19",
+
+    v630a %in% c("ABDOMEN PAIN", "APPENDIX", "GALLSTONE", "GASTIC", "GASTIK", "STOMACH  INFECTION",
+                 "GASTRIC INFECTION", "GASTRITIS", "HEART BURN", "DISHA GOTA PAREKO",
+                 "INTESTINE OPERATION SUDDENLY AS THERE WAS GROWTH IN HIS INTESTINE", 
+                 "KABJIYAT", "KAMMAR DUKHEKO", "KOKHA DUKHEKO", "PAYALSH", "PAYELS", 
+                 "PET DUKHANE", "PET DUKHERA", "PET DUKHERA VOMIT BHAKO", "PET KO SAMASAYA", 
+                 "PETKO OPERATION GAREKO", "PILES", "STOMACH", "STOMACH INFECTION", 
+                 "STOMACH ACHE", "STOMACH PAIN", "एपेन्डिसाइड", "ABDOMINAL PAIN",
+                 "THEY DON'T KNOW ABOUT THE ACTUAL DISEASE AS PER THE DOCTOR THEY ALSO DON'T KNOW THE ACTUAL DISEASE . GASTRIC") ~ "22",
+
+    v630a %in% c("PREGNANCY CHECK UP", "PREGNANT", 
+                 "UHA KO BREAST FEEDING GARNA KO LAGI AWASHEK MATRA MA DUDH NAPAKO HUNALEY BIGAT EK HAFTA DEKHI AAUSADHI SEWAN GARDAI HUNUNXA") ~ "25",
+
+    v630a %in% c("GHATI KO SAMASYA", "NAAK MA MASU PALAKO", "PINASH", "TONSIL") ~ "27",
+
+    v630a == "OVERALL" ~ "30",
+
+    v630a %in% c("MAHINA BARI NIHAMIT NAVAYERA", "PATHAK GHAR SAMANDI SAMASYA", 
+                 "PATHEGHAR KO OPERATION", "PATHEGHAR KO SAMASYA", "PATHEGHAR SAMBANDI SAMASYA THIYO") ~ "31",
+
+    v630a == "HEART PROBLEM" ~ "32",
+
+    v630a %in% c("HARNIYA KO OPERATION GAREKO", "HARNIYA KO OPERATION  GAREKO") ~ "33",
+
+    v630a == "HIV AIDS" ~ "34",
+
+    v630a %in% c("KIDANEY MA PATHARIYA", "KIDNEY INFECTION", "KIDNEY STONE", "KIDANEY  MA PATHARIYA",
+                 "KIDNI JACHA RA UPACHAR", "PISABMA KHARABI", "STONE OPERATION") ~ "36",
+
+    v630a %in% c("MILD LIVER DISEASE", "PATHARI", "PATHARI KO OPERATION", "PATTHARIYA", 
+                 "PITA THAILIMA PATHARI KO", "PITKO THAILI MA PATHALI", "PITTATHAILI KO OPERATION") ~ "37",
+
+    v630a == "PROSTATE" ~ "39",
+
+    v630a %in% c("BEHOSH VAYEKO EKKASHI", "DHARD KO NASA CHAPIYA KO", "MIGRAINE", 
+                 "PARALYSIS", "RINGADA CHALEKO", "RINGATA", "TAUKO DUKHAI", 
+                 "TAUKO DUKHEKO", "YAUTA LEG NACHALEKO") ~ "41",
+
+    v630a == "WORM" ~ "44",
+
+    TRUE ~ as.character(v630)
+  )
+  )
+
+for (i in setdiff(1:ncol(section6c1), c(2, 7, 8, 14, 15, 16))) {
+  section6c1[[i]] <- as.numeric(gsub("[^0-9]", "", section6c1[[i]]))
+}
 
 cols_after_v629 <- names(section6c1)[(match("v629", names(section6c1)) + 1):ncol(section6c1)]
 
@@ -2545,48 +3396,759 @@ section6c1 <- section6c1 %>%
       personid == 9767 ~ 25,
       personid == 24627 ~ 15,
       personid == 24940 ~ 17,
-      personid == 3398 ~ 19,
       v630 == 96 ~ 19,
       TRUE ~ v630
     )
   ) 
 
+#SECTION6C2
+
+section6c2 <- section6c2 %>%
+  mutate(
+    v630_num = suppressWarnings(as.numeric(str_extract(v630, "\\d+"))),
+
+    v630_txt = str_trim(
+      str_remove_all(v630, "\\d+|,")
+    ),
+
+    v630  = v630_num,
+    v630a = if_else(v630_txt != "", v630_txt, NA_character_)
+  ) %>%
+  select(-v630_num, -v630_txt)  
+
+section6c2 <- section6c2 %>%
+  mutate(
+  v630 = case_when(
+    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", "RUGAKHOKI",
+                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी", "RUGHA KHOKI",
+                "ROUGHA KHOLA", "COLD", "COLD") ~ "6",
+
+    v630a == "JONDISH LIVAR PHET MA PANI VKO" ~ "9",
+
+    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
+
+    v630a %in% c("DATA KO SAMASYA", "DAAT KO SAMASYA", "DAAT KO SAMASYA") ~ "11",
+
+    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", 
+                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL") ~ "14",
+
+    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
+                "HAND FRACTURE", "LIGAMENT TEARING", "LEGAMENT SMSYA") ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE", "SNAKE BITE") ~ "18",
+
+    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
+                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
+                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", "GHUDA DUKHEKO",
+                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", "DHARD DUKHNA",
+                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
+                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
+                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
+                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
+                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "HADDI",
+                "KARANG DUKHEKO", "JIU HATH DUKHEKO", "DHARD DUKHNA", "HAT DUKHNE SAMASAYA",
+                "DHARD DUKHNA") ~ "19",
+
+    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "KAMJORIBP LOW", 
+                 "INCREASES IN CHOLESTEROL LEVEL", "ANEMIA") ~ "20",
+
+    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST") ~ "21",
+
+    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
+                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
+                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
+                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
+                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
+                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", "PET DUKNE",
+                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION", "PET DUKHYAKO",
+                "PETDUKHERA", "DOCTOR DOESN'T KNOW ABOUT THEIR CONDITION THEY SAY HE HAS GASTRITIS.",
+                "PET DUKHERA FOOD POISON BHAKO", "PET DHUKERA", "GASTRIC PROBLEM", "APPENDIX KO OPTION",
+                "PET KO SAMASYAA VAAKO BU K HO VANERA THA NAVAAKO HOSPITAL MA.", "ANDRA MA GHAU",
+                "PETKO SAMASYAA") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a == "DAMM" ~ "24",
+
+    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", "DELIVERY CONDITION",
+                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "ANC CHECKUP VISIT IN PRIVATE HOSPITAL") ~ "25",
+
+    v630a == "JANMA JATA APANGA" ~ "26",
+
+    v630a %in% c("EAR PROBLEM", "ENT", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", "ENT",
+                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
+                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE TONSIL") ~ "27",
+
+    v630a %in% c("AKHAMA CHO", "EYE PROBLEM") ~ "28",
+
+    v630a == "DAAD" ~ "29",
+
+    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO",
+                 "NORMAL", "OVERALL WHOLE BODY CHECK", "BODEYSCHE", "DUKHAI") ~ "30",
+
+    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
+                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
+                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
+                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
+                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM", "GAINO PATHEGHAR",
+                "PERIOD ANIYAMIT", "GYENO O KO PROBLEM") ~ "31",
+
+    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "FOLLOWUP OF HERNIA OPERATION", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA",
+                 "FOLLOWUP OF HERNIA OPERATION") ~ "33",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI",
+                 "KIDNEY MA PATHARIYA") ~ "36",
+
+    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                "PATTHARIKO AUSADHI", "STONE", "GAL BLADOR PROBLAM", "LIVER KO SAMASYA",
+                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO",
+                "PITKO THAILI MA PATHALI VAYEKO MA OPRESAN GAREKO") ~ "37",
+
+    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
+                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS") ~ "38",
+
+    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
+
+    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
+                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
+                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
+                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
+                "THAUKO DUKHANE", "TUKO DUKHAYA", "TAU KO DUKHNA", "HEAD INJURIES") ~ "41",
+
+    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID", "URIKASID") ~ "42",
+
+    v630a == "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO" ~ "43",
+
+    v630a == "RAGATMA KHARABI" ~ "20",
+
+    v630a %in% c("KHOKI", "KHOKI LAGEKO", "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO") ~ "6",
+
+    v630a %in% c("KHUTTA MA ALLERGY AAKO", "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", 
+                 "PANI FOKA BATA PANI NILAKELL", "SARIR MA PANIKO PHOKA AYEKO") ~ "14",
+
+    v630a == "LIGAMENT TEARING" ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630a %in% c("KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                 "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                 "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                 "MULTIPLE JOINT PAIN", "PAIN IN LEG") ~ "19",
+
+    v630a == "LUMP IN BREAST" ~ "21",
+
+    v630a %in% c("LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", "PET DUKHER", "PAYELSH",
+                 "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                 "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", 
+                 "PET KO CHECK", "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", 
+                 "PETA DUKHEKO", "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE",
+                 "BHOMIT BHAYERA NAROKIYEKO", "PETDUKHEKO") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a %in% c("PERGINENC", "PREGENCY", "PREGNANCY CHECK UP", 
+                 "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", "PREGNANT", 
+                 "SUTKERI", "SUTKERI BHAYEKO") ~ "25",
+
+    v630a %in% c("MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", 
+                 "NAK RA MUKHA BATA BLOOD AKO", "NAKKO SAMSHYA", "TANSIL", 
+                 "TONSIL", "TONSILLITIS", "TONSILS") ~ "27",
+
+    v630a %in% c("KAMJORI", "KAMJORI BHAYEKO", "KAMJORI BP LOW", "KAMJORI VAYEKO", "JIUDUKHE KO",
+                 "JIU DUKHNE") ~ "30",
+
+    v630a %in% c("MINS VAYAKO BELA PET DUKHEKO", "PATHAGHAR SAMANDI SAMASYA IS", 
+                 "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", "PERIOD ANIYAMIT HUNE", 
+                 "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", "SHIST SURGERY",
+                 "EK DAMAI GARO VAYO MAHINA BARI NIHAMIT NAVAYERA", "PATHAGHAR SAMANDI",
+                 "PATHAGHAR SAMANDI SAMASYA", "LOW ABDOMINAL PAIN WHITE VAGINAL DISCHARGE BURNING MICTURITION") ~ "31",
+
+    v630a %in% c("MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI") ~ "36",
+
+    v630a %in% c("LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                 "PATTHARIKO AUSADHI", "STONE") ~ "37",
+
+    v630a == "TUBERCULOSIS" ~ "38",
+
+    v630a == "MANASIK SAMASYA" ~ "40",
+
+    v630a %in% c("MIGRAINE", "MIGREN HEADACHE", "NASA", "NASA DABE KO", 
+                 "NASA SAMBANDHI", "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", 
+                 "TAUKO DUKHANE", "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", 
+                 "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", "THAUKO DUKHANE", "TUKO DUKHAYA") ~ "41",
+
+    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", 
+                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी") ~ "6",
+
+    v630a %in% c("JONDISH LIVAR PHET MA PANI VKO", "JANDIS") ~ "9",
+
+    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
+
+    v630a == "DATA KO SAMASYA" ~ "11",
+
+    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", "PANI FOKA BATA PANI NIKALEKO",
+                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL", "KHATERA",
+                "KHUTTA MA ELERGY BHAYEKO") ~ "14",
+
+    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
+                "HAND FRACTURE", "LIGAMENT TEARING", "TAUKO MA GHAU") ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
+                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
+                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", "DHADA DUKHE KO",
+                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", "HADIKHIYERA",
+                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
+                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
+                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
+                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
+                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "KAMAR GHUDA DUKHEKO") ~ "19",
+
+    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "NASAKO SAMASYA",
+                 "RAGATKO KHARABI") ~ "20",
+
+    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST",
+                 "SYMPTOMS OF CANCER KIDNEY INFECTION", "CANCER") ~ "21",
+
+    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
+                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
+                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
+                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
+                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
+                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", 
+                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION", "EPIGASTRIC PAIN",
+                "INTESTINE OPERATION", "APPENDICITIS") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a == "DAMM" ~ "24",
+
+    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", 
+                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "PERGINENC TEST") ~ "25",
+
+    v630a == "JANMA JATA APANGA" ~ "26",
+
+    v630 %in% c("EAR PROBLEM", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", 
+                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
+                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE BLEEDING") ~ "27",
+
+    v630a %in% c("AKHAMA CHO", "EYE PROBLEM", "EYE CHECK GARNA GAYEKO") ~ "28",
+
+    v630a == "DAAD" ~ "29",
+
+    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "NORMAL", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO") ~ "30",
+
+    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
+                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
+                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
+                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
+                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM", "PREGNANT NA BHAYERA CHECK UP") ~ "31",
+
+    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA") ~ "33",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI", "PAYHARI") ~ "36",
+
+    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                "PATTHARIKO AUSADHI", "STONE", "PITA THAILIKO PATHARI", "JONDISH LIVAR PHET MA PANI",
+                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO") ~ "37",
+
+    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
+                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS", "FOKSO KO PROBLEM") ~ "38",
+
+    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
+
+    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
+                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
+                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
+                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
+                "THAUKO DUKHANE", "TUKO DUKHAYA", "KHUTTA JHAMJHAMAUNE") ~ "41",
+
+    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID") ~ "42",
+
+    v630a %in% c("KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", "OPERATION KHUTTA KOMKHIL") ~ "43",
+
+    v630a == "FOOD POISON" ~ "22",
+
+    v630a %in% c("CHEST & STOMACH PROBLEM", "TIFID", "TYPHOID", "THYPHOID", "CHEST & STOMACH PAIN") ~ "2",
+
+    v630a == "FOKSO KO PROBLEMP" ~ "38",
+
+    v630a %in% c( "ANC CHECKUP IN PRIVATE HOSPITAL", "KEHI VAKO CHHAIN CHHAIN") ~ "6",
+
+    v630a %in% c("BLOOD AND URINE INFECTION" , "YOUN ROD PANI BAGNE") ~ "10",
+
+    v630a %in% c("BLOOD INFECTION") ~ "20",
+
+    v630a == "EYE CHECK GARDA" ~ "28",
+
+    v630a == "BRUSELA" ~ "17",
+
+    v630a %in% c("BACK PAIN", "BACK PAIN KO SAMASYA BHAKO THIYO", "BACKPAIN", 
+                 "DHAD DUKHE", "DHAD DUKHNE", "DHAD DUKHNE KHUTTA DUKHNE", 
+                 "DHADA DUKHEKO", "DISCOGENIC LBD(LOWER BACK PAIN)", "GHUDA DUKHANE", 
+                 "HADJORANI DUKHEKO", "HATH DUKHEKO", "HATH KHUTTA DUKHAI", 
+                 "KAMAR GHUDA DUKHEKOLE", "KURKUCHA DUKHNE POLNE", 
+                 "BODY ACHE", "BODY PAIN", "हात खुट्टा कम्मर दुखेको") ~ "19",
+
+    v630a %in% c("ABDOMEN PAIN", "APPENDIX", "GALLSTONE", "GASTIC", "GASTIK", "STOMACH  INFECTION",
+                 "GASTRIC INFECTION", "GASTRITIS", "HEART BURN", "DISHA GOTA PAREKO",
+                 "INTESTINE OPERATION SUDDENLY AS THERE WAS GROWTH IN HIS INTESTINE", 
+                 "KABJIYAT", "KAMMAR DUKHEKO", "KOKHA DUKHEKO", "PAYALSH", "PAYELS", 
+                 "PET DUKHANE", "PET DUKHERA", "PET DUKHERA VOMIT BHAKO", "PET KO SAMASAYA", 
+                 "PETKO OPERATION GAREKO", "PILES", "STOMACH", "STOMACH INFECTION", 
+                 "STOMACH ACHE", "STOMACH PAIN", "एपेन्डिसाइड", "ABDOMINAL PAIN",
+                 "THEY DON'T KNOW ABOUT THE ACTUAL DISEASE AS PER THE DOCTOR THEY ALSO DON'T KNOW THE ACTUAL DISEASE . GASTRIC") ~ "22",
+
+    v630a %in% c("PREGNANCY CHECK UP", "PREGNANT", 
+                 "UHA KO BREAST FEEDING GARNA KO LAGI AWASHEK MATRA MA DUDH NAPAKO HUNALEY BIGAT EK HAFTA DEKHI AAUSADHI SEWAN GARDAI HUNUNXA") ~ "25",
+
+    v630a %in% c("GHATI KO SAMASYA", "NAAK MA MASU PALAKO", "PINASH", "TONSIL", "NOSE BLEEDING") ~ "27",
+
+    v630a == "OVERALL" ~ "30",
+
+    v630a %in% c("MAHINA BARI NIHAMIT NAVAYERA", "PATHAK GHAR SAMANDI SAMASYA", 
+                 "PATHEGHAR KO OPERATION", "PATHEGHAR KO SAMASYA", "PATHEGHAR SAMBANDI SAMASYA THIYO") ~ "31",
+
+    v630a == "HEART PROBLEM" ~ "32",
+
+    v630a %in% c("HARNIYA KO OPERATION GAREKO", "HARNIYA KO OPERATION  GAREKO") ~ "33",
+
+    v630a == "HIV AIDS" ~ "34",
+
+    v630a %in% c("KIDANEY MA PATHARIYA", "KIDNEY INFECTION", "KIDNEY STONE", "KIDANEY  MA PATHARIYA",
+                 "KIDNI JACHA RA UPACHAR", "PISABMA KHARABI", "STONE OPERATION") ~ "36",
+
+    v630a %in% c("MILD LIVER DISEASE", "PATHARI", "PATHARI KO OPERATION", "PATTHARIYA", 
+                 "PITA THAILIMA PATHARI KO", "PITKO THAILI MA PATHALI", "PITTATHAILI KO OPERATION") ~ "37",
+
+    v630a == "PROSTATE" ~ "39",
+
+    v630a %in% c("BEHOSH VAYEKO EKKASHI", "DHARD KO NASA CHAPIYA KO", "MIGRAINE", 
+                 "PARALYSIS", "RINGADA CHALEKO", "RINGATA", "TAUKO DUKHAI", 
+                 "TAUKO DUKHEKO", "YAUTA LEG NACHALEKO", "RINGADA CHALNE") ~ "41",
+
+    v630a == "WORM" ~ "44",
+
+    TRUE ~ as.character(v630)
+  )
+)
+
 #SECTION6C4
 
 section6c4 <- section6c4 %>%
   mutate(
+    v630_num = str_extract(v630, "\\d+"),
+    
+    v630_txt = str_trim(str_remove_all(v630, "\\d+|,")),
+    
+    v630 = if_else(!is.na(v630_num), v630_num, NA_character_),
+    
+    v630a = if_else(v630_txt != "", v630_txt, NA_character_)
+  ) %>%
+  select(-v630_num, -v630_txt) 
+
+section6c4 <- section6c4 %>%
+  filter(v630 != "") %>%
+  mutate(
+  v630 = case_when(
+    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", "RUGAKHOKI",
+                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी", "RUGHA KHOKI",
+                "ROUGHA KHOLA", "COLD", "COLD") ~ "6",
+
+    v630a == "JONDISH LIVAR PHET MA PANI VKO" ~ "9",
+
+    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
+
+    v630a %in% c("DATA KO SAMASYA", "DAAT KO SAMASYA", "DAAT KO SAMASYA") ~ "11",
+
+    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", 
+                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL") ~ "14",
+
+    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
+                "HAND FRACTURE", "LIGAMENT TEARING", "LEGAMENT SMSYA") ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE", "SNAKE BITE") ~ "18",
+
+    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
+                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
+                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", "GHUDA DUKHEKO",
+                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", "DHARD DUKHNA",
+                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
+                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
+                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
+                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
+                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "HADDI",
+                "KARANG DUKHEKO", "JIU HATH DUKHEKO", "DHARD DUKHNA", "HAT DUKHNE SAMASAYA",
+                "DHARD DUKHNA") ~ "19",
+
+    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "KAMJORIBP LOW", 
+                 "INCREASES IN CHOLESTEROL LEVEL", "ANEMIA") ~ "20",
+
+    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST") ~ "21",
+
+    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
+                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
+                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
+                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
+                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
+                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", "PET DUKNE",
+                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION", "PET DUKHYAKO",
+                "PETDUKHERA", "DOCTOR DOESN'T KNOW ABOUT THEIR CONDITION THEY SAY HE HAS GASTRITIS.",
+                "PET DUKHERA FOOD POISON BHAKO", "PET DHUKERA", "GASTRIC PROBLEM", "APPENDIX KO OPTION",
+                "PET KO SAMASYAA VAAKO BU K HO VANERA THA NAVAAKO HOSPITAL MA.", "ANDRA MA GHAU",
+                "PETKO SAMASYAA") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a == "DAMM" ~ "24",
+
+    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", "DELIVERY CONDITION",
+                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "ANC CHECKUP VISIT IN PRIVATE HOSPITAL") ~ "25",
+
+    v630a == "JANMA JATA APANGA" ~ "26",
+
+    v630a %in% c("EAR PROBLEM", "ENT", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", "ENT",
+                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
+                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE TONSIL") ~ "27",
+
+    v630a %in% c("AKHAMA CHO", "EYE PROBLEM") ~ "28",
+
+    v630a == "DAAD" ~ "29",
+
+    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO",
+                 "NORMAL", "OVERALL WHOLE BODY CHECK", "BODEYSCHE", "DUKHAI") ~ "30",
+
+    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
+                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
+                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
+                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
+                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM", "GAINO PATHEGHAR",
+                "PERIOD ANIYAMIT", "GYENO O KO PROBLEM") ~ "31",
+
+    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "FOLLOWUP OF HERNIA OPERATION", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA",
+                 "FOLLOWUP OF HERNIA OPERATION") ~ "33",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI",
+                 "KIDNEY MA PATHARIYA") ~ "36",
+
+    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                "PATTHARIKO AUSADHI", "STONE", "GAL BLADOR PROBLAM", "LIVER KO SAMASYA",
+                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO",
+                "PITKO THAILI MA PATHALI VAYEKO MA OPRESAN GAREKO") ~ "37",
+
+    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
+                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS") ~ "38",
+
+    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
+
+    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
+                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
+                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
+                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
+                "THAUKO DUKHANE", "TUKO DUKHAYA", "TAU KO DUKHNA", "HEAD INJURIES") ~ "41",
+
+    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID", "URIKASID") ~ "42",
+
+    v630a == "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO" ~ "43",
+
+    v630a == "RAGATMA KHARABI" ~ "20",
+
+    v630a %in% c("KHOKI", "KHOKI LAGEKO", "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO") ~ "6",
+
+    v630a %in% c("KHUTTA MA ALLERGY AAKO", "KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", 
+                 "PANI FOKA BATA PANI NILAKELL", "SARIR MA PANIKO PHOKA AYEKO") ~ "14",
+
+    v630a == "LIGAMENT TEARING" ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630a %in% c("KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                 "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                 "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                 "MULTIPLE JOINT PAIN", "PAIN IN LEG") ~ "19",
+
+    v630a == "LUMP IN BREAST" ~ "21",
+
+    v630a %in% c("LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", "PET DUKHER", "PAYELSH",
+                 "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                 "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", 
+                 "PET KO CHECK", "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", 
+                 "PETA DUKHEKO", "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE",
+                 "BHOMIT BHAYERA NAROKIYEKO", "PETDUKHEKO") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a %in% c("PERGINENC", "PREGENCY", "PREGNANCY CHECK UP", 
+                 "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", "PREGNANT", 
+                 "SUTKERI", "SUTKERI BHAYEKO") ~ "25",
+
+    v630a %in% c("MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", 
+                 "NAK RA MUKHA BATA BLOOD AKO", "NAKKO SAMSHYA", "TANSIL", 
+                 "TONSIL", "TONSILLITIS", "TONSILS") ~ "27",
+
+    v630a %in% c("KAMJORI", "KAMJORI BHAYEKO", "KAMJORI BP LOW", "KAMJORI VAYEKO", "JIUDUKHE KO",
+                 "JIU DUKHNE") ~ "30",
+
+    v630a %in% c("MINS VAYAKO BELA PET DUKHEKO", "PATHAGHAR SAMANDI SAMASYA IS", 
+                 "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", "PERIOD ANIYAMIT HUNE", 
+                 "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", "SHIST SURGERY",
+                 "EK DAMAI GARO VAYO MAHINA BARI NIHAMIT NAVAYERA", "PATHAGHAR SAMANDI",
+                 "PATHAGHAR SAMANDI SAMASYA", "LOW ABDOMINAL PAIN WHITE VAGINAL DISCHARGE BURNING MICTURITION") ~ "31",
+
+    v630a %in% c("MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI") ~ "36",
+
+    v630a %in% c("LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                 "PATTHARIKO AUSADHI", "STONE") ~ "37",
+
+    v630a == "TUBERCULOSIS" ~ "38",
+
+    v630a == "MANASIK SAMASYA" ~ "40",
+
+    v630a %in% c("MIGRAINE", "MIGREN HEADACHE", "NASA", "NASA DABE KO", 
+                 "NASA SAMBANDHI", "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", 
+                 "TAUKO DUKHANE", "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", 
+                 "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", "THAUKO DUKHANE", "TUKO DUKHAYA") ~ "41",
+
+    v630a %in% c("CHISO COLD", "CHISO RUGHA", "COLD ALLERGY", "KHOKI", "KHOKI LAGEKO", 
+                "ROUGH KHOKI", "RUGA", "RUGHA", "RUGHA JORO", "खोकी", "रुघाखोकी") ~ "6",
+
+    v630a %in% c("JONDISH LIVAR PHET MA PANI VKO", "JANDIS") ~ "9",
+
+    v630a %in% c("URINE INFECTION", "URINE PROBLEM") ~ "10",
+
+    v630a == "DATA KO SAMASYA" ~ "11",
+
+    v630a %in% c("ALLERGIES", "ALLERGY", "CHALA SAMBANDHI ROGH", "GHAU KHATIRA", "PANI FOKA BATA PANI NIKALEKO",
+                "JUI KHATIRA", "KHUTTA MA ALLERGY AAKO", "PANI FOKA BATA PANI NILAKELL", "KHATERA",
+                "KHUTTA MA ELERGY BHAYEKO") ~ "14",
+
+    v630a %in% c("BANCHARO BATA KHUTA KATIYO", "HAAT VACHIYEKO UPACHAR", 
+                "HAND FRACTURE", "LIGAMENT TEARING", "TAUKO MA GHAU") ~ "15",
+
+    v630a %in% c("KUKURLE TOKEKO", "SNACK BITE") ~ "18",
+
+    v630a %in% c("BACK PAIN", "BACKBONE MA PROBLEM VAYERA", "BONE PAIN", "DHAD DUKHEKO", 
+                "DHAD DUKHNE", "DHAD DUKHNE SAMASYA", "DHAD KO", "DHADKO DUKHAI", 
+                "DHARD DUKHNA SAMYASYA", "GODA DUKHEKO", "GUDHA DUKHEKO", "DHADA DUKHE KO",
+                "HAAD JORNI KO SAMASYA", "HAAT KHUTTA KO JORNI DUKHEKO", "HADIKHIYERA",
+                "HAAT KO HADDI KO PROBLEM", "HADIKHIYER", "HADIKO SAMASA", 
+                "HADJORNI", "HADJORNI DUKHNE HATKO", "HARDJORNI DUKHNE", "HAT DUKHERA", 
+                "HAT KHUTTA DUKHEKO", "HAT KHUTTA DUKHNA", "HAT KHUTTA DUKHNE", 
+                "HATH KO HADI DUKHEKO", "HATT KHUTTA DUKHNA", "JOINT PAIN", "JYU DHUKHEKO", 
+                "JYU DUKHNE", "KAMAR DUKHNA", "KHUTA DUKHERA SUNEKO", "KHUTTA DUKHEKO", 
+                "KHUTTA DUKHNE RA SWELLINGA", "KHUTTA HARU DUKHNEY BHAYERA SUNNEKO", 
+                "KHUTTA SWELLING AND HADDI DUKHNE", "KNEE PAIN", "MINOR LEG PAIN", 
+                "MULTIPLE JOINT PAIN", "PAIN IN LEG", "खुट्टा को कुर्कुच्चा दुख्ने", "KAMAR GHUDA DUKHEKO") ~ "19",
+
+    v630a %in% c("ANAEMIA", "INCREASE IN CHOLESTEROL LEVEL", "RAGATMA KHARABI", "NASAKO SAMASYA",
+                 "RAGATKO KHARABI") ~ "20",
+
+    v630a %in% c("BONE MARROW TRANSPLANT", "CANCER KO LAXAN", "LUMP IN BREAST",
+                 "SYMPTOMS OF CANCER KIDNEY INFECTION", "CANCER") ~ "21",
+
+    v630a %in% c("ANDRA MA GAU", "APPENDICITIS OPERATION", "APPENDIX", "BHOMIT BHAYEKO", 
+                "CONSTIPATION", "GASTIK", "GASTRIC", "GASTRIC KO PROBLEM", "GASTRITIS", 
+                "GYASTRIK", "HAAT DUKHNE PAYALS", "LOW ABDOMINAL PAIN", "PAILS", "PET DUKHEKO", 
+                "PET DUKHER", "PET DUKHERA", "PET DUKHERW", "PET DUKHERW GAKO", "PET DUKHNA", 
+                "PET DUKHNA KAMBAR DUKHNA", "PET DUKHNE", "PET KAMAR DUKHNA", "PET KO CHECK", 
+                "PET KO OPERATION", "PET SAMBANDHI", "PETA DUKHE KO", "PETA DUKHEKO", 
+                "PETKO SAMASA", "PETKO SAMSYA", "PILES", "STOMACH ACHE", "ULCER", 
+                "ULCER KO OPERATION", "VOMITING", "YAPENDIKS KO OPTION", "EPIGASTRIC PAIN",
+                "INTESTINE OPERATION", "APPENDICITIS") ~ "22",
+
+    v630a == "OTH TALU FATEKO" ~ "23",
+
+    v630a == "DAMM" ~ "24",
+
+    v630a %in% c("DELIVERY", "DELIVERY CHECKUP", "PERGINENC", "PREGENCY", 
+                "PREGNANCY CHECK UP", "PREGNANCY KO BELA SUGAR LEVEL HIGH VYERW", 
+                "PREGNANT", "SUTKERI", "SUTKERI BHAYEKO", "PERGINENC TEST") ~ "25",
+
+    v630a == "JANMA JATA APANGA" ~ "26",
+
+    v630 %in% c("EAR PROBLEM", "ENT (DAT (TEETH)KO CHECK GARAUNA GAYEKO TARA SSF MA DA NAPARNE VAYERA NAK", 
+                "GHATI KO SAMASYA", "GHATI MA GIRKHA", "GHATIMA SAMASYA", "JIBRO KO SAMASYA", 
+                "MUKHMA GHAU", "NAK KO PINASH", "NAK KO SAMASYA", "NAK RA MUKHA BATA BLOOD AKO", 
+                "NAKKO SAMSHYA", "TANSIL", "TONSIL", "TONSILLITIS", "TONSILS", "ट्वान्सिल", "NOSE BLEEDING") ~ "27",
+
+    v630a %in% c("AKHAMA CHO", "EYE PROBLEM", "EYE CHECK GARNA GAYEKO") ~ "28",
+
+    v630a == "DAAD" ~ "29",
+
+    v630a %in% c("BODYSCHE", "JIU DUKHEKO", "NORMAL", "KAMJORI", "KAMJORI BHAYEKO", "KAMJORI VAYEKO") ~ "30",
+
+    v630a %in% c("CHECK UP PREGNANT NA BHAYERA", "GAINO PATHEGHAR SAMASYA", "GYAENO PROBLEM", 
+                "GYANO KO PROBLEM", "IRREGULAR MENSURATION", "MINS VAYAKO BELA PET DUKHEKO", 
+                "PATHAGHAR SAMANDI SAMASYA IS", "PATHEGHAR KO SAMASYA", "PATHEGHAR KO SAMSYA", 
+                "PERIOD ANIYAMIT HUNE", "PERIOD PAIN", "PERIOD PAIN BHAYEKO", "PERIOD PAN", 
+                "SHIST SURGERY", "UTERUS INFECTION", "UTERUS PROBLAM", "PREGNANT NA BHAYERA CHECK UP") ~ "31",
+
+    v630a %in% c("KAMJORI BP LOW", "MUTU HALLANE", "MUTUROG", "PRESSURE LOW VYERW") ~ "32",
+
+    v630a %in% c("FOLLOWUP OF HERNIA OPERATIO", "HARNIYA", "HARNIYA KO OPERATION", "HERNIA") ~ "33",
+
+    v630a == "SCROP TRIFECTA" ~ "35",
+
+    v630a %in% c("KIDNEY STONES", "PISAB ROKIYAKO", "PISAB THAILIKO PATHARI", "PAYHARI") ~ "36",
+
+    v630a %in% c("GAL BLADORS ROBLAM", "LIVER KO SAMAYA", "LIVER PROBLEM", "PATHARIKO", 
+                "PATTHARIKO AUSADHI", "STONE", "PITA THAILIKO PATHARI", "JONDISH LIVAR PHET MA PANI",
+                "UHA KO URIC ACID ATHAWA LIVER KO SAMASYA LEY HAST DUKHEKO VANERA DOCTOR LEY VANNU BHAYO") ~ "37",
+
+    v630a %in% c("CHATI DUKHEKO", "CHATTI DUKHA SAMASYA", "CHEST INFECTION", 
+                "FOKSO MA PANI DEKHIYEKO", "TUBERCULOSIS", "FOKSO KO PROBLEM") ~ "38",
+
+    v630a %in% c("BHULNE SAMASYA", "HEAD ISSUES", "MANASIK SAMASYA") ~ "40",
+
+    v630a %in% c("DIZZINESS", "HEADACE", "HEADACHE", "JHUTTA JHAMJHAMAUNE", "MIGRAINE", 
+                "MIGREN HEADACHE", "NASA", "NASA DABE KO", "NASA SAMBANDHI", 
+                "NEURO KO PROBLEM", "TAU KO DUKHNA BOMIT HUNA", "TAUKO DUKHANE", 
+                "TAUKO DUKHEKO", "TAUKO DUKHEKO VYERW", "TAUKO DUKHNE", "TAUKO MA GHAU AAKO", 
+                "THAUKO DUKHANE", "TUKO DUKHAYA", "KHUTTA JHAMJHAMAUNE") ~ "41",
+
+    v630a %in% c("BATHA ROGA", "URIC ACID", "URIK ASID") ~ "42",
+
+    v630a %in% c("KHUTTA MA KHIL AAYAR KTM GAYAR OPERATION GARE KO", "OPERATION KHUTTA KOMKHIL") ~ "43",
+
+    v630a == "FOOD POISON" ~ "22",
+
+    v630a %in% c("CHEST & STOMACH PROBLEM", "TIFID", "TYPHOID", "THYPHOID", "CHEST & STOMACH PAIN") ~ "2",
+
+    v630a == "FOKSO KO PROBLEMP" ~ "38",
+
+    v630a %in% c( "ANC CHECKUP IN PRIVATE HOSPITAL", "KEHI VAKO CHHAIN CHHAIN") ~ "6",
+
+    v630a %in% c("BLOOD AND URINE INFECTION" , "YOUN ROD PANI BAGNE") ~ "10",
+
+    v630a %in% c("BLOOD INFECTION") ~ "20",
+
+    v630a == "EYE CHECK GARDA" ~ "28",
+
+    v630a == "BRUSELA" ~ "17",
+
+    v630a %in% c("BACK PAIN", "BACK PAIN KO SAMASYA BHAKO THIYO", "BACKPAIN", 
+                 "DHAD DUKHE", "DHAD DUKHNE", "DHAD DUKHNE KHUTTA DUKHNE", 
+                 "DHADA DUKHEKO", "DISCOGENIC LBD(LOWER BACK PAIN)", "GHUDA DUKHANE", 
+                 "HADJORANI DUKHEKO", "HATH DUKHEKO", "HATH KHUTTA DUKHAI", 
+                 "KAMAR GHUDA DUKHEKOLE", "KURKUCHA DUKHNE POLNE", 
+                 "BODY ACHE", "BODY PAIN", "हात खुट्टा कम्मर दुखेको") ~ "19",
+
+    v630a %in% c("ABDOMEN PAIN", "APPENDIX", "GALLSTONE", "GASTIC", "GASTIK", "STOMACH  INFECTION",
+                 "GASTRIC INFECTION", "GASTRITIS", "HEART BURN", "DISHA GOTA PAREKO",
+                 "INTESTINE OPERATION SUDDENLY AS THERE WAS GROWTH IN HIS INTESTINE", 
+                 "KABJIYAT", "KAMMAR DUKHEKO", "KOKHA DUKHEKO", "PAYALSH", "PAYELS", 
+                 "PET DUKHANE", "PET DUKHERA", "PET DUKHERA VOMIT BHAKO", "PET KO SAMASAYA", 
+                 "PETKO OPERATION GAREKO", "PILES", "STOMACH", "STOMACH INFECTION", 
+                 "STOMACH ACHE", "STOMACH PAIN", "एपेन्डिसाइड", "ABDOMINAL PAIN",
+                 "THEY DON'T KNOW ABOUT THE ACTUAL DISEASE AS PER THE DOCTOR THEY ALSO DON'T KNOW THE ACTUAL DISEASE . GASTRIC") ~ "22",
+
+    v630a %in% c("PREGNANCY CHECK UP", "PREGNANT", 
+                 "UHA KO BREAST FEEDING GARNA KO LAGI AWASHEK MATRA MA DUDH NAPAKO HUNALEY BIGAT EK HAFTA DEKHI AAUSADHI SEWAN GARDAI HUNUNXA") ~ "25",
+
+    v630a %in% c("GHATI KO SAMASYA", "NAAK MA MASU PALAKO", "PINASH", "TONSIL", "NOSE BLEEDING") ~ "27",
+
+    v630a == "OVERALL" ~ "30",
+
+    v630a %in% c("MAHINA BARI NIHAMIT NAVAYERA", "PATHAK GHAR SAMANDI SAMASYA", 
+                 "PATHEGHAR KO OPERATION", "PATHEGHAR KO SAMASYA", "PATHEGHAR SAMBANDI SAMASYA THIYO") ~ "31",
+
+    v630a == "HEART PROBLEM" ~ "32",
+
+    v630a %in% c("HARNIYA KO OPERATION GAREKO", "HARNIYA KO OPERATION  GAREKO") ~ "33",
+
+    v630a == "HIV AIDS" ~ "34",
+
+    v630a %in% c("KIDANEY MA PATHARIYA", "KIDNEY INFECTION", "KIDNEY STONE", "KIDANEY  MA PATHARIYA",
+                 "KIDNI JACHA RA UPACHAR", "PISABMA KHARABI", "STONE OPERATION") ~ "36",
+
+    v630a %in% c("MILD LIVER DISEASE", "PATHARI", "PATHARI KO OPERATION", "PATTHARIYA", 
+                 "PITA THAILIMA PATHARI KO", "PITKO THAILI MA PATHALI", "PITTATHAILI KO OPERATION") ~ "37",
+
+    v630a == "PROSTATE" ~ "39",
+
+    v630a %in% c("BEHOSH VAYEKO EKKASHI", "DHARD KO NASA CHAPIYA KO", "MIGRAINE", 
+                 "PARALYSIS", "RINGADA CHALEKO", "RINGATA", "TAUKO DUKHAI", 
+                 "TAUKO DUKHEKO", "YAUTA LEG NACHALEKO", "RINGADA CHALNE") ~ "41",
+
+    v630a == "WORM" ~ "44",
+
+    TRUE ~ as.character(v630)
+  )
+)
+
+section6c4 <- section6c4 %>%
+  mutate(
     v630 = case_when(
-      personid == 777 ~ 8,
-      personid == 3421 ~ 22,
-      personid == 8150 ~ 19,
-      personid == 8427 ~ 22,
-      personid == 9616 ~ 41,
-      personid == 16352 ~ 2,
-      personid == 17818 ~ 1, 
-      personid == 18176 ~ 15,
-      personid == 19046 ~ 37,
-      personid == 19684 ~ 22, 
-      personid == 20888 ~ 6,
-      personid == 24132 ~ 32,
-      personid == 24286 ~ 10, 
-      personid == 25246 ~ 41, 
-      personid == 25322 ~ 25, 
-      personid == 25356 ~ 24, 
-      personid == 27238 ~ 28,
-      personid == 27383 ~ 30,
-      personid == 27484 ~ 10,
-      personid == 27815 ~ 37,
-      personid == 33458 ~ 9,
-      personid == 38132 ~ 38,
-      personid == 38711 ~ 32,
-      personid == 47193 ~ 19,
-      personid == 48072 ~ 22, 
-      personid == 53953 ~ 19,
-      personid == 55502 ~ 31,
-      personid == 55737 ~ 22,
-      personid == 59527 ~ 41,
-      personid == 59529 ~ 22, 
-      personid == 15320 ~ 36,
+      personid == 777 ~ "8",
+      personid == 3421 ~ "22",
+      personid == 8150 ~ "19",
+      personid == 8427 ~ "22",
+      personid == 9616 ~ "41",
+      personid == 16352 ~ "2",
+      personid == 17818 ~ "1", 
+      personid == 18176 ~ "15",
+      personid == 19046 ~ "37",
+      personid == 19684 ~ "22", 
+      personid == 20888 ~ "6",
+      personid == 24132 ~ "32",
+      personid == 24286 ~ "10", 
+      personid == 25246 ~ "41", 
+      personid == 25322 ~ "25", 
+      personid == 25356 ~ "24", 
+      personid == 27238 ~ "28",
+      personid == 27383 ~ "30",
+      personid == 27484 ~ "10",
+      personid == 27815 ~ "37",
+      personid == 33458 ~ "9",
+      personid == 38132 ~ "38",
+      personid == 38711 ~ "32",
+      personid == 47193 ~ "19",
+      personid == 48072 ~ "22", 
+      personid == 53953 ~ "19",
+      personid == 55502 ~ "31",
+      personid == 55737 ~ "22",
+      personid == 59527 ~ "41",
+      personid == 59529 ~ "22", 
+      personid == 15320 ~ "36",
       TRUE ~ v630
     ),
     v630 = as.numeric(v630)
@@ -2623,55 +4185,375 @@ missing_acute <- anti_join(
   by = "disease_id"
 )
 
-missing_acute <- missing_acute %>%
-  dplyr::left_join(
-    section6c1 %>%
-      dplyr::select(personid, v630) %>%
-      dplyr::rename(v630_from_6c1 = v630),
-    by = "personid"
-  )
-
-missing_acute <- missing_acute %>%
-  select(personid, v630, v630_from_6c1)
-
-v630_replacement <- section6c1 %>%
-  select(personid, v630) %>%
-  rename(v630_from_6c1 = v630) %>%
-  semi_join(missing_acute, by = "personid")
-
 section6c4 <- section6c4 %>%
-  left_join(v630_replacement, by = "personid") %>%
   mutate(
-    v630 = if_else(
-      personid %in% missing_acute$personid,
-      v630_from_6c1,
-      v630
-    )
+    v658_num = suppressWarnings(as.numeric(str_extract(v658, "\\d+"))),
+
+    v658_txt = str_trim(
+      str_remove_all(v658, "\\d+|,")
+    ),
+
+    v658  = v658_num,
+    v658a = if_else(v658_txt != "", v658_txt, NA_character_)
   ) %>%
-  select(-v630_from_6c1)
-
-section6c1 <- section6c1 %>%
+  select(-v658_num, -v658_txt) %>%
   mutate(
-    hhid = paste0(psu, "-", hhld), 
-    uniq_id = paste0(psu, "-", hhld, "-", v101),
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
-  )
+    v652_num = suppressWarnings(as.numeric(str_extract(v652, "\\d+"))),
 
-section6c4 <- section6c4 %>%
-  mutate(
-    v630 = as.numeric(v630),
-    hhid = paste0(psu, "-", hhld), 
-    uniq_id = paste0(psu, "-", hhld, "-", v101),
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
-  )
+    v652_txt = str_trim(
+      str_remove_all(v652, "\\d+|,")
+    ),
 
-missing_acute <- anti_join(
-  section6c4, 
-  section6c1, 
-  by = "disease_id"
-)
+    v652  = v652_num,
+    v652a = if_else(v652_txt != "", v652_txt, NA_character_)
+  ) %>%
+  select(-v652_num, -v652_txt) 
+
+for (i in setdiff(1:ncol(section6c4), c(2, 7, 8, 29, 34:36))) {
+  section6c4[[i]] <- as.numeric(gsub("[^0-9]", "", section6c4[[i]]))
+}
 
 rm(missing_acute)
+
+#UPDATING THE COST FOR ACUTE ILLNESS.
+
+s0 <- read_dta("stata_data1/section0.dta")
+s1a <- read_dta("stata_data1/section1a.dta")
+
+acute_costs1 <- read.xlsx("/home/sobaakun/NHIPsurvey/health section arrangement/acute_costs- 22 Jan- reviewed bks.xlsx")
+
+acute_costs1 <- merge(
+  acute_costs1, 
+  s0[, c("hhid", "ID")],
+  by = "hhid"
+)
+
+s1a <- s1a %>%
+  mutate(
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
+acute_costs1 <- merge(
+  acute_costs1, 
+  s1a[, c("uniq_id", "personid")],
+  by = "uniq_id"
+)
+
+acute_costs2 <- read.xlsx("health section arrangement/acute_costs_remaining(dt).xlsx")
+
+acute_costs <- bind_rows(
+  acute_costs1,
+  acute_costs2
+) %>%
+  arrange(disease_id) %>%
+  group_by(disease_id) %>%
+  slice_tail(n = 1) %>%  
+  ungroup()
+
+write.xlsx(acute_costs, "acute_costs.xlsx")
+
+#UPDATING COST FOR CHRONIC INPATIENT.
+
+chronic_inpatient1 <- read.xlsx("health section arrangement/Chronic_inpatient_costs_HB include age and sex- updated BKS Jan 17.xlsx")
+
+chronic_inpatient1 <- merge(
+  chronic_inpatient1, 
+  s1a[, c("uniq_id", "personid")],
+  by = "uniq_id"
+)
+
+chronic_inpatient2 <- read.xlsx("health section arrangement/chronic_inpatient_remaining (dt).xlsx")
+
+chronic_inpatient2 <- chronic_inpatient2 %>%
+  mutate(
+    other_chronic_condition = as.character(other_chronic_condition)
+  )
+
+chronic_inpatient <- bind_rows(
+  chronic_inpatient1, 
+  chronic_inpatient2
+) %>%
+  arrange(disease_id) %>%
+  group_by(disease_id) %>%
+  slice_tail(n = 1) %>%
+  ungroup()
+
+write.xlsx(chronic_inpatient, "chronic_inpatient.xlsx")
+
+#UPDATING COST FOR CHRONIC OUTPATIENT.
+
+chronic_outpatient1 <- read.xlsx("health section arrangement/chronic_outpatient_costs - cost adjusted incl emergency bks 27 Jan.xlsx")
+
+chronic_outpatient1 <- merge(
+  chronic_outpatient1, 
+  s1a[, c("uniq_id", "personid", "hhid")],
+  by = "uniq_id"
+)
+
+chronic_outpatient2 <- read.xlsx("health section arrangement/chronic_outpatient_remaining (dt).xlsx")
+
+chronic_outpatient <- bind_rows(
+  chronic_outpatient1, 
+  chronic_outpatient2
+) %>%
+  arrange(disease_id) %>%
+  group_by(disease_id) %>%
+  slice_tail(n = 1) %>%
+  ungroup()
+
+write.xlsx(chronic_outpatient, "chronic_outpatient.xlsx")
+
+#TRANSLATING THE COST DATAFRAMES INTO THE MAIN DATAFRAMES
+
+#TRANSLATION FOR SECTION6C4
+
+acute_costs <- acute_costs %>%
+  rename(
+    v651a = emergency_costs, 
+    v651b = opd_charges, 
+    v651c = laboratory_costs, 
+    v651d = imaging_costs, 
+    v651e = medicine_costs, 
+    v651f = medical_supplies_costs, 
+    v651g = transportation_costs, 
+    v651h = accomodation_costs, 
+    v651i = care_giver_costs, 
+    v651j = other_costs, 
+    v651k = total_costs
+  ) %>%
+  select(personid, v651a:v651k)
+
+section6c4 <- section6c4 %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+acute_costs <- acute_costs %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+section6c4 <- section6c4 %>%
+  left_join(
+    acute_costs %>% select(personid, obs_id, v651a:v651k),
+    by = c("personid", "obs_id"),
+    suffix = c("", "_tmp")
+  ) %>%
+  mutate(across(
+    v651a:v651k,
+    ~ coalesce(get(paste0(cur_column(), "_tmp")), .)
+  )) %>%
+  select(-ends_with("_tmp"), -obs_id)
+
+#TRANSLATING FOR SECTION6B4
+
+chronic_inpatient <- chronic_inpatient %>%
+  rename(
+    v618a = Emergency, 
+    v618b = `Bed.Charges`, 
+    v618c = Laboratory,
+    v618d = Imaging, 
+    v618e = Medicines, 
+    v618f = `Medical.Supplies/.Devices`,
+    v618g = `Trans.portation`, 
+    v618h = `Food.&.Accommo.dation`,
+    v618i = `Care.Giver.Cost`,
+    v618j = Other.Costs,
+    v618k = Total.cost
+  ) %>%
+  select(personid, v618a:v618k)
+
+section6b4 <- section6b4 %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+chronic_inpatient <- chronic_inpatient %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+section6b4 <- section6b4 %>%
+  left_join(
+    chronic_inpatient %>% select(personid, obs_id, v618a:v618k),
+    by = c("personid", "obs_id"),
+    suffix = c("", "_tmp")
+  ) %>%
+  mutate(across(
+    v618a:v618k,
+    ~ coalesce(get(paste0(cur_column(), "_tmp")), .)
+  )) %>%
+  select(-ends_with("_tmp"), -obs_id)
+
+#TRANSLATING FOR SECTION6B3
+
+chronic_outpatient <- chronic_outpatient %>%
+  rename(
+    v614a = emergency_costs, 
+    v614b = opd_charges, 
+    v614c = laboratory_costs,
+    v614d = imaging_costs, 
+    v614e = medicine_costs, 
+    v614f = medical_supplies_costs,
+    v614g = transportation_costs, 
+    v614h = accomodation_costs,
+    v614i = care_giver_costs,
+    v614j = other_costs,
+    v614k = total_costs
+  ) %>%
+  select(personid, v614a:v614k)
+
+section6b3 <- section6b3 %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+chronic_outpatient <- chronic_outpatient %>%
+  group_by(personid) %>%
+  mutate(obs_id = row_number()) %>%
+  ungroup()
+
+section6b3 <- section6b3 %>%
+  left_join(
+    chronic_outpatient %>% select(personid, obs_id, v614a:v614k),
+    by = c("personid", "obs_id"),
+    suffix = c("", "_tmp")
+  ) %>%
+  mutate(across(
+    v614a:v614k,
+    ~ coalesce(get(paste0(cur_column(), "_tmp")), .)
+  )) %>%
+  select(-ends_with("_tmp"), -obs_id)
+
+rm(
+  acute_costs, acute_costs1, acute_costs2, chronic_inpatient, chronic_inpatient1, chronic_inpatient2,
+  chronic_outpatient, chronic_outpatient1, chronic_outpatient2, s0, s1a
+)
+
+#SECOND TRANSLATION FOR SECTION 6.2.3 
+
+chronic_outpatient <- read.xlsx("health section arrangement/CHRONIC-opd-COST-EDITED.xlsx")
+
+chronic_outpatient <- chronic_outpatient %>%
+  group_by(disease_id) %>%
+  slice(1) %>%
+  ungroup() %>%
+  rename(
+    v614a = emergency_costs, 
+    v614b = opd_charges, 
+    v614c = laboratory_costs, 
+    v614d = imaging_costs, 
+    v614e = medicine_costs, 
+    v614f = medical_supplies_costs, 
+    v614g = transportation_costs, 
+    v614h = accomodation_costs, 
+    v614i = care_giver_costs, 
+    v614j = other_costs, 
+    v614k = total_costs
+  )
+
+section6b3 <- section6b3 %>%
+  mutate(
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  ) %>%
+  group_by(disease_id) %>%
+  slice(1) %>%
+  ungroup()
+
+section6b3 <- section6b3 %>%
+  rows_update(
+    chronic_outpatient %>% select(disease_id, v614a:v614k), 
+    by = "disease_id", 
+    unmatched = "ignore"
+  )
+
+section6b3 <- section6b3 %>%
+  mutate(
+    across(v614a:v614k, ~ na_if(.x, 0))
+  )
+
+rm(chronic_outpatient)
+
+#SECOND TRANSLATION FOR SECTION 6.2.4
+
+chronic_inpatient <- read.xlsx("health section arrangement/chronic_inpatient_costs 4 Feb rev sent.xlsx")
+
+chronic_inpatient <- chronic_inpatient %>%
+  rename(
+    v618a = emergency_costs, 
+    v618b = bed_charges, 
+    v618c = laboratory_costs, 
+    v618d = imaging_costs, 
+    v618e = medicine_costs, 
+    v618f = medical_supplies_costs, 
+    v618g = transportation_costs, 
+    v618h = accomodation_costs, 
+    v618i = care_giver_costs, 
+    v618j = other_costs, 
+    v618k = total_costs
+  ) %>%
+  select(disease_id, v618a:v618k)
+
+section6b4 <- section6b4 %>%
+  mutate(
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+  )
+
+section6b4 <- section6b4 %>%
+  rows_update(
+    chronic_inpatient %>% select(disease_id, v618a:v618k),
+    by = "disease_id"
+  )
+
+section6b4 <- section6b4 %>%
+  mutate(
+    across(v618a:v618k, ~ na_if(.x, 0))
+  )
+
+rm(chronic_inpatient)
+
+#SECOND TRANSLATION FOR SECTION 6.3.4
+
+acute_costs <- read.xlsx("health section arrangement/acute_costs 4 Feb.xlsx")
+
+acute_costs <- acute_costs %>%
+  rename(
+    v651a = `Emergency.v651a`, 
+    v651b = `OPD/IPD.v651b`, 
+    v651c = Lab.v651c,
+    v651d = Imagingv651d, 
+    v651e = Med.v651e,
+    v651f = Supply.v651f, 
+    v651g = Transp.v651g, 
+    v651h = Accomod.v651h, 
+    v651i = Care.Giverv651i,
+    v651j = Other.v651j,
+    v651k = Total.Cost.v651k, 
+  )
+
+section6c4 <- section6c4 %>%
+  mutate(
+    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v630)
+  ) 
+
+section6c4 <- section6c4 %>%
+  rows_update(
+    acute_costs %>% select(disease_id, v651a:v651k),
+    by = "disease_id"
+  )
+
+section6c4 <- section6c4 %>%
+  mutate(
+    across(v651a:v651k, ~ na_if(.x, 0)),
+    v630 = if_else(
+    v630 == 96, 
+    19, 
+    v630
+    )
+  ) 
+
+
+rm(acute_costs)
 
 #SECTION7
 
@@ -4666,124 +6548,3 @@ lentils <- lentils %>%
       na.rm = TRUE
     )
   )
-
-
-hib_chronic <- section6b1 %>%
-  filter(enrollment == 1 & v603 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_chronic$hhid))
-
-hib_chronic_outcosts <- section6b3 %>%
-  filter(enrollment == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_chronic_costs$hhid))
-
-hib_chronic_incosts <- section6b4 %>%
-  filter(enrollment == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_chronic_incosts$hhid))
-
-hib_acute <- section6c1 %>%
-  filter(enrollment == 1 & v629 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_acute$hhid))
-
-hib_acute_costs <- section6c4 %>%
-  filter(enrollment == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_acute_costs$hhid))
-
-nonhib_chronic <- section6b1 %>%
-  filter(enrollment == 2 & v603 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_chronic$hhid))
-
-nonhib_chronic_outcosts <- section6b3 %>%
-  filter(enrollment == 2) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_chronic_outcosts$hhid))
-
-nonhib_chronic_incosts <- section6b4 %>%
-  filter(enrollment == 2) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_chronic_incosts$hhid))
-
-nonhib_acute <- section6c1 %>%
-  filter(enrollment == 2 & v629 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_acute$hhid))
-
-nonhib_acute_costs <- section6c4 %>%
-  filter(enrollment == 2) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_acute_costs$hhid))
-
-ssf_chronic <- section6b1 %>%
-  filter(enrollment == 3 & v603 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_chronic$hhid))
-
-ssf_chronic_outcosts <- section6b3 %>%
-  filter(enrollment == 3) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_chronic_outcosts$hhid))
-
-ssf_chronic_incosts <- section6b4 %>%
-  filter(enrollment == 3) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_chronic_incosts$hhid))
-
-ssf_acute <- section6c1 %>%
-  filter(enrollment == 3 & v629 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_acute$hhid))
-
-ssf_acute_costs <- section6c4 %>%
-  filter(enrollment == 3) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_acute_costs$hhid))
-
-nonssf_chronic <- section6b1 %>%
-  filter(enrollment == 4 & v603 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_chronic$hhid))
-
-nonssf_chronic_outcosts <- section6b3 %>%
-  filter(enrollment == 4) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_chronic_outcosts$hhid))
-
-nonssf_chronic_incosts <- section6b4 %>%
-  filter(enrollment == 4) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_chronic_incosts$hhid))
-
-nonssf_acute <- section6c1 %>%
-  filter(enrollment == 4 & v629 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_acute$hhid))
-
-nonssf_acute_costs <- section6c4 %>%
-  filter(enrollment == 4) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_acute_costs$hhid))

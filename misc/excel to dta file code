@@ -125,3 +125,71 @@ invisible(
     )
   })
 )
+
+#######################################################################################################
+
+v105 = case_when(
+      grepl("KUMHAL", v105, ignore.case = TRUE) ~ "3",
+      grepl("NEWAR|SHRESTHA|THARU|SIMANTRAKIT|SIMANTAKRIT", v105, ignore.case = TRUE) ~ "2",
+      v105a %in% c(
+        " SIMANTRAKRIT", " ATI SIMANTAKRIT", " ATI SIMANTKRIT", " ATISIMANTKRIT",
+        " ATISEMANTKRIT", " ATI SEMANTKRIT", " ATI SEMANTRAKRIT", " SIMANTAKRIT",
+        " SIMANTRAKIT", " SIMANTRAKRIT", " ATI SIMANTRAKRIT",
+        "CHEPANG", "CEPANG", " NEWAR", " THARU"
+      ) ~ "2",
+      v105a %in% c(" KUMHAR") ~ "3",
+      v105a %in% c(" SANYASI", " JOGI") ~ "1",
+      hhid %in% c("3101-19", "3101-20") ~ "2",
+      hhid %in% c("5104-16") ~ "3",
+      personid %in% c(5952789) ~ "1", 
+      ID %in% c(14569) ~ "2", 
+      ID %in% c(14526) ~ "1",
+      TRUE ~ v105
+    ),
+
+v106 = case_when(
+      v106a %in% c(" SACHHAI") ~ "5",
+      v106a %in% c(" NEWAR") ~ "1",
+      personid %in% c("5952247", "PUJA RANABHAT") ~ "1", 
+      ID %in% c("14468") ~ "2",
+      ID %in% c("11084", "11085") ~ "1",
+      v106a %in% c(" YUMA") ~ "6",
+      v102 %in% c("IRFAN AALAM") ~ "3",
+      TRUE ~ v106
+    ),
+    v107  = as.numeric(gsub("[^0-9]", "", v107)),
+    v107 = case_when(
+      v107a %in% c(
+        "VAI KO CHORI", "DAIKO XORI", " SAUTHELO XORA", " PALEKO XORI"
+      ) ~ 3, 
+      v107a %in% c(
+        " PANATINI", "PALATI", " PANATI"
+      ) ~ 4,
+      v107a %in% c(
+        "BAINI PARNE", " BHADAINI", "BHADA", "BHADAINI", "SADU DIDI", " DIDI", 
+        " PHUPU", " DIDI", " BHADAI"
+      ) ~ 6, 
+      v107a %in% c(
+        " BAHINI KO CHHORI", " BAHINI KO XORA", "BAINIKO XORA", "VANJA", "BAHENIKO CHORA", "BHANJA",
+        "BHANJI", "SALI KO CHHORA", " BHANJA", " BHANJI", " BHANJA"
+      ) ~ 7,
+      v107a %in% c(
+        "JAWAI", "NATINI JWAI", "NATINI BUHARI", " NATINI BUHARI", " SAUTELEY BUHARI"
+      ) ~ 8,
+      v107a %in% c(
+        "DEWAR", "DEWARANI", " DEURANI", " DEWAR", " NANDA", " JETHAJU", " JETHANI", " NANDA"
+      ) ~ 9, 
+      v107a %in% c(
+        " FUPU SASU", " BUDHI SASU", " SASURA"
+      ) ~ 10, 
+      v107a %in% c(
+        "XORI MANNU VAYERA RAAKHNU VAKO"
+      ) ~ 11,
+      v107a %in% c(
+        " HAJUR AAMA", " GRANDMOTHER", " HAJURAAMA", "हजुरआमा", " HAJUR BABA", " HAJUR BABA", " HAJUR AAMA",
+        " HAJURAMA", "HAJURAMA"
+      ) ~ 12, 
+      TRUE ~ v107
+    )
+
+
