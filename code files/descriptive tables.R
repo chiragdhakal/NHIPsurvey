@@ -1726,3 +1726,509 @@ acute_average_summary <- acute_average %>%
   )
 
 write.xlsx(acute_average_summary, "acute_average_summary.xlsx")
+
+food_at_home_summary <- section3a %>%
+  mutate(
+    across(v303:v305, ~ na_if(.x, 0)),
+    food_category = case_when(
+      v301 == 1  ~ "Grains and Cereals",
+      v301 == 2  ~ "Pulses and Lentils",
+      v301 == 3  ~ "Meats and Fish",
+      v301 == 4  ~ "Eggs and Milk Products (excluding butter)",
+      v301 == 5  ~ "Ghee (Butter, lard, and other animal-based oils and fats)",
+      v301 == 6  ~ "Cooking (Vegetable) Oils",
+      v301 == 7  ~ "Fruits and Nuts (fresh, dried, dehydrated, frozen)",
+      v301 == 8  ~ "Vegetables (fresh, dried, dehydrated, frozen)",
+      v301 == 9  ~ "Sweets and Confectionery",
+      v301 == 10 ~ "Spices and Condiments",
+      v301 == 11 ~ "Tea and Coffee",
+      v301 == 12 ~ "Non-alcoholic beverages",
+      v301 == 13 ~ "Alcoholic Beverages (local or imported)",
+      v301 == 14 ~ "Tobacco and Tobacco Products",
+      v301 == 15 ~ "Prepared Food Products",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  rename(
+    home_production = v303, 
+    food_purchases  = v304, 
+    inkind_received = v305
+  ) %>%
+  select(-v301) %>%
+  group_by(food_category) %>%
+  summarise(
+    across(
+      c(home_production, food_purchases, inkind_received),
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n_home_production  = sum(!is.na(home_production)),
+    n_food_purchases = sum(!is.na(food_purchases)),
+    n_inkind_received = sum(!is.na(inkind_received)),
+    .groups = "drop"
+  )
+
+food_away_home <- section3b %>%
+  mutate(
+    across(v308:v309, ~ na_if(.x, 0)),
+    food_category = case_when(
+      v306 == 1 ~ "Tea/Coffee", 
+      v306 == 2 ~ "Breakfast", 
+      v306 == 3 ~ "Lunch",
+      v306 == 4 ~ "Afternoon Snack", 
+      v306 == 5 ~ "Dinner",
+      v306 == 6 ~ "Soft Drink", 
+      v306 == 7 ~ "Alcoholic Drink", 
+      v306 == 8 ~ "Other foods", 
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  rename(
+    household_expenditure = v308, 
+    received_as_guest = v309
+  ) %>%
+  select(-v306) %>%
+  group_by(food_category) %>%
+  summarise(
+    across(
+      c(household_expenditure, received_as_guest),
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n_household_expenditure  = sum(!is.na(household_expenditure)),
+    n_received_as_guest = sum(!is.na(received_as_guest)),
+    .groups = "drop"
+  )
+
+non_food_expenditure <- section4a %>%
+  mutate(
+    across(v403a:v403b, ~ na_if(.x, 0)),
+    nonfood_category = case_when(
+    v401 == 1  ~ "Clothing and apparel",
+    v401 == 2  ~ "Shoes and Slippers",
+    v401 == 3  ~ "Repair and Minor repair of house",
+    v401 == 4  ~ "Fuel",
+    v401 == 5  ~ "Furniture and Furnishings",
+    v401 == 6  ~ "Purchase and Maintenance of Textiles for Household Use",
+    v401 == 7  ~ "Purchase and Maintenance of Household Equipment and Appliances",
+    v401 == 8  ~ "Purchase and Maintenance of Kitchen and Bathroom Items",
+    v401 == 9  ~ "Purchase and Maintenance of House and Kitchen-garden",
+    v401 == 10 ~ "Expenses on Regular House Cleaning",
+    v401 == 11 ~ "Purchase of Personal Vehicle",
+    v401 == 12 ~ "Repair and Maintenance of Vehicle",
+    v401 == 13 ~ "Public Transportation Expenses",
+    v401 == 14 ~ "Communication Cost",
+    v401 == 15 ~ "Audio-Visual, Photographic and Information Processing Equipment Expenses",
+    v401 == 16 ~ "Music and Entertainment Related Goods",
+    v401 == 17 ~ "Sports and Hobby Related Expenses",
+    v401 == 18 ~ "Amusement and Cultural Services",
+    v401 == 19 ~ "Books, Magazines, and Stationery",
+    v401 == 20 ~ "Domestic Holiday Package",
+    v401 == 21 ~ "Education Expenses",
+    v401 == 22 ~ "Health Expenses (Preventive Health Care)",
+    v401 == 23 ~ "Lodging and Hostel Costs",
+    v401 == 24 ~ "Other Non-Electronic Personal Use Items",
+    v401 == 25 ~ "Social Security Expenses",
+    v401 == 26 ~ "Insurance Costs (life and non-life)",
+    v401 == 27 ~ "Banking services",
+    v401 == 28 ~ "Administrative and Legal Costs",
+    v401 == 29 ~ "Festival and parties (wedding, birthday, etc.)",
+    v401 == 30 ~ "Other Non-Food Consumption",
+    TRUE ~ NA_character_
+  )
+  ) %>%
+  rename(
+    yearly = v403a, 
+    monthly = v403b
+  ) %>%
+  select(-v401) %>%
+  group_by(nonfood_category) %>%
+  summarise(
+    across(
+      c(yearly, monthly),
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n_yearly  = sum(!is.na(yearly)),
+    n_monthly = sum(!is.na(monthly)),
+    .groups = "drop"
+  )
+
+travel_expense <- section4b %>%
+  mutate(
+    across(v407a:v407b, ~ na_if(.x, 0)),
+    travel_expense_category = case_when(
+    v405 == 1  ~ "Tour packages (Pre-paid tours, guided excursions, cruise packages)",
+    v405 == 2  ~ "Food & Beverages (restaurants, cafes, groceries, street food, alcohol)",
+    v405 == 3  ~ "Accommodation (hotels, hostels, vacation rentals, camping fees)",
+    v405 == 4  ~ "Transportation (airfare, roads)",
+    v405 == 5  ~ "Health-related Expenses (medicines, medical equipment, health services, and insurance co-pays)",
+    v405 == 6  ~ "Leisure & entertainment activities (museums, movies, parks, and exhibitions, etc.)",
+    v405 == 7  ~ "Shopping and goods (personal items, electronics, luxury goods, etc.)",
+    v405 == 8  ~ "Travel essentials (Visas, travel insurance, SIM cards, roaming charges)",
+    v405 == 9  ~ "Services & Fees (Laundry, communications, banking fees, currency conversion, tips)",
+    v405 == 10 ~ "Other expenses (gifts, donations, unclassifiable spending)",
+    TRUE ~ NA_character_
+  )
+  ) %>%
+  rename(
+    yearly = v407a, 
+    monthly = v407b
+  ) %>%
+  select(-v405) %>%
+  group_by(travel_expense_category) %>%
+  summarise(
+    across(
+      c(yearly, monthly),
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n_yearly  = sum(!is.na(yearly)),
+    n_monthly = sum(!is.na(monthly)),
+    .groups = "drop"
+  )
+
+own_account <- section4d %>%
+  mutate(
+    v416a = as.numeric(v416a), 
+    v416b = as.numeric(v416b),
+    across(v416a:v416b, ~na_if(.x, 0)), 
+     product_type = case_when(
+    v414 == 1 ~ "Bamboo & Cane Products",
+    v414 == 2 ~ "Straw & Grass Products",
+    v414 == 3 ~ "Textiles & Clothing",
+    v414 == 4 ~ "Wooden Products & Furniture",
+    v414 == 5 ~ "Metal Tools & Implements",
+    v414 == 6 ~ "Processed Foods & Preserves",
+    v414 == 7 ~ "Household Services & Maintenance",
+    v414 == 8 ~ "Other Handicrafts & Items",
+    TRUE ~ NA_character_
+  )
+  ) %>%
+  rename(
+    yearly = v416a,
+    monthly = v416b 
+  ) %>%
+  select(-v414) %>%
+  group_by(product_type) %>%
+  summarise(
+    across(
+      c(yearly, monthly),
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n_yearly  = sum(!is.na(yearly)),
+    n_monthly = sum(!is.na(monthly)),
+    .groups = "drop"
+  )
+
+wb <- createWorkbook()
+
+addWorksheet(wb, "Food at Home")
+writeData(wb, "Food at Home", food_at_home_summary)
+
+addWorksheet(wb, "Food Away Home")
+writeData(wb, "Food Away Home", food_away_home)
+
+addWorksheet(wb, "Non-Food Expenditure")
+writeData(wb, "Non-Food Expenditure", non_food_expenditure)
+
+addWorksheet(wb, "Travel Expenses")
+writeData(wb, "Travel Expenses", travel_expense)
+
+addWorksheet(wb, "Own Account Production")
+writeData(wb, "Own Account Production", own_account)
+
+saveWorkbook(wb, "household_expenditure_summary.xlsx", overwrite = TRUE)
+
+wage_income <- section8 %>%
+  mutate(
+    occupation = case_when(
+      v803c == 1  ~ "Legislators, Officials & Managers",
+      v803c == 2  ~ "Professionals",
+      v803c == 3  ~ "Technicians and Associate Professionals",
+      v803c == 4  ~ "Clerical Support Workers",
+      v803c == 5  ~ "Services and Sales Workers",
+      v803c == 6  ~ "Skilled Agricultural, Forestry and Fishery Workers",
+      v803c == 7  ~ "Craft and Related Trades Workers",
+      v803c == 8  ~ "Plant and Machine Operators and Assemblers",
+      v803c == 9  ~ "Elementary Occupations",
+      v803c == 10 ~ "Armed Forces Occupations",
+      TRUE ~ NA_character_
+    ), 
+    total_wage = case_when(
+      v804 == 1 ~ v805 * v806, 
+      v804 == 2 ~ rowSums(across(c(v808a, v808b, v808c, v808d, v808e)), na.rm = TRUE), 
+      v804 == 3 ~ rowSums(across(c(v810a, v810b)), na.rm = TRUE),
+      TRUE      ~ NA_real_
+    )
+  ) %>%
+  filter(!is.na(total_wage), !is.na(occupation)) %>% 
+  group_by(occupation) %>%
+  summarise(
+    across(
+      total_wage,
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n = n(),
+    .groups = "drop"
+  )
+
+crop_production_income <- section9e %>%
+  filter(!is.na(v938b)) %>%
+  mutate(
+    livestock_type = case_when(
+      v934a == 1  ~ "Bullocks/Cows",
+      v934a == 2  ~ "Buffaloes",
+      v934a == 3  ~ "Goats/Mountain goats",
+      v934a == 4  ~ "Sheep",
+      v934a == 5  ~ "Yaks/Naks",
+      v934a == 6  ~ "Pigs/Boars",
+      v934a == 7  ~ "Horses/Donkeys/Mules",
+      v934a == 8  ~ "Poultry/Ducks/Pigeons",
+      v934a == 9  ~ "Other livestock",
+      v934a == 10 ~ "Fish",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  rename(
+    sell_income = v938b
+  ) %>%
+  select(livestock_type, sell_income) %>%
+  group_by(livestock_type) %>%
+  summarise(
+    across(
+      sell_income,
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n = sum(!is.na(sell_income)),
+    .groups = "drop"
+  )
+
+livestock_item_income <- section9f1 %>%
+  filter(!is.na(v941)) %>%
+  filter(v941 > 0) %>%
+  mutate(
+    item = case_when(
+      v940 == 1 ~ "Milk", 
+      v940 == 2 ~ "Ghee", 
+      v940 == 3 ~ "Curd/Chhurpi", 
+      v940 == 4 ~ "Eggs",
+      v940 == 5 ~ "Meat", 
+      v940 == 6 ~ "Animal Hides", 
+      v940 == 7 ~ "Fish",
+      v940 == 8 ~ "Other income"
+    )
+  ) %>%
+  rename(
+    sell_income = v941
+  ) %>%
+  group_by(item) %>%
+  summarise(
+    across(
+      sell_income,
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n = sum(!is.na(sell_income)),
+    .groups = "drop"
+  )
+
+non_agri_income <- section10 %>%
+  mutate(
+    industry = as_factor(v1002b),
+    raw_material_expenditure = v1009a + v1009b
+  ) %>%
+  rename(
+    net_revenue = v1011, 
+    gross_revenue = v1005,
+    wage_expenditure = v1007,
+    fuel_expenditure = v1008
+  ) %>%
+  group_by(industry) %>%
+  summarise(
+    across(
+      c(
+        net_revenue,
+        gross_revenue,
+        wage_expenditure,
+        fuel_expenditure,
+        raw_material_expenditure
+      ),
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n_net_revenue = sum(!is.na(net_revenue)),
+    n_gross_revenue = sum(!is.na(gross_revenue)),
+    n_wage_expenditure = sum(!is.na(wage_expenditure)),
+    n_fuel_expenditure = sum(!is.na(fuel_expenditure)),
+    n_raw_material_expenditure = sum(!is.na(raw_material_expenditure)),
+    .groups = "drop"
+  )
+
+cash_assistance <- section13a %>%
+  filter(!is.na(v1305)) %>%
+  filter(v1305 > 0) %>%
+  mutate(
+    ssp = as_factor(v1301)
+  ) %>%
+  rename(
+    ssp_income = v1305
+  ) %>%
+  group_by(ssp) %>%
+  summarise(
+    across(
+      ssp_income,
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n = sum(!is.na(ssp_income)),
+    .groups = "drop"
+  )
+
+other_income <- section13c %>%
+  filter(!is.na(v1312), v1312 > 0) %>%
+  mutate(
+    income_item = as_factor(v1311a)
+  ) %>%
+  rename(other_income = v1312) %>%
+  group_by(income_item) %>%         
+  summarise(
+    across(
+      other_income,
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n = sum(!is.na(other_income)),
+    .groups = "drop"
+  )
+
+wb <- createWorkbook()
+
+addWorksheet(wb, "Wage Income")
+writeData(wb, "Wage Income", wage_income)
+
+addWorksheet(wb, "Crop Production Income")
+writeData(wb, "Crop Production Income", crop_production_income)
+
+addWorksheet(wb, "Livestock Item Income")
+writeData(wb, "Livestock Item Income", livestock_item_income)
+
+addWorksheet(wb, "Non Agricultural Income")
+writeData(wb, "Non Agricultural Income", non_agri_income)
+
+addWorksheet(wb, "Cash Assistance")
+writeData(wb, "Cash Assistance", cash_assistance)
+
+addWorksheet(wb, "Other Income")
+writeData(wb, "Other Income", other_income)
+
+saveWorkbook(wb, "income_summary.xlsx", overwrite = TRUE)
+
+
+# Create the wages and fix the grouping variables
+section8_wages <- section8 %>%
+  mutate(
+    # Force v804 to numeric to prevent type errors
+    v804 = as.numeric(v804),
+    
+    # 1. Force Occupation ID for special groups if missing
+    v804 = case_when(
+      (is.na(v804) | v804 == 0) & v803c == 10 ~ 2, # Armed Forces -> Monthly
+      (is.na(v804) | v804 == 0) & v803c == 1  ~ 2, # Managers -> Monthly
+      TRUE ~ v804
+    ),
+    
+    # 2. Calculate Total Wage (using rowSums for safety)
+    total_wage = case_when(
+      v804 == 1 ~ v805 * v806, 
+      v804 == 2 ~ rowSums(across(c(v808a, v808b, v808c, v808d, v808e)), na.rm = TRUE), 
+      v804 == 3 ~ rowSums(across(c(v810a, v810b)), na.rm = TRUE),
+      TRUE      ~ NA_real_
+    ),
+    
+    # 3. Create clean Occupation labels
+    occupation_label = case_when(
+      v803c == 1  ~ "Legislators, Officials & Managers",
+      v803c == 2  ~ "Professionals",
+      v803c == 3  ~ "Technicians and Associate Professionals",
+      v803c == 4  ~ "Clerical Support Workers",
+      v803c == 5  ~ "Services and Sales Workers",
+      v803c == 6  ~ "Skilled Agricultural, Forestry and Fishery Workers",
+      v803c == 7  ~ "Craft and Related Trades Workers",
+      v803c == 8  ~ "Plant and Machine Operators and Assemblers",
+      v803c == 9  ~ "Elementary Occupations",
+      v803c == 10 ~ "Armed Forces Occupations",
+      TRUE ~ NA_character_
+    )
+  )
+
+# Filter out rows with no wage or no occupation
+section8_clean <- section8_wages %>%
+  filter(
+    !is.na(total_wage), 
+    total_wage > 0,        # Removes 0 wages (optional, remove if 0 is valid)
+    !is.na(occupation_label)
+  )
+
+# DEBUG: Check how many rows we have now
+print(paste("Original rows:", nrow(section8_wages)))
+print(paste("Rows with valid wage:", nrow(section8_clean)))
+
+final_summary <- section8_clean %>%
+  group_by(occupation = occupation_label) %>%
+  summarise(
+    mean_wage = mean(total_wage, na.rm = TRUE),
+    min_wage  = min(total_wage, na.rm = TRUE),
+    max_wage  = max(total_wage, na.rm = TRUE),
+    n = n()
+  )
+
+# View the result
+print(final_summary)

@@ -228,6 +228,7 @@ section1a <- section1a %>%
       personid == 51645 ~ 44, 
       personid == 5951111 ~ 42, 
       personid == 27500 ~ 14,
+      personid == 58596 ~ 52,
       TRUE ~ v104a
     ),
     v107 = case_when(
@@ -296,6 +297,257 @@ section1a <- section1a %>%
     )
   ) %>%
   select(-new_head)
+
+section1a <- section1a %>%
+  mutate(
+    v107 = case_when(
+      personid == 20968 ~ 3,
+      personid == 40492 ~ 2,
+      personid == 40495 ~ 4,
+      personid == 40494 ~ 3,
+      personid == 40489 ~ 8, 
+      personid == 40488 ~ 3, 
+      personid == 40490 ~ 4,
+      personid == 52940 ~ 2, 
+      personid %in% c(52938, 52935, 52937, 52936) ~ 4, 
+      personid == 52933 ~ 3, 
+      personid == 52934 ~ 8,
+      personid == 58638 ~ 4, 
+      personid == 58637 ~ 4, 
+      personid == 58636 ~ 8,
+      personid == 58639 ~ 4, 
+      personid == 58635 ~ 3,
+      personid == 9172 ~ 3, 
+      personid == 9167 ~ 3, 
+      personid == 9160 ~ 5, 
+      personid == 9169 ~ 6, 
+      personid == 9163 ~ 2, 
+      personid == 9168 ~ 3, 
+      personid == 9161 ~ 5, 
+      personid == 9165 ~ 5, 
+      personid == 9170 ~ 9, 
+      personid == 9171 ~ 3, 
+      personid == 9166 ~ 9,
+      personid == 9164 ~ 3,
+      personid == 8872 ~ 5, 
+      personid == 8874 ~ 6, 
+      personid == 8875 ~ 6, 
+      personid == 8871 ~ 5,
+      personid == 17077 ~ 9, 
+      personid == 17075 ~ 9,
+      personid == 17078 ~ 3, 
+      personid == 17072 ~ 10, 
+      personid == 17073 ~ 2, 
+      personid == 17071 ~ 10, 
+      personid == 17076 ~ 9,
+      personid == 60217 ~ 5, 
+      personid == 60218 ~ 5, 
+      personid == 60220 ~ 6,
+      personid == 60225 ~ 10, 
+      personid == 60226 ~ 10, 
+      personid == 56306 ~ 6, 
+      personid == 56307 ~ 6, 
+      personid == 56304 ~ 5,
+      personid == 56303 ~ 5,
+      personid == 56314 ~ 5, 
+      personid == 56313 ~ 5,
+      personid == 5951420 ~ 5, 
+      personid == 5951422 ~ 9, 
+      personid == 5951419 ~ 5, 
+      personid == 5951421 ~ 6,
+      personid == 5951427 ~ 3, 
+      personid == 5951428 ~ 3, 
+      personid == 5951423 ~ 5, 
+      personid == 5951425 ~ 6, 
+      personid == 5951426 ~ 9, 
+      personid == 5951424 ~ 5, 
+      personid == 5951430 ~ 9, 
+      personid == 5951429 ~ 6, 
+      personid == 59090 ~ 7, 
+      personid == 59089 ~ 7, 
+      personid == 59082 ~ 5, 
+      personid == 59080 ~ 5, 
+      personid == 59085 ~ 7,
+      personid == 59054 ~ 7, 
+      personid == 59083 ~ 9, 
+      personid == 59087 ~ 9,
+      personid == 59086 ~ 6, 
+      personid == 59081 ~ 5, 
+      personid == 59088 ~ 7, 
+      personid == 59092 ~ 2,
+      personid == 58871 ~ 6, 
+      personid == 58874 ~ 6, 
+      personid == 58869 ~ 5, 
+      personid == 58872 ~ 9, 
+      personid == 58877 ~ 7, 
+      personid == 58875 ~ 9, 
+      personid == 58876 ~ 7,
+      personid == 58870 ~ 5,
+      personid == 59077 ~ 5, 
+      personid == 59076 ~ 5, 
+      personid == 59079 ~ 2,
+      personid == 29324 ~ 4, 
+      personid == 29323 ~ 4, 
+      personid == 29321 ~ 3, 
+      personid == 29322 ~ 8,
+      personid == 5951525 ~ 5, 
+      personid == 5951530 ~ 6, 
+      personid == 5951526 ~ 5, 
+      personid == 5951529 ~ 3, 
+      personid == 5951528 ~ 2,
+      personid == 5953065 ~ 6,
+      personid == 5953063 ~ 5, 
+      personid == 5953062 ~ 5,
+      personid == 5953071 ~ 5, 
+      personid == 5953072 ~ 5, 
+      personid == 5953074 ~ 2,
+      personid == 14977 ~ 5, 
+      personid == 14978 ~ 6, 
+      personid == 21766 ~ 5, 
+      personid == 21769 ~ 6, 
+      personid == 21768 ~ 12, 
+      personid == 21767 ~ 5,
+      personid == 21979 ~ 10, 
+      personid == 21983 ~ 7, 
+      personid == 21982 ~ 9, 
+      personid == 21984 ~ 2,
+      personid == 21986 ~ 3,
+      personid == 21980 ~ 10, 
+      personid == 21981 ~ 9, 
+      personid == 21974 ~ 5, 
+      personid == 21975 ~ 5, 
+      personid == 21978 ~ 6, 
+      personid == 21977 ~ 6, 
+      personid == 5951452 ~ 10, 
+      personid == 5951451 ~ 10, 
+      personid == 5951416 ~ 5, 
+      personid == 5951415 ~ 5,
+      personid == 40730 ~ 5, 
+      personid == 40731 ~ 6,
+      personid == 5953130 ~ 5, 
+      personid == 5953133 ~ 6, 
+      personid == 5953131 ~ 5, 
+      personid == 5953198 ~ 5, 
+      personid == 5953199 ~ 6, 
+      personid == 5953197 ~ 5, 
+      personid == 5953200 ~ 9,
+      personid == 5953207 ~ 5, 
+      personid == 5953208 ~ 5, 
+      personid == 5953078 ~ 9, 
+      personid == 5953075 ~ 5, 
+      personid == 5953077 ~ 6, 
+      personid == 5953076 ~ 5,
+      personid == 5952984 ~ 6, 
+      personid == 5952983 ~ 5, 
+      personid == 5952982 ~ 5, 
+      personid == 5948913 ~ 6, 
+      personid == 5948911 ~ 5, 
+      personid == 54976 ~ 5,
+      personid == 55098 ~ 5,
+      personid == 55100 ~ 9, 
+      personid == 55097 ~ 2, 
+      personid == 55099 ~ 6,
+      personid == 5953123 ~ 5, 
+      personid == 5953124 ~ 5, 
+      personid == 59887 ~ 5, 
+      personid == 59888 ~ 5, 
+      personid == 59889 ~ 6,
+      personid == 55175 ~ 6, 
+      personid == 55173 ~ 5, 
+      personid == 55172 ~ 5,
+      personid == 57128 ~ 5, 
+      personid == 5952962 ~ 5, 
+      personid == 5952963 ~ 5, 
+      personid == 5952965 ~ 6, 
+      personid == 5952897 ~ 5, 
+      personid == 5952898 ~ 6, 
+      personid == 5952899 ~ 6, 
+      personid == 5952896 ~ 5, 
+      personid == 5952960 ~ 5, 
+      personid == 5952960 ~ 5, 
+      personid == 5950226 ~ 5, 
+      personid == 5952957 ~ 7, 
+      personid == 5952954 ~ 9, 
+      personid == 5952958 ~ 7, 
+      personid == 5952956 ~ 2, 
+      personid == 5952953 ~ 6,
+      personid == 5952907 ~ 5, 
+      personid == 5952908 ~ 5,
+      personid == 5952901 ~ 5, 
+      personid == 5952902 ~ 5, 
+      personid == 5952779 ~ 5, 
+      personid == 58594 ~ 6, 
+      personid == 58597 ~ 6, 
+      personid == 58595 ~ 5, 
+      personid == 58596 ~ 5,
+      personid == 5949237 ~ 5,
+      personid == 5949241 ~ 6, 
+      personid == 5949238 ~ 5, 
+      personid == 5949240 ~ 6,
+      personid == 12849 ~ 3, 
+      personid == 12850 ~ 3,
+      personid == 12848 ~ 6,
+      personid == 12846 ~ 5,
+      personid == 53123 ~ 6, 
+      personid == 53127 ~ 2, 
+      personid == 53124 ~ 6, 
+      personid == 53122 ~ 9, 
+      personid == 53126 ~ 3,
+      personid == 53161 ~ 5,
+      personid == 53160 ~ 5, 
+      personid == 56799 ~ 4, 
+      personid == 56795 ~ 3, 
+      personid == 56797 ~ 2, 
+      personid == 56798 ~ 8,
+      personid == 56800 ~ 3,
+      personid == 19212 ~ 4,
+      personid == 19210 ~ 3, 
+      personid == 19211 ~ 8, 
+      personid == 19213 ~ 4,
+      personid == 5950345 ~ 7, 
+      personid == 5950343 ~ 6, 
+      personid == 5950344 ~ 9,
+      personid == 5950341 ~ 5, 
+      personid == 5950346 ~ 6, 
+      personid == 5950342 ~ 5,
+      personid == 55691 ~ 3,
+      personid == 55692 ~ 6,
+      personid == 55690 ~ 9, 
+      personid == 55693 ~ 7,
+      personid == 55729 ~ 10,
+      personid == 57815 ~ 6, 
+      personid == 57814 ~ 5, 
+      personid == 57818 ~ 6, 
+      personid == 57817 ~ 6, 
+      personid == 57816 ~ 9,
+      personid == 9779 ~ 4, 
+      personid == 9777 ~ 8,
+      personid == 9778 ~ 4, 
+      personid == 9776 ~ 3, 
+      personid == 20084 ~ 4, 
+      personid == 20081 ~ 3, 
+      personid == 20087 ~ 3, 
+      personid == 20082 ~ 8, 
+      personid == 20083 ~ 4, 
+      personid == 20085 ~ 4, 
+      personid == 22300 ~ 2, 
+      personid == 22304 ~ 4, 
+      personid == 22303 ~ 8, 
+      personid == 22302 ~ 3, 
+      personid == 436 ~ 5, 
+      personid == 440 ~ 6, 
+      personid == 442 ~ 12,
+      personid == 435 ~ 5, 
+      personid == 439 ~ 6, 
+      personid == 437 ~ 6, 
+      personid == 441 ~ 6,
+      personid == 5950317 ~ 12, 
+      personid == 5950314 ~ 5,
+      personid == 5950315 ~ 5,
+      personid == 5950316 ~ 12,
+      TRUE ~ v107
+    )
+  )
 
 rm(invalid_hhids, new_heads)
 
@@ -1573,12 +1825,12 @@ section4a <- section4a %>%
     ), 
     v403a = case_when(
       v403a == 30000083 ~ 3000,
-      ID == 9092 & v401 == 3 ~ 6000, 
+      id == 9092 & v401 == 3 ~ 6000, 
       TRUE ~ v403a
     ),
     v403b = case_when(
-      ID == 4581 ~ 1200,
-      ID == 3058 ~ 10000, 
+      id == 4581 ~ 1200,
+      id == 3058 ~ 10000, 
       TRUE ~ v403b
     ), 
     across(v403a:v403b, ~ na_if(.x, 0))
@@ -1620,12 +1872,12 @@ section4a <- section4a %>%
       TRUE ~ v403b
     ),
     v403a = case_when(
-      ID == 12142 & v401 == 5 ~ 600000,
+      id == 12142 & v401 == 5 ~ 600000,
       TRUE ~ v403a
     ), 
     v403a = case_when(
-      ID == 12142 & v401 == 6 ~ 150000,
-      ID == 2863 & v401 == 6 ~ 150000,
+      id == 12142 & v401 == 6 ~ 150000,
+      id == 2863 & v401 == 6 ~ 150000,
       TRUE ~ v403a
     ),
     v403a = case_when(
@@ -1653,7 +1905,7 @@ section4a <- section4a %>%
       TRUE ~ v403b
     ),
     v403a = case_when(
-      ID == 6874 & v401 == 12 & v402 == 1 ~ 270000, 
+      id == 6874 & v401 == 12 & v402 == 1 ~ 270000, 
       TRUE ~ v403a
     ), 
     v403a = case_when(
@@ -1797,7 +2049,7 @@ section4b <- section4b %>%
 
 #SECTION 4C 
 
-for (i in setdiff(1:ncol(section4c), c(2, 7, 8))) {
+for (i in setdiff(1:ncol(section4c), c(10, 21))) {
   section4c[[i]] <- as.numeric(gsub("[^0-9]", "", section4c[[i]]))
 }
 
@@ -2671,7 +2923,7 @@ missing_acute <- anti_join(
   by = "disease_id"
 )
 
-rm(missing_acute)
+rm(missing_acute, v630_replacement)
 
 #SECTION7
 
@@ -3008,10 +3260,29 @@ section8 <- section8 %>%
   ) 
 
 section8 <- section8 %>%
+  mutate(
+    v802 = case_when(
+      v802 == 2 & !is.na(v803) ~ 1,
+      is.na(v803) & is.na(v803c) ~ 2,
+      personid %in% c(14210, 51558) ~ 2,
+      TRUE ~ v802
+    ),
+    across(
+      v803:employer_size,
+      ~ if_else(personid %in% c(8036, 7468, 7176, 14210, 5949841, 1350, 5949840, 10524, 8036, 25146), NA, .x)
+    ), 
+    v803 = case_when(
+      personid == 9985 ~ 6, 
+      personid == 10643 ~ 3, 
+      personid == 27445 ~ 9,
+      TRUE ~ v803
+    )
+  ) %>% 
   group_by(v803c) %>%
   mutate(
     v804 = case_when(
-      is.na(v804) & v808 > 0 ~ 2,
+      is.na(v804) & v808a > 0 ~ 2,
+      is.na(v804) & v810a > 0 ~ 3,
       TRUE ~ v804
     ),
     v805 = if_else(v804 == 2, NA_real_, v805),
@@ -3024,7 +3295,6 @@ section8 <- section8 %>%
       round(v805_trim_mean),
       v805
     ),
-
     v808a = case_when(
       v804 == 2 &
       (is.na(v808a) | v808a == 0) &
@@ -3041,6 +3311,14 @@ section8 <- section8 %>%
     v802 = case_when(
       is.na(v805) & !is.na(v808a) & v808a > 0 ~ 2,
       TRUE ~ v802
+    ),
+    v803 = case_when(
+      is.na(v803) & !is.na(v803c) ~ v803c, 
+      TRUE ~ v803
+    ),
+    v803c = case_when(
+      !is.na(v803) & is.na(v803c) ~ v803,
+      TRUE ~ v803c
     ),
     v805 = if_else(v804 == 2, NA_real_, v805),
     v806 = if_else(v804 == 2, NA_real_, v806),
@@ -3079,6 +3357,11 @@ section8 <- section8 %>%
       v806 == v808a, 
       NA_real_,
       v806
+    ), 
+    v804 = case_when(
+      is.na(v804) & v803c == 10 ~ 2,
+      is.na(v804) & v803c == 1 ~ 2, 
+      TRUE ~ v804
     )
   )
 
@@ -3094,12 +3377,23 @@ section8 <- section8 %>%
       v808c == 750040000, 
       40000, 
       v808c
+    ),
+    v808a = case_when(
+      v803b %in% c(
+        "LEBAR KO KAM GARNE GAS KO CYLINDER GADI MA  RAKHANE", 
+        "SENA", 
+        "GADI CHALAUNEE", 
+        "SCHOOL MA ACCOUNT KO KAM", 
+        "DHAN KO BORA BOKNE",
+        "MALPOT MA LEKHAPADI KO KAM"
+      ) ~ v808a/10,
+      TRUE ~ v808a
     )
   ) %>%
   ungroup()
 
 section8 <- section8 %>%
-  group_by(psu) %>%
+  group_by(v80) %>%
   mutate(
     across(
       c(v806, v807, v808a, v808b, v808c, v808d, v808e, v809, v810a, v810b),
@@ -3913,6 +4207,12 @@ section13c <- section13c %>%
     ), 
     v1312 = case_when(
       v1312 == 0 ~ NA_real_,
+      v1312 == 36000034 ~ 360000,
+      v1312 == 1440002 ~ 144000,
+      v1312 == 1080000 ~ 80000,
+      v1312 == 7e+06 ~ 700000,
+      v1312 == 8e+06 ~ 800000,
+      v1312 == 3e+06 ~ 300000,
       TRUE ~ v1312
     )
   )
