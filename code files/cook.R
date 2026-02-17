@@ -2173,3 +2173,58 @@ section13c <- section13c %>%
       }
     )
   ) 
+
+####################################################################################################################
+
+expenditure_abroad <- section4b %>%
+  mutate(
+    across(
+      c(v407a, v407b), 
+      ~ na_if(.x, 0)
+    ),
+      items = case_when(
+      v405 == 1  ~ "Tour packages",
+      v405 == 2  ~ "Food & Beverages",
+      v405 == 3  ~ "Accommodation",
+      v405 == 4  ~ "Transportation",
+      v405 == 5  ~ "Health-related Expenses",
+      v405 == 6  ~ "Leisure & entertainment activities",
+      v405 == 7  ~ "Shopping and goods",
+      v405 == 8  ~ "Travel essentials",
+      v405 == 9  ~ "Services & Fees",
+      v405 == 10 ~ "Other expenses",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  rename(
+    yearly = v407a,
+    monthly = v407b
+  ) %>%
+  group_by(items) %>%
+  summarise(
+    across(
+      c(yearly, monthly),
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n_yearly = sum(!is.na(yearly)),
+    n_monthly = sum(!is.na(monthly)),
+    .groups = "drop"
+  )
+
+##################################################################################
+
+bad_hh <- section1b %>%
+  group_by(hhid) %>%
+  filter(any(enrollment == 3, na.rm = TRUE)) %>%   # keep only relevant households
+  summarise(
+    has_enrolled_head = any(enrollment == 3 & v112b == 2, na.rm = TRUE)
+  ) %>%
+  filter(!has_enrolled_head)
+
+############################################################################
+  

@@ -1975,19 +1975,17 @@ wage_income <- section8 %>%
       v803c == 9  ~ "Elementary Occupations",
       v803c == 10 ~ "Armed Forces Occupations",
       TRUE ~ NA_character_
-    ), 
-    total_wage = case_when(
-      v804 == 1 ~ v805 * v806, 
-      v804 == 2 ~ rowSums(across(c(v808a, v808b, v808c, v808d, v808e)), na.rm = TRUE), 
-      v804 == 3 ~ rowSums(across(c(v810a, v810b)), na.rm = TRUE),
-      TRUE      ~ NA_real_
+    ),
+    across(
+      v808a:v808e, 
+      ~ na_if(.x, 0)
     )
   ) %>%
-  filter(!is.na(total_wage), !is.na(occupation)) %>% 
+  filter(!is.na(occupation)) %>% 
   group_by(occupation) %>%
   summarise(
     across(
-      total_wage,
+      c(v808a, v808b, v808c, v808d, v808e),
       list(
         mean = ~ mean(.x, na.rm = TRUE),
         min  = ~ min(.x, na.rm = TRUE),
@@ -2014,6 +2012,10 @@ crop_production_income <- section9e %>%
       v934a == 9  ~ "Other livestock",
       v934a == 10 ~ "Fish",
       TRUE ~ NA_character_
+    ),
+    across(
+      v938b,
+      ~ na_if(.x, 0)
     )
   ) %>%
   rename(
@@ -2048,6 +2050,10 @@ livestock_item_income <- section9f1 %>%
       v940 == 6 ~ "Animal Hides", 
       v940 == 7 ~ "Fish",
       v940 == 8 ~ "Other income"
+    ),
+    across(
+      v941, 
+      ~ na_if(.x, 0)
     )
   ) %>%
   rename(
@@ -2079,6 +2085,18 @@ non_agri_income <- section10 %>%
     wage_expenditure = v1007,
     fuel_expenditure = v1008
   ) %>%
+  mutate(
+    across(
+      c(
+        net_revenue,
+        gross_revenue,
+        wage_expenditure,
+        fuel_expenditure,
+        raw_material_expenditure
+      ),
+      ~ na_if(.x, 0)
+    )
+  ) %>%
   group_by(industry) %>%
   summarise(
     across(
@@ -2108,7 +2126,11 @@ cash_assistance <- section13a %>%
   filter(!is.na(v1305)) %>%
   filter(v1305 > 0) %>%
   mutate(
-    ssp = as_factor(v1301)
+    ssp = as_factor(v1301),
+    across(
+      v1305, 
+      ~ na_if(.x, 0)
+    )
   ) %>%
   rename(
     ssp_income = v1305
@@ -2131,7 +2153,11 @@ cash_assistance <- section13a %>%
 other_income <- section13c %>%
   filter(!is.na(v1312), v1312 > 0) %>%
   mutate(
-    income_item = as_factor(v1311a)
+    income_item = as_factor(v1311a),
+    across(
+      v1311a,
+      ~ na_if(.x, 0)    
+    )
   ) %>%
   rename(other_income = v1312) %>%
   group_by(income_item) %>%         
@@ -2171,29 +2197,23 @@ writeData(wb, "Other Income", other_income)
 
 saveWorkbook(wb, "income_summary.xlsx", overwrite = TRUE)
 
-
-# Create the wages and fix the grouping variables
 section8_wages <- section8 %>%
   mutate(
-    # Force v804 to numeric to prevent type errors
     v804 = as.numeric(v804),
     
-    # 1. Force Occupation ID for special groups if missing
     v804 = case_when(
-      (is.na(v804) | v804 == 0) & v803c == 10 ~ 2, # Armed Forces -> Monthly
-      (is.na(v804) | v804 == 0) & v803c == 1  ~ 2, # Managers -> Monthly
+      (is.na(v804) | v804 == 0) & v803c == 10 ~ 2, 
+      (is.na(v804) | v804 == 0) & v803c == 1  ~ 2, 
       TRUE ~ v804
     ),
     
-    # 2. Calculate Total Wage (using rowSums for safety)
     total_wage = case_when(
-      v804 == 1 ~ v805 * v806, 
-      v804 == 2 ~ rowSums(across(c(v808a, v808b, v808c, v808d, v808e)), na.rm = TRUE), 
+      is.na(v808a) ~ v805 * v806, 
+      !is.na(v808a) ~ rowSums(across(c(v808a, v808b, v808c, v808d, v808e)), na.rm = TRUE), 
       v804 == 3 ~ rowSums(across(c(v810a, v810b)), na.rm = TRUE),
       TRUE      ~ NA_real_
     ),
     
-    # 3. Create clean Occupation labels
     occupation_label = case_when(
       v803c == 1  ~ "Legislators, Officials & Managers",
       v803c == 2  ~ "Professionals",
@@ -2209,15 +2229,13 @@ section8_wages <- section8 %>%
     )
   )
 
-# Filter out rows with no wage or no occupation
 section8_clean <- section8_wages %>%
   filter(
     !is.na(total_wage), 
-    total_wage > 0,        # Removes 0 wages (optional, remove if 0 is valid)
+    total_wage > 0,       
     !is.na(occupation_label)
   )
 
-# DEBUG: Check how many rows we have now
 print(paste("Original rows:", nrow(section8_wages)))
 print(paste("Rows with valid wage:", nrow(section8_clean)))
 
@@ -2230,5 +2248,3 @@ final_summary <- section8_clean %>%
     n = n()
   )
 
-# View the result
-print(final_summary)
