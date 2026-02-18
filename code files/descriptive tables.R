@@ -1981,7 +1981,7 @@ wage_income <- section8 %>%
       ~ na_if(.x, 0)
     )
   ) %>%
-  filter(!is.na(occupation)) %>% 
+  filter(!is.na(occupation)) %>%
   group_by(occupation) %>%
   summarise(
     across(

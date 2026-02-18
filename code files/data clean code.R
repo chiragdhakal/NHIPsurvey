@@ -1941,7 +1941,7 @@ section3b <- section3b %>%
   group_by(psu, v306) %>%
   mutate(
     v308 = case_when(
-      v306 == 1 & v307 == 1 & v308 > 500   ~ round(mean(v308[v308 <= 500], na.rm = TRUE)),
+      v306 == 1 & v307 == 1 & v308 > 400   ~ round(mean(v308[v308 <= 400], na.rm = TRUE)),
       v306 == 2 & v307 == 1 & v308 > 3000  ~ round(mean(v308[v308 <= 3000], na.rm = TRUE)),
       v306 == 4 & v307 == 1 & v308 > 150   ~ round(mean(v308[v308 <= 150], na.rm = TRUE)),
       v306 == 5 & v307 == 1 & v308 > 5000  ~ round(mean(v308[v308 <= 5000], na.rm = TRUE)),
@@ -1959,6 +1959,34 @@ section3b <- section3b %>%
       v306 == 8 & v307 == 1 & v309 > 500   ~ round(mean(v309[v309 <= 2000], na.rm = TRUE)),
       TRUE ~ v309  
     )
+  ) %>%
+  ungroup()
+
+section3b <- section3b %>%
+  group_by(district, v306) %>%
+  mutate(
+    v308 = case_when(
+      is.nan(v308) ~ round(mean(v308, na.rm = TRUE)),
+      TRUE ~ v308
+    ), 
+    v309 = case_when(
+      is.nan(v309) ~ round(mean(v309, na.rm = TRUE)),
+      TRUE ~ v309
+    ) 
+  ) %>%
+  ungroup()
+
+section3b <- section3b %>%
+  group_by(province, v306) %>%
+  mutate(
+    v308 = case_when(
+      is.nan(v308) ~ round(mean(v308, na.rm = TRUE)),
+      TRUE ~ v308
+    ), 
+    v309 = case_when(
+      is.nan(v309) ~ round(mean(v309, na.rm = TRUE)),
+      TRUE ~ v309
+    ) 
   ) %>%
   ungroup()
 
@@ -2159,7 +2187,8 @@ section4a <- section4a %>%
       v401 == 30 & v402 == 1 & v403a > 360000 ~ v403a/10,
       TRUE ~ v403a
     )
-  )
+  ) %>%
+  ungroup()
 
 section4a <- section4a %>%
   mutate(
@@ -2198,7 +2227,8 @@ section4b <- section4b %>%
       v405 == 8 & v406 == 1 & v407a > 160000 ~ round(mean(v407a[v407a <= 160000], na.rm = TRUE)),
       TRUE ~ v407a
     )
-  )
+  ) %>%
+  ungroup()
 
 
 #SECTION 4C 
@@ -3368,50 +3398,76 @@ section8 <- section8 %>%
       personid %in% c(14210, 51558) ~ 2,
       TRUE ~ v802
     ),
+
     v803c = case_when(
-      v803 %in% c(
+
+      is.na(v803c) & v803 %in% c(
         "HOTEL ADMIN HR", "1"
-      ) ~ 1, 
-      v803 %in% c(
+      ) ~ 1,
+
+      is.na(v803c) & v803 %in% c(
         "BOARDING SCHOOL", "IT SAMBANDHI", "TEACHER", "BACHALAI PADAUNE", "0, TEACHER"
       ) ~ 2,
-      v803 %in% c(
-        "IT SUPPORT", "LEKHANDASI", "SCHOOL MA PADHAUNE", "LEKHA ADHIKRITH", "PRASASANIK SEWA MA SAHAYOG, PRASASANIK SEWA"
+
+      is.na(v803c) & v803 %in% c(
+        "IT SUPPORT", "LEKHANDASI", "SCHOOL MA PADHAUNE", "LEKHA ADHIKRITH",
+        "PRASASANIK SEWA MA SAHAYOG, PRASASANIK SEWA"
       ) ~ 3,
-      v803 %in% c(
-        "4", "BANK MA TELLER", "HALKARA COUNTER MA BASNE", "TOP QUALITY POULTRY FEED MA ACCOUNTING KO KAM GARNU VAYO",
-        "GAGA AGENT", "WARD OFFICE MA", "NGO MA KAAM GARNE", "SARKARI OFFICE MA KAAM GARNEY", "RECEPTIONIST",
-        "ADMIN", "COOPERATIVE EMPLOYEE", "FF, PROCUREMENT OFFICER", "MARKETING IN FINANCE, ALUMINUM RELATED WORK JHYAL, DHOKA BANAUNE KAAM"
+
+      is.na(v803c) & v803 %in% c(
+        "4", "BANK MA TELLER", "HALKARA COUNTER MA BASNE",
+        "TOP QUALITY POULTRY FEED MA ACCOUNTING KO KAM GARNU VAYO",
+        "GAGA AGENT", "WARD OFFICE MA", "NGO MA KAAM GARNE",
+        "SARKARI OFFICE MA KAAM GARNEY", "RECEPTIONIST", "ADMIN",
+        "COOPERATIVE EMPLOYEE", "FF, PROCUREMENT OFFICER",
+        "MARKETING IN FINANCE, ALUMINUM RELATED WORK JHYAL, DHOKA BANAUNE KAAM"
       ) ~ 4,
-      v803 %in% c(
-        "MANPOWER AGENT", "PUROHIT", "PASAL", "BEAUTICIAN", "MRKETING", "COLLECTION KO KAM", "GG", 
-        "HOUSE KEEPING", "HOTEL MA SAFE", "AAFNAI JOB LINK"
+
+      is.na(v803c) & v803 %in% c(
+        "MANPOWER AGENT", "PUROHIT", "PASAL", "BEAUTICIAN", "MRKETING",
+        "COLLECTION KO KAM", "GG", "HOUSE KEEPING",
+        "HOTEL MA SAFE", "AAFNAI JOB LINK"
       ) ~ 5,
-      v803 %in% c(
-        "THEKKPATTA", "DHUP BANAUNE", "PARLOUR MA KAM GARNE", "BIDI BANAUNE", "BIDI BANAUNE KAM",
-        "NIRMAN SAMBANDHI", "GHAR BANAUNE MISTREE", "ALUMINUM KO KAM", "KHAPADA SILAUNE", "ELECTRICIAN",
-        "WELDING AND MAINTENANCE. MILL MECHANICAL", "AUTO MECHANIC", "WIRING KO KAMM", "GHAR KO GARO LAGAUNE",
+
+      is.na(v803c) & v803 %in% c(
+        "THEKKPATTA", "DHUP BANAUNE", "PARLOUR MA KAM GARNE",
+        "BIDI BANAUNE", "BIDI BANAUNE KAM", "NIRMAN SAMBANDHI",
+        "GHAR BANAUNE MISTREE", "ALUMINUM KO KAM", "KHAPADA SILAUNE",
+        "ELECTRICIAN", "WELDING AND MAINTENANCE. MILL MECHANICAL",
+        "AUTO MECHANIC", "WIRING KO KAMM", "GHAR KO GARO LAGAUNE",
         "DHUP BATTI BANAUNE", "AC MECHANIC", "MISTRI"
       ) ~ 7,
-      v803 %in% c(
-        "THREAD MAKING, MACHINE OPERATOR", "AAFNAI AUTO CHALAUNE", "JCV", "BUS DRIVER", "PENTAR KO KAM",
+
+      is.na(v803c) & v803 %in% c(
+        "THREAD MAKING, MACHINE OPERATOR", "AAFNAI AUTO CHALAUNE",
+        "JCV", "BUS DRIVER", "PENTAR KO KAM",
         "AMBULANCE DRIVER", "TRIPPER DRIVER", "DRIVER"
       ) ~ 8,
-      v803 %in% c(
-        "JYALA MA KHETIPATI SAMBANDHI KAAM GARNE", "ARU KO KHET MA DHAN ROPNE", "RGH", "LABOUR,MISTRI",
-        "DHAN ROPNE KAM,", "JYALADRI", "HOUSE KEEPING", "ETA BHATAMA LABOUR KAM", "DHAN ROPNE", "DHAN GODNE,ROPNE",
-        "DHAN ROPNE, GODNE", "KHETI KISANU", "JYAMI GHAR BANAUNE", "GARI RAHEKO", "KEHTI PATI", "GARIRHEKO",
-        "GARI RAHEKO", "GARIRHEKO", "JYALA MAJHDOORI", "DHAN GODNE, ROPNE", "LABOR", "JHYAL DHOKA BANAUNE SAHAYOG",
-        "PANTIN", "PANCHKANYA PROFILE MA ALUMINUM SAHAYOGI KAM", "DAURA BOKNE/KATNE KAM, KRISHI KAMMA DAILY JYALADARI KAM GARNE.",
-        "BHARI BOKNE KAM HARU, JYALADARI KAM", "GARO LAUNE DHUNGA MATO BOKNE SABAI KAAM, JYALA MA KHETIPATI SAMBANDHI SABAI KAAM",
+
+      is.na(v803c) & v803 %in% c(
+        "JYALA MA KHETIPATI SAMBANDHI KAAM GARNE",
+        "ARU KO KHET MA DHAN ROPNE", "RGH", "LABOUR,MISTRI",
+        "DHAN ROPNE KAM,", "JYALADRI", "HOUSE KEEPING",
+        "ETA BHATAMA LABOUR KAM", "DHAN ROPNE", "DHAN GODNE,ROPNE",
+        "DHAN ROPNE, GODNE", "KHETI KISANU", "JYAMI GHAR BANAUNE",
+        "GARI RAHEKO", "KEHTI PATI", "GARIRHEKO", "JYALA MAJHDOORI",
+        "DHAN GODNE, ROPNE", "LABOR", "JHYAL DHOKA BANAUNE SAHAYOG",
+        "PANTIN", "PANCHKANYA PROFILE MA ALUMINUM SAHAYOGI KAM",
+        "DAURA BOKNE/KATNE KAM, KRISHI KAMMA DAILY JYALADARI KAM GARNE.",
+        "BHARI BOKNE KAM HARU, JYALADARI KAM",
+        "GARO LAUNE DHUNGA MATO BOKNE SABAI KAAM, JYALA MA KHETIPATI SAMBANDHI SABAI KAAM",
         "BHAWAN NIRMAAN SAMBANDHI KAAM HARU DHUNGA MATO KO, KHANNE, GODMEL AADI BAARIKO SABAI KAAM GARNE",
-        "GHARMA COLOUR LAGAUNEE KAM GARNEE, KHETIPATI MA JYALA KO KAM", "KHETIPATI MA JYALA, BATO BANAUNE KAM",
-        "SADAKKO KULO SAFA GARNE KAM, DAURA KATNE, BARI KHANNE,JASTO KRISHI KAMMA", "FURNITUREKO SAMANHARU  BANAUNE, BHAWAN /BATO AADI BANAUNE",
+        "GHARMA COLOUR LAGAUNEE KAM GARNEE, KHETIPATI MA JYALA KO KAM",
+        "KHETIPATI MA JYALA, BATO BANAUNE KAM",
+        "SADAKKO KULO SAFA GARNE KAM, DAURA KATNE, BARI KHANNE,JASTO KRISHI KAMMA",
+        "FURNITUREKO SAMANHARU  BANAUNE, BHAWAN /BATO AADI BANAUNE",
         "MADHAV POUDEL JI WAS IN FOREIGN EMPLOYMENT AND HAS RETURNED TO NEPAL TWO MONTHS AGO.AND EVEN NOW HE IS PLANNING WHICH COUNTRY TO GO IN ORDER TO CONTINUE HIS FOREIGN  EMPLOYMENT AND HE ALSO INFORMED THAT HE USED TO SEND AN AVERAGE OF 25 THOUSAND RUPEES PER MONTH WHILE HE WAS IN FOREIGN EMPLOYMENT."
-      ) ~ 9, 
-      TRUE ~ v803c        
+      ) ~ 9,
+
+      TRUE ~ v803c
     )
-  ) 
+  )
+
 
 section8 <- section8 %>%
   mutate(
@@ -3541,6 +3597,41 @@ section8 <- section8 %>%
         "MALPOT MA LEKHAPADI KO KAM"
       ) ~ v808a/10,
       TRUE ~ v808a
+    )
+  ) %>%
+  ungroup()
+
+section8 <- section8 %>%
+  group_by(v803c, province) %>%
+  mutate(
+    v808a = case_when(
+      v803c == 4 & v808a > 300000 ~ round(mean(v808a[v808a <= 300000], na.rm = TRUE)),
+      v803c == 7 & v808a > 600000 ~ round(mean(v808a[v808a <= 600000], na.rm = TRUE)),
+      v803c == 9 & v808a > 300000 ~ round(mean(v808a[v808a <= 300000], na.rm = TRUE)), 
+      v803c == 8 & v808a > 1200000 ~ round(mean(v808a[v808a <= 1200000], na.rm = TRUE)), 
+      v803c == 2 & v808a > 2400000 ~ round(mean(v808a[v808a <= 2400000], na.rm = TRUE)),
+      v803c == 5 & v808a > 600000 ~ round(mean(v808a[v808a <= 600000], na.rm = TRUE)), 
+      v803c == 6 & v808a > 600000 ~ round(mean(v808a[v808a <= 600000], na.rm = TRUE)),
+      v803c == 3 & v808a > 1300000 ~ round(mean(v808a[v808a <= 1300000], na.rm = TRUE)),
+      TRUE ~ v808a
+    ),
+    v808b = case_when(
+      v803c == 3 & v808b > 30000 ~ round(mean(v808b[v808b <= 30000], na.rm = TRUE)), 
+      TRUE ~ v808b
+    ),
+    v808c = case_when(
+      v803c == 4 & v808c > 50000 ~ round(mean(v808c[v808c <= 50000], na.rm = TRUE)), 
+      v803c == 1 & v808c > 90000 ~ round(mean(v808c[v808c <= 90000], na.rm = TRUE)), 
+      v803c == 8 & v808c > 50000 ~ round(mean(v808c[v808c <= 50000], na.rm = TRUE)),
+      v803c == 5 & v808c > 40000 ~ round(mean(v808c[v808c <= 40000], na.rm = TRUE)), 
+      v803c == 3 & v808c > 40000 ~ round(mean(v808c[v808c <= 40000], na.rm = TRUE)),
+      TRUE ~ v808c
+    ), 
+    v808e = case_when(
+      v803c == 9 & v808e > 50000 ~ round(mean(v808e[v808e <= 50000], na.rm = TRUE)), 
+      v803c == 1 & v808e > 50000 ~ round(mean(v808e[v808e <= 50000], na.rm = TRUE)), 
+      v803c == 2 & v808e > 30000 ~ round(mean(v808e[v808e <= 30000], na.rm = TRUE)),
+      TRUE ~ v808e
     )
   ) %>%
   ungroup()
@@ -3931,7 +4022,15 @@ section9e <- section9e %>%
   mutate(
     hhid = paste0(psu, "-", hhld),
     v934 = if_else(!is.na(v935), 1L, 2L)
-  ) 
+  ) %>%
+  group_by(v934a) %>%
+  mutate(
+    v938b = case_when(
+      v934a == 9 & v938b > 150000 ~ round(mean(v938b[v938b <= 150000], na.rm = TRUE)),
+      TRUE ~ v938b
+    )
+  ) %>%
+  ungroup()
 
 #SECTION9F1
 
@@ -3947,6 +4046,22 @@ section9f1 <- section9f1 %>%
       v941
     )
   )
+
+section9f1 <- section9f1 %>%
+  group_by(province, v940) %>%
+  mutate(
+    v941 = case_when(
+      v940 == 2 & v941 > 40000 ~ round(mean(v941[v941 <= 40000], na.rm = TRUE)),
+      v940 == 5 & v941 > 80000 ~ round(mean(v941[v941 <= 80000], na.rm = TRUE)),
+      v940 == 1 & v941 > 600000 ~ round(mean(v941[v941 <= 600000], na.rm = TRUE)), 
+      TRUE ~ v941
+    ),
+    across(
+      v940, 
+      ~ na_if(.x, 0)
+    )
+  ) %>%
+  ungroup()
 
 #SECTION9F2
 
@@ -3965,85 +4080,72 @@ section9f2 <- section9f2 %>%
 
 #SECTION10
 
-section10 <- section10 %>%
-  mutate(
-    v1002b = case_when(
-    v1002b %in% c("AGRICULTURAL BUSINESS, 96", "KUKHURA PALAN, 96") ~ "1",
+s10 <- read.xlsx("misc/clean data1/section10.xlsx")
 
-    v1002b %in% c("(TRAILER) LUGA SILAYUNE KAM, 96", ", 96, KUTANI, PISANI MILL", 
-                  "7, 3", "8, 3", "96, DHAATU SAMBANDHI SABAI KAAM GARNE", 
-                  "96, KAPADA SILAUNE TAILORING", "96, TAILOR", "AARAN, 1", 
-                  "FURNISHING, 96", "FURNITURE KARKHANA SIKARMIKO KAM., 6", 
-                  "GRIL PASAL, 96", "KAPADA SILAUNE, 96", "KAPADA SILSUNE, 96", 
-                  "KUTANPISAN, 96", "MASALA PIDHANE MIL, 96", "MATO VADA HARU BANAUNE, 19", 
-                  "MIL, 96", "TAILORING BUSINESS, 96", "TELARING, 96") ~ "3",
-
-    v1002b %in% c("6, 7", "7, 6") ~ "6",
-
-    v1002b %in% c("7", "7, KIRANA PASAL", "96, 7", "96, MEDICINE PASAL", 
-                  "96, PHARMACY", "CHICKEN, 96", "JAAD RAKSI, 96", 
-                  "KIRAN PASAL, 96", "KIRANA PASAL, 96", "KIRANA PSAL, 96", 
-                  "PHARMACY, 96", "RUDRAKSHYA SEASONAL BUSINESS, 96", 
-                  "SAIKAKO BASAL, 96", "SEEING CLOTHES, 96", "SELLING OF GOODS, 96", 
-                  "STATIONARY SAMAN, 96") ~ "7",
-
-    v1002b %in% c("7, 8", "8, 7", "DHUWANI SEWA, 96", "DRIVING, 96", 
-                  "SAFARI - EV CHALAUNU HUNEY, 96", "SAFARI DRIVING, 96") ~ "8",
-
-    v1002b %in% c("7, 9", "9, 10", "96", "96, AAFNAI CHIYA KHAJA PASAL", 
-                  "96, BHOJ BIHE PARTY HARUMA KHANA BANAUNE KHANA KHANE BADHA HARU BHADA MA LAGAUNE", 
-                  "96, HOTEL", "CHATPAT PASAL MA CHATPAT SELL GARNE, 96", 
-                  "CHIYA PASAL, 96", "HOTEL BEBASAYA, 9") ~ "9",
-
-    v1002b %in% c("96, CONSULTING FIRM", "LEKHAPDI, 96", "VET CLINIC GAI BASTU KO CLINIC, 96") ~ "14",
-
-    v1002b == "17, BORADING SCHOOL  CHALAUNE" ~ "16",
-
-    v1002b == "7, 18" ~ "18",
-
-    v1002b == "GAMING ZONE, 96" ~ "19",
-
-    v1002b %in% c("96, BEAUTY PARLOUR", "96, KAPAL KATANE", "96, MECHINARY SAMAKO SERVICE CENTER", 
-                  "96, PARLOUR", "BEAUTY PARLER, 96", "BEAUTY PARLOR, 96", 
-                  "CHINNA HERAUNEY KAM HAAT HERIDINEY KAM GARIDINU HUNXA, 96", 
-                  "HAIR CUT SALON, 96", "HAIRCUT SOLON, 96", "KAPAL KATNE, 96", 
-                  "WATCH REPAIR AND WATCH CENTER, 96") ~ "20",
-
-    TRUE ~ v1002b
+s10 <- s10 %>%
+  rename(
+    v1002c_1 = v1002c,
+    v1002a_1 = v1002a
   )
+
+section10 <- merge(
+  section10, 
+  s10[, c("uid", "v1002c_1", "v1002a_1")],
+  by = "uid",
+  all = FALSE
 )
 
-for (i in setdiff(seq_len(ncol(section10)), c(2, 7, 8, 13, 15))) {
-    section10[[i]] <- as.numeric(gsub("[^0-9]", "", section10[[i]]))
-}
+labs <- attr(section10$v1002b, "labels")
 
 section10 <- section10 %>%
   mutate(
+    v1001 = if_else(
+      is.na(v1001), 2, v1001
+    ),
+    v1001 = case_when(
+      is.na(v1002a) & is.na(v1002b) & is.na(v1002c) ~ 2,
+      TRUE ~ v1001
+    ),
+    across(
+      c(v1001a:v1015),
+      ~ if_else(v1001 == 2, NA_real_, as.numeric(.x))
+    ),
+    v1002b = case_when(
+      is.na(v1002b) & !is.na(v1002c) ~ v1002c,
+      is.na(v1002b) & is.na(v1002c) ~ v1002a,
+      TRUE ~ v1002b
+    ),
     v1004 = if_else(
       v1004 > 100 | is.na(v1004) | v1004 == 0,
       100, 
       v1004
     ),
+    v1004 = if_else(
+      v1001 == 2, NA_real_, v1004
+    ),
+    v1006 = if_else(
+      v1001 == 2, NA_real_, v1006
+    ),
     v1005 = case_when(
-      v1002c %in% c("MASU TARKARI, MASU TARKARI BECHNE, LASUN LYERA BOKRA XODAYERA ORDER ANUSAR SUPPLY GARNE") ~ 400000,
-      v1002c %in% c("MEDICINE PASAL, THEKKA PATTA GARNE  GHAR, NALA ,ROAD, BADH  BANAUNE") ~ 540000000,
-      v1002c %in% c("KHET JOTNE DHAN GAHU JHARNE, KIRANA KHADHYANA SAMAN WHOLESALE PETROL , MEDICINE SABAI KO") ~ 16200000,
-      v1002c %in% c("KIRANA SAMAN BIKRI") ~ 1500000,
-      v1002c %in% c("GITTI BALUWA LOAD, KIRANA SAMAN BECHNE") ~ 1545000,
-      v1002c %in% c("AAFNO HIACE CHALAUNE KARMACHARI SAHIT, DHAAN KUTNE, TEL PELNE") ~ 6400000,
-      v1002c %in% c("KIRANA SAMAN BECHNE, EGG CRATE BECHNE") ~ 600000,
-      v1002c %in% c("SUN PASAL, SHINGAR KA SAMAN BECHNE") ~ 2000000,
-      v1002c %in% c("KHAJA GHAR, PHOTO STUDIO") ~ 1000000,
-      v1002c %in% c("TARKARI BECHNE, NASTA KHAJA") ~ 900000,
-      v1002c %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 500000,
-      v1002c %in% c("KIRANA PASAL, BRAMMAN, PANDIT, PADNE") ~ 450000,
-      v1002c %in% c("KAPADA SILAUNE RA MARMAT SAMBHAR, COSMETICS JUTTA CHAPPAL") ~ 350000,
-      v1002c %in% c("MANCHHE OSAR PASAR GARNE, KIRANA PASAL") ~ 360000,
-      v1002c %in% c("COSMETICS SAMAN BECHNE RA PARLOUR KO KAAM, MANCHHE OSAR PASAR GARNE") ~ 360000,
-      v1002c %in% c("MOBILE BANAUNE NAYA MOBILE BECHNE ELECTRIC SAMAN BECHNE, DHAN GAHU KUTANI PISANI") ~ 210000,
-      v1002c %in% c("DHAN KUTAN PISANI, KIRANA PASAL") ~ 156000,
-      v1002c %in% c("KIRANA SAMAN BIKRI") ~ 3600000,
-      v1002c %in% c("PUJA KO SAMAN BECHNE, CAR CHALAUN SIKAUNE") ~ 1200000,
+      v1002c_1 %in% c("MASU TARKARI, MASU TARKARI BECHNE, LASUN LYERA BOKRA XODAYERA ORDER ANUSAR SUPPLY GARNE") ~ 400000,
+      v1002c_1 %in% c("MEDICINE PASAL, THEKKA PATTA GARNE  GHAR, NALA ,ROAD, BADH  BANAUNE") ~ 540000000,
+      v1002c_1 %in% c("KHET JOTNE DHAN GAHU JHARNE, KIRANA KHADHYANA SAMAN WHOLESALE PETROL , MEDICINE SABAI KO") ~ 16200000,
+      v1002c_1 %in% c("KIRANA SAMAN BIKRI") ~ 1500000,
+      v1002c_1 %in% c("GITTI BALUWA LOAD, KIRANA SAMAN BECHNE") ~ 1545000,
+      v1002c_1 %in% c("AAFNO HIACE CHALAUNE KARMACHARI SAHIT, DHAAN KUTNE, TEL PELNE") ~ 6400000,
+      v1002c_1 %in% c("KIRANA SAMAN BECHNE, EGG CRATE BECHNE") ~ 600000,
+      v1002c_1 %in% c("SUN PASAL, SHINGAR KA SAMAN BECHNE") ~ 2000000,
+      v1002c_1 %in% c("KHAJA GHAR, PHOTO STUDIO") ~ 1000000,
+      v1002c_1 %in% c("TARKARI BECHNE, NASTA KHAJA") ~ 900000,
+      v1002c_1 %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 500000,
+      v1002c_1 %in% c("KIRANA PASAL, BRAMMAN, PANDIT, PADNE") ~ 450000,
+      v1002c_1 %in% c("KAPADA SILAUNE RA MARMAT SAMBHAR, COSMETICS JUTTA CHAPPAL") ~ 350000,
+      v1002c_1 %in% c("MANCHHE OSAR PASAR GARNE, KIRANA PASAL") ~ 360000,
+      v1002c_1 %in% c("COSMETICS SAMAN BECHNE RA PARLOUR KO KAAM, MANCHHE OSAR PASAR GARNE") ~ 360000,
+      v1002c_1 %in% c("MOBILE BANAUNE NAYA MOBILE BECHNE ELECTRIC SAMAN BECHNE, DHAN GAHU KUTANI PISANI") ~ 210000,
+      v1002c_1 %in% c("DHAN KUTAN PISANI, KIRANA PASAL") ~ 156000,
+      v1002c_1 %in% c("KIRANA SAMAN BIKRI") ~ 3600000,
+      v1002c_1 %in% c("PUJA KO SAMAN BECHNE, CAR CHALAUN SIKAUNE") ~ 1200000,
       TRUE ~ v1005
     ),
     v1006 = case_when(
@@ -4051,76 +4153,102 @@ section10 <- section10 %>%
       TRUE ~ 1
     ),
     v1007 = case_when(
-      v1002c %in% c("MEDICINE PASAL, THEKKA PATTA GARNE  GHAR, NALA ,ROAD, BADH  BANAUNE") ~ 860000,
-      v1002c %in% c("KHET JOTNE DHAN GAHU JHARNE, KIRANA KHADHYANA SAMAN WHOLESALE PETROL , MEDICINE SABAI KO") ~ 16200000,
+      v1002c_1 %in% c("MEDICINE PASAL, THEKKA PATTA GARNE  GHAR, NALA ,ROAD, BADH  BANAUNE") ~ 860000,
+      v1002c_1 %in% c("KHET JOTNE DHAN GAHU JHARNE, KIRANA KHADHYANA SAMAN WHOLESALE PETROL , MEDICINE SABAI KO") ~ 16200000,
       TRUE ~ v1007
     ),
     v1008 = case_when(
-      v1002c %in% c("GITTI BALUWA LOAD, KIRANA SAMAN BECHNE") ~ 265000,
-      v1002c %in% c("AAFNO HIACE CHALAUNE KARMACHARI SAHIT, DHAAN KUTNE, TEL PELNE") ~ 2400000,
-      v1002c %in% c("PUJA KO SAMAN BECHNE, CAR CHALAUN SIKAUNE") ~ 200000,
-      v1002c %in% c("KIRANA SAMAN BECHNE, EGG CRATE BECHNE") ~ 840000,
-      v1002c %in% c("TARKARI BECHNE, NASTA KHAJA") ~ 60000,
-      v1002c %in% c("MANCHHE OSAR PASAR GARNE, KIRANA PASAL") ~ 60000,
-      v1002c %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 22000,
-      v1002c %in% c("COSMETICS SAMAN BECHNE RA PARLOUR KO KAAM, MANCHHE OSAR PASAR GARNE") ~ 28000,
-      v1002c %in% c("SUN PASAL, SHINGAR KA SAMAN BECHNE") ~ 3000,
-      v1002c %in% c("KIRANA PASAL, BRAMMAN, PANDIT, PADNE") ~ 2500,
-      v1002c %in% c("KAPADA SILAUNE RA MARMAT SAMBHAR, COSMETICS JUTTA CHAPPAL") ~ 13200,
+      v1002c_1 %in% c("GITTI BALUWA LOAD, KIRANA SAMAN BECHNE") ~ 265000,
+      v1002c_1 %in% c("AAFNO HIACE CHALAUNE KARMACHARI SAHIT, DHAAN KUTNE, TEL PELNE") ~ 2400000,
+      v1002c_1 %in% c("PUJA KO SAMAN BECHNE, CAR CHALAUN SIKAUNE") ~ 200000,
+      v1002c_1 %in% c("KIRANA SAMAN BECHNE, EGG CRATE BECHNE") ~ 840000,
+      v1002c_1 %in% c("TARKARI BECHNE, NASTA KHAJA") ~ 60000,
+      v1002c_1 %in% c("MANCHHE OSAR PASAR GARNE, KIRANA PASAL") ~ 60000,
+      v1002c_1 %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 22000,
+      v1002c_1 %in% c("COSMETICS SAMAN BECHNE RA PARLOUR KO KAAM, MANCHHE OSAR PASAR GARNE") ~ 28000,
+      v1002c_1 %in% c("SUN PASAL, SHINGAR KA SAMAN BECHNE") ~ 3000,
+      v1002c_1 %in% c("KIRANA PASAL, BRAMMAN, PANDIT, PADNE") ~ 2500,
+      v1002c_1 %in% c("KAPADA SILAUNE RA MARMAT SAMBHAR, COSMETICS JUTTA CHAPPAL") ~ 13200,
       TRUE ~ v1008
     ), 
     v1009a = case_when(
-      v1002c %in% c("MEDICINE PASAL, THEKKA PATTA GARNE  GHAR, NALA ,ROAD, BADH  BANAUNE") ~ 2800000,
-      v1002c %in% c("GITTI BALUWA LOAD, KIRANA SAMAN BECHNE") ~ 500000,
-      v1002c %in% c("SUN PASAL, SHINGAR KA SAMAN BECHNE") ~ 350000,
-      v1002c %in% c("MASU TARKARI, MASU TARKARI BECHNE, LASUN LYERA BOKRA XODAYERA ORDER ANUSAR SUPPLY GARNE") ~ 200000,
-      v1002c %in% c("KIRANA SAMAN BECHNE, EGG CRATE BECHNE") ~ 360000,
-      v1002c %in% c("KAPADA SILAUNE RA MARMAT SAMBHAR, COSMETICS JUTTA CHAPPAL") ~ 150000,
-      v1002c %in% c("MOBILE BANAUNE NAYA MOBILE BECHNE ELECTRIC SAMAN BECHNE, DHAN GAHU KUTANI PISANI") ~ 58000,
-      v1002c %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 30000,
-      v1002c %in% c("KIRANA SAMAN BIKRI") ~ 342000,
-      v1002c %in% c("KHET JOTNE DHAN GAHU JHARNE, KIRANA KHADHYANA SAMAN WHOLESALE PETROL , MEDICINE SABAI KO") ~ 1490400,
-      v1002c %in% c("KIRANA SAMAN BIKRI") ~ 1476000
+      v1002c_1 %in% c("MEDICINE PASAL, THEKKA PATTA GARNE  GHAR, NALA ,ROAD, BADH  BANAUNE") ~ 2800000,
+      v1002c_1 %in% c("GITTI BALUWA LOAD, KIRANA SAMAN BECHNE") ~ 500000,
+      v1002c_1 %in% c("SUN PASAL, SHINGAR KA SAMAN BECHNE") ~ 350000,
+      v1002c_1 %in% c("MASU TARKARI, MASU TARKARI BECHNE, LASUN LYERA BOKRA XODAYERA ORDER ANUSAR SUPPLY GARNE") ~ 200000,
+      v1002c_1 %in% c("KIRANA SAMAN BECHNE, EGG CRATE BECHNE") ~ 360000,
+      v1002c_1 %in% c("KAPADA SILAUNE RA MARMAT SAMBHAR, COSMETICS JUTTA CHAPPAL") ~ 150000,
+      v1002c_1 %in% c("MOBILE BANAUNE NAYA MOBILE BECHNE ELECTRIC SAMAN BECHNE, DHAN GAHU KUTANI PISANI") ~ 58000,
+      v1002c_1 %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 30000,
+      v1002c_1 %in% c("KIRANA SAMAN BIKRI") ~ 342000,
+      v1002c_1 %in% c("KHET JOTNE DHAN GAHU JHARNE, KIRANA KHADHYANA SAMAN WHOLESALE PETROL , MEDICINE SABAI KO") ~ 1490400,
+      v1002c_1 %in% c("KIRANA SAMAN BIKRI") ~ 1476000
     ),
     v1009b = case_when(
-      v1002c %in% c("KIRANA SAMAN BIKRI") ~ 1200000,
-      v1002c %in% c("KHET JOTNE DHAN GAHU JHARNE, KIRANA KHADHYANA SAMAN WHOLESALE PETROL , MEDICINE SABAI KO") ~ 500000,
-      v1002c %in% c("KHAJA GHAR, PHOTO STUDIO") ~ 250000,
-      v1002c %in% c("TARKARI BECHNE, NASTA KHAJA") ~ 350000,
-      v1002c %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 25000,
-      v1002c %in% c("KUKHURAKO DANA, CHHALLA, KUKHURA SAGA SAMBANDHIT SAAMANHARU") ~ 115000,
-      v1002c %in% c("PAPER SUPPLY") ~ 1000000, 
+      v1002c_1 %in% c("KIRANA SAMAN BIKRI") ~ 1200000,
+      v1002c_1 %in% c("KHET JOTNE DHAN GAHU JHARNE, KIRANA KHADHYANA SAMAN WHOLESALE PETROL , MEDICINE SABAI KO") ~ 500000,
+      v1002c_1 %in% c("KHAJA GHAR, PHOTO STUDIO") ~ 250000,
+      v1002c_1 %in% c("TARKARI BECHNE, NASTA KHAJA") ~ 350000,
+      v1002c_1 %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 25000,
+      v1002c_1 %in% c("KUKHURAKO DANA, CHHALLA, KUKHURA SAGA SAMBANDHIT SAAMANHARU") ~ 115000,
+      v1002c_1 %in% c("PAPER SUPPLY") ~ 1000000, 
       TRUE ~ v1009b
     ),
     v1010 = case_when(
-      v1002c %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 40000,
-      v1002c %in% c("GITTI BALUWA LOAD, KIRANA SAMAN BECHNE") ~ 460000, 
+      v1002c_1 %in% c("MASU KATERA BECHNE, KIRANA PASAL") ~ 40000,
+      v1002c_1 %in% c("GITTI BALUWA LOAD, KIRANA SAMAN BECHNE") ~ 460000, 
       TRUE ~ v1010
     ),
     v1011 = case_when(
-      v1002a %in% c("MASU PASAL, LASUN LYERA BOKRA XODAYERA ORDER ANUSAR SUPPLY GARNE") ~ 388000,
-      v1002a %in% c("AAFNO HIACE CHALAUNE, AAFNO MIL CHALAUNE") ~ 3000000,
-      v1002a %in% c("KIRANA STORE, EGG CRATE FACTORY") ~ 800000,
-      v1002a %in% c("MEDICINE PASAL, THEKKA PATTA GARNE  GHAR, NALA ,ROAD, BADH  BANAUNE") ~ 8520000,
-      v1002a %in% c("SUN CHADI KO GHANA BECHNE, COSMETICS PASAL") ~ 3290000,
-      v1002a %in% c("FRESS HOUSE, KIRANA PASAL") ~ 1030000,
-      v1002a %in% c("TARKARI BECHNE, KHAJA NASTA") ~ 382000,
-      v1002a %in% c("KIRAN PASAL") ~ 3976000,
-      v1002a %in% c("1") ~ 3976000,
-      v1002a %in% c("HOTEL, PHOTO STUDIO") ~ 1864000,
-      v1002a %in% c("PASAL, PANDIT") ~ 1780000,
-      v1002a %in% c("AUTO CHALAUNE, KIRANA PASAL") ~ 676000,
-      v1002a %in% c("BEAUTY PARLOUR N COSMETICS, AUTO CHALAUNE") ~ 620000,
-      v1002a %in% c("PUJA PASAL, CAR DRIVING CENTER") ~ 640000,
-      v1002a %in% c("TRUCK DRIVER, KIRANA STORE") ~ 270000,
-      v1002a %in% c("TAILOR, COSMETICS PLUS JUTTA CHAPPAL") ~ 344000,
-      v1002a %in% c("TRACTOR THRESAR KHET JODNE DHAN GAHU JHARNE, KIRANA PASAL KHADHYANA SAMAN WHOLESALE") ~ 587887,
-      v1002a %in% c("MOBILE PASAL, ELECTRIC SAMAN BECHNE, MEEL CHALAUNE KUTANI PISANI KHADHYANA SAMAN") ~ 700000,
-      v1002a %in% c("MEEL CHALAUNE KUTANI PISANI, KIRANA PASAL") ~ 960000,
-      v1002a %in% c("FRESH HOUSE") ~ 731000,
+      v1002a_1 %in% c("MASU PASAL, LASUN LYERA BOKRA XODAYERA ORDER ANUSAR SUPPLY GARNE") ~ 388000,
+      v1002a_1 %in% c("AAFNO HIACE CHALAUNE, AAFNO MIL CHALAUNE") ~ 3000000,
+      v1002a_1 %in% c("KIRANA STORE, EGG CRATE FACTORY") ~ 800000,
+      v1002a_1 %in% c("MEDICINE PASAL, THEKKA PATTA GARNE  GHAR, NALA ,ROAD, BADH  BANAUNE") ~ 8520000,
+      v1002a_1 %in% c("SUN CHADI KO GHANA BECHNE, COSMETICS PASAL") ~ 3290000,
+      v1002a_1 %in% c("FRESS HOUSE, KIRANA PASAL") ~ 1030000,
+      v1002a_1 %in% c("TARKARI BECHNE, KHAJA NASTA") ~ 382000,
+      v1002a_1 %in% c("KIRAN PASAL") ~ 3976000,
+      v1002a_1 %in% c("1") ~ 3976000,
+      v1002a_1 %in% c("HOTEL, PHOTO STUDIO") ~ 1864000,
+      v1002a_1 %in% c("PASAL, PANDIT") ~ 1780000,
+      v1002a_1 %in% c("AUTO CHALAUNE, KIRANA PASAL") ~ 676000,
+      v1002a_1 %in% c("BEAUTY PARLOUR N COSMETICS, AUTO CHALAUNE") ~ 620000,
+      v1002a_1 %in% c("PUJA PASAL, CAR DRIVING CENTER") ~ 640000,
+      v1002a_1 %in% c("TRUCK DRIVER, KIRANA STORE") ~ 270000,
+      v1002a_1 %in% c("TAILOR, COSMETICS PLUS JUTTA CHAPPAL") ~ 344000,
+      v1002a_1 %in% c("TRACTOR THRESAR KHET JODNE DHAN GAHU JHARNE, KIRANA PASAL KHADHYANA SAMAN WHOLESALE") ~ 587887,
+      v1002a_1 %in% c("MOBILE PASAL, ELECTRIC SAMAN BECHNE, MEEL CHALAUNE KUTANI PISANI KHADHYANA SAMAN") ~ 700000,
+      v1002a_1 %in% c("MEEL CHALAUNE KUTANI PISANI, KIRANA PASAL") ~ 960000,
+      v1002a_1 %in% c("FRESH HOUSE") ~ 731000,
       TRUE ~ v1011
     )
   )
+
+section10 <- section10 %>%
+  mutate(
+    v1002b = haven::labelled(v1002b, labs),
+    across(
+      c(v1005:v1015),
+      ~ na_if(.x, 0)
+    )
+  ) %>%
+  select(-v1002a_1, -v1002c_1)
+
+section10 <- section10 %>%
+  group_by(v1002b) %>%
+  mutate(
+    v1007 = case_when(
+      v1002b == 3 & !is.na(v1007) & v1007 > 600000 ~ round(mean(v1007[v1007 <= 600000], na.rm = TRUE)), 
+      v1002b == 6 & !is.na(v1007) & v1007 > 20000000 ~ round(mean(v1007[v1007 <= 60000000], na.rm = TRUE)),
+      v1002b == 14 & !is.na(v1007) & v1007 > 2000000 ~ round(mean(v1007[v1007 <= 4500000], na.rm = TRUE)),
+      v1002b == 15 & !is.na(v1007) & v1007 > 600000 ~ round(mean(v1007[v1007 <= 600000], na.rm = TRUE)),
+      v1002b == 16 & !is.na(v1007) & v1007 > 1000000 ~ round(mean(v1007[v1007 <= 1000000], na.rm = TRUE)),
+
+      TRUE ~ v1007
+    )
+  )
+
+rm(s10)
 
 #SECTION11A
 
@@ -4322,18 +4450,68 @@ section12b <- section12b %>%
 
 #SECTION13A
 
-for (i in setdiff(1:ncol(section13a), c(2, 7, 8))) { 
+for (i in setdiff(1:ncol(section13a), c(10, 23))) {
   section13a[[i]] <- as.numeric(gsub("[^0-9]", "", section13a[[i]]))
 }
 
 section13a <- section13a %>%
   mutate(
     v1303 = case_when(
-      v1303 == 0 & is.na(v1304a) ~ NA_real_,
-      v1303 == 0 & !is.na(v1304a) ~ 1, 
-      TRUE ~ v1303
+      !is.na(v1304a) &  is.na(v1304b) &  is.na(v1304c) &  is.na(v1304d) ~ 1,
+      !is.na(v1304a) & !is.na(v1304b) &  is.na(v1304c) &  is.na(v1304d) ~ 2,
+      !is.na(v1304a) & !is.na(v1304b) & !is.na(v1304c) &  is.na(v1304d) ~ 3,
+      !is.na(v1304a) & !is.na(v1304b) & !is.na(v1304c) & !is.na(v1304d) ~ 4,
+      TRUE ~ NA_real_
+    ),
+    v1302 = case_when(
+      is.na(v1303) & !is.na(v1305) ~ 2,
+      TRUE ~ v1302
+    ),
+    across(
+      c(v1303, v1304a, v1304b, v1304c, v1304d, v1305, v1306, v1307), 
+      ~ na_if(.x, v1302 == 2)
+    ),
+    max_allowed = if_else(
+      v1301 == 1,
+      48000 * v1303,
+      NA_real_
+    ),
+    p20_childgrant = quantile(
+      v1305[v1301 == 6],
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    p20_aamasurakshya = quantile(
+      v1305[v1301 == 7], 
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    p20_other = quantile(
+      v1305[v1301 == 13],
+      probs = 0.20, 
+      na.rm = TRUE
     )
-  )
+  ) %>%
+  group_by(v1301, v1303) %>%
+  mutate(
+    v1305 = case_when(
+      id == 13618 & v1305 == 240002 ~ 24000,
+      v1301 == 1 & v1305 > max_allowed ~
+        round(mean(v1305[v1305 <= max_allowed], na.rm = TRUE)),
+      v1301 == 1 & v1305 < 4000 ~ 4000,
+      v1301 == 1 & is.na(v1305) ~
+        round(mean(v1305[v1305 <= max_allowed], na.rm = TRUE)),
+      v1301 == 2 & !is.na(v1303) & v1305 < 2660 ~ 2660, 
+      v1301 == 3 & !is.na(v1303) & v1305 < 4000 ~ 3990,
+      v1301 == 6 & !is.na(v1303) & v1305 < 500 ~ p20_childgrant,
+      v1301 == 7 & !is.na(v1303) & v1305 < 500 ~ p20_aamasurakshya,
+      v1301 == 13 & !is.na(v1303) & v1305 < 500 ~ p20_other,
+      TRUE ~ v1305
+    )
+  ) %>%
+  ungroup() %>%
+  select(-max_allowed, -p20_childgrant, -p20_aamasurakshya, -p20_other)
+
 
 #SECTION13B
 
@@ -4347,7 +4525,7 @@ section13b <- section13b %>%
 
 #SECTION13C
 
-for (i in setdiff(1:ncol(section13c), c(2, 7, 8))) { 
+for (i in setdiff(1:ncol(section13c), c(10, 16))) { 
   section13c[[i]] <- as.numeric(gsub("[^0-9]", "", section13c[[i]]))
 }
 
@@ -4357,6 +4535,10 @@ section13c <- section13c %>%
       is.na(v1312) | v1312 == 0 ~ 2, 
       TRUE ~ 1
     ), 
+    across(
+      v1312,
+      ~ na_if(.x, 0)
+    ),
     v1312 = case_when(
       v1312 == 0 ~ NA_real_,
       v1312 == 36000034 ~ 360000,
@@ -4365,9 +4547,61 @@ section13c <- section13c %>%
       v1312 == 7e+06 ~ 700000,
       v1312 == 8e+06 ~ 800000,
       v1312 == 3e+06 ~ 300000,
+      v1312 == 5000099 ~ 50000,
       TRUE ~ v1312
     )
   )
+
+section13c <- section13c %>%
+  mutate(
+    p20_savings = quantile(
+      v1312[v1311a == 1], 
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    p20_fixed_deposit = quantile(
+      v1312[v1311a == 2], 
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    p20_stocks = quantile(
+      v1312[v1311a == 3], 
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    p20_cit = quantile(
+      v1312[v1311a == 4], 
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    p20_pension = quantile(
+      v1312[v1311a == 5], 
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    p20_insurance = quantile(
+      v1312[v1311a == 9], 
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    p20_rent = quantile(
+      v1312[v1311a == 11], 
+      probs = 0.20,
+      na.rm = TRUE
+    ),
+    v1312 = case_when(
+      v1311a == 1 & v1311b == 1 & v1312 < 200 ~ p20_savings,
+      v1311a == 2 & v1311b == 1 & v1312 < 3000 ~ p20_fixed_deposit,
+      v1311a == 3 & v1311b == 1 & v1312 < 200 ~ p20_stocks,
+      v1311a == 4 & v1311b == 1 & v1312 < 1500 ~ p20_cit,
+      v1311a == 5 & v1311b == 1 & v1312 < 8000 ~ p20_pension,
+      v1311a == 9 & v1311b == 1 & v1312 < 500 ~ p20_insurance,
+      v1311a == 11 & v1311b == 1 & v1312 < 2000 ~ p20_rent,
+      v1311a == 5 & v1311b == 1 & v1312 > 624000 ~ 360000,
+      TRUE ~ v1312
+    )
+  ) %>%
+  select(-p20_savings, -p20_fixed_deposit, -p20_stocks, -p20_cit, -p20_pension, -p20_insurance, -p20_rent)
 
 #WEALTH INDEX 
 
