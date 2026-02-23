@@ -193,6 +193,213 @@ section0 <- section0 %>%
   employer_size = case_when(
     is.na(employer_size) & employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ 20,
     TRUE ~ employer_size
+  ),
+  respondent = case_when(
+    id == 13837 ~ "BIKRAM BABU BASNET",
+    id == 2397 ~ "SHYAM KUMAR RAI", 
+    id == 2657 ~ "MANI RAJ TAMANG", 
+    id == 12365 ~ "KESHAN ACHRAY BHATTRAI",
+    id == 13528 ~ "PAWAN LAL RAJBANSHI", 
+    id == 11108 ~ "SUSHIL KUMAR GACHHADAR", 
+    id == 11112 ~ "KANHAIYA PATHAK", 
+    id == 2983 ~ "INDRA BD KHATRI", 
+    id == 2508 ~ "KATHIK RAJBANSHI", 
+    id == 3058 ~ "BHUP RAJ BASNET", 
+    id == 3838 ~ "AMRITA  KARKI", 
+    id == 2501 ~ "MANISH KUMAR THAKUR", 
+    id == 2502 ~ "JITENDRA KUMAR KUSHWAHA", 
+    id == 12145 ~ "RAJIB KUMAR YADAV", 
+    id == 12417 ~ "DIPA KUMARI SAH", 
+    id == 12146 ~ "DEV KUMAR CHAUDHARY", 
+    id == 13579 ~ "TULA PRASAD SUWEDI", 
+    id == 7892 ~ "PURNARAM TULADHAR", 
+    id == 9862 ~ "JANUKA TIMILSINA", 
+    id == 8031 ~ "SWASTIKA SAPKOTA", 
+    id == 10226 ~ "MATMARAM BASNET", 
+    id == 14221 ~ "RAMLAL CHAUDHARY", 
+    id == 14218 ~ "BINDA RAY", 
+    id == 14140 ~ "SAROJ KUMAR SHRESTHA", 
+    id == 4881 ~ "SHIV KUMAR THAPA", 
+    id == 4870 ~ "KRISHNA BAHAHA GIRI", 
+    id == 3600 ~ "KISAN TAKO", 
+    id == 4763 ~ "RAJENDRA KUMAR KAYASTA", 
+    id == 5218 ~ "RAMCHANDRA GAUTAM", 
+    id == 10577 ~ "NIRMAL PRASAD SUBADI", 
+    id == 4869 ~ "ISHWOR KARKI", 
+    id == 5215 ~ "SUBASH JUNG RANA", 
+    id == 11455 ~ "GYAN BDR THAPA", 
+    id == 10354 ~ "KABINA SHANKAT", 
+    id == 3603 ~ "सबिन थापा", 
+    id == 3583 ~ "SUNIL THAPA", 
+    id == 9857 ~ "SUSHILA GHARTI", 
+    id == 4942 ~ "AASHOK THAPAMAGAR", 
+    id == 11492 ~ "SUBADRA MALBUL", 
+    id == 13771 ~ "SITA MAYA MOKTAN", 
+    id == 12290 ~ "SABINA DAHAL GAJUREL", 
+    id == 11361 ~ "SUDIP CHAUDARY", 
+    id == 11370 ~ "YASHODA POKHAREL", 
+    id == 11400 ~ "NISHA MANDAL", 
+    id == 11404 ~ "NIRMALA ARYAL", 
+    id == 11439 ~ "LILA DEVI SHRESTHA", 
+    id == 11434 ~ "ANITA THAPA CHHETRI", 
+    id == 11446 ~ "SABITA DHUNGANA", 
+    id == 11547 ~ "DAN KUMAR SUBEDI", 
+    id == 11997 ~ "LAXMI MAHARJAN", 
+    id == 12298 ~ "RAMILA RAI", 
+    id == 12297 ~ "MIN KUMARI KALA", 
+    id == 12342 ~ "SHUSILA SHERESTHA", 
+    id == 14608 ~ "SURAKSHYA YESMALI", 
+    id == 12482 ~ "NEMA DORJE SANTANG", 
+    id == 12477 ~ "SAMRIDDHA TULADAR",
+    id == 13936 ~ "ANUPA DAHAL", 
+    id == 11880 ~ "DELIP KUMAR CHAUDHARY", 
+    id == 14355 ~ "SARITA THARU", 
+    id == 12303 ~ "TIRTHA MAYA THAPA SIJALI", 
+    id == 13752 ~ "NIRANJAN MISHRA", 
+    id == 13750 ~ "SUKA RAM TAMANG", 
+    id == 14141 ~ "SALMA SHRESTHA", 
+    id == 12431 ~ "SANU MAYA LAMA KHADKA", 
+    id == 14430 ~ "RAMMAYA MAHARJAN", 
+    id == 13735 ~ "MAYA MAHARJAN", 
+    id == 14553 ~ "SAMITA KARKI", 
+    id == 11729 ~ "SUNITA KHATIWADA", 
+    id == 11881 ~ "APSARA MAINALI TIMALSINA", 
+    id == 11727 ~ "TULSI PRASAD SHIWAKOTI", 
+    id == 11875 ~ "TARANIDHI PANTA", 
+    id == 12339 ~ "MADHAV PARAJULI", 
+    id == 13765 ~ "SARITA RAM", 
+    id == 13801 ~ "ASHMA BISTA", 
+    id == 13795 ~ "ANIL NATH SHRESTHA", 
+    id == 8602 ~ "NANDA KUMARI SHARMA LAMICHHANE", 
+    id == 7772 ~ "NARAYAN PRASAD SHARMA", 
+    id == 8594 ~ "NAMUNA TIMALSINA", 
+    id == 2659 ~ "GYAN BAHADUR DARAI", 
+    id == 8216 ~ "ROSANI KAMAR", 
+    id == 8220 ~ "KARUNA SHARMA", 
+    id == 11005 ~ "SANJU KHANAL ADHIKARI", 
+    id == 2964 ~ "HEM RAJ MAHATO", 
+    id == 2955 ~ "DEVISARA MAGAR", 
+    id == 7614 ~ "PRALAHAD BHATTA KAYESTHA", 
+    id == 7935 ~ "DEBHAHADUR GHARTI", 
+    id == 5712 ~ "UPENDRA BIR THAPA", 
+    id == 5713 ~ "RAMA SIGDEL", 
+    id == 5182 ~ "MAMATA KUNWAR", 
+    id == 5735 ~ "MOHAN BEBASE", 
+    id == 5746 ~ "TULASHA BHANDARI", 
+    id == 13711 ~ "MAYA GAUTAM", 
+    id == 13917 ~ "SURESH PARIYAR", 
+    id == 13989 ~ "CHANDRA PARKASH CHAUDHARY",
+    id == 11762 ~ "PHOOL MAYA B.K.", 
+    id == 13986 ~ "YAM PRASAD DANGI", 
+    id == 13916 ~ "ARUN KUMAR SAPKOTA", 
+    id == 13981 ~ "GITA KUMARI SHINGH", 
+    id == 13997 ~ "RITA GHIMIRE SAPKOA", 
+    id == 13646 ~ "PARWATI RAMJALI MAGAR", 
+    id == 13647 ~ "YADAV PRASAD NEUPANE", 
+    id == 14513 ~ "PURNA GURUNG", 
+    id == 3161 ~ "KUMAR MALLA", 
+    id == 14471 ~ "DEEPA DEVI BHANDARI", 
+    id == 12256 ~ "TULARA PANERU", 
+    id == 2752 ~ "GAYATRI PANTA",
+    id == 11110 ~ "UNISHA LAWATI",
+    id == 2883 ~ "DHANAMAYA SUBEDI",
+    id == 13540 ~ "BINISHA SANWA",
+    id == 13521 ~ "KRISHNA HARI SHARMA DAHAL",
+    id == 13539 ~ "SMIRTI GHIMIRE",
+    id == 13525 ~ "GITA BISHWOKARMA ( DHIMAL)",
+    id == 12489 ~ "SHARMILA MAGAR",
+    id == 3457 ~ "LILAT URAHU",
+    id == 12421 ~ "RUBI SINGH",
+    id == 11645 ~ "DIPAK SAH",
+    id == 12420 ~ "ROHIT YADAV",
+    id == 12134 ~ "SHANKAR POKHREL",
+    id == 12173 ~ "JIVAN BAITHA",
+    id == 14194 ~ "RADHA MAHON PRASAD YADAV",
+    id == 12174 ~ "SAMJHANA CHAUDHARY",
+    id == 12162 ~ "SUNITA KUMARI MAHATO",
+    id == 14288 ~ "SHSHIL DUNGANA",
+    id == 9869 ~ "SABITA BUDHATHOKI",
+    id == 13506 ~ "AMAR ADHIKARI",
+    id == 10141 ~ "APSARA ACHARYA",
+    id == 13563 ~ "SANNANI MAHARJAN",
+    id == 14230 ~ "PRADIP CHHETRI",
+    id == 13694 ~ "RAVI BK",
+    id == 10061 ~ "LOMAS BATTARAI",
+    id == 9834 ~ "YUBRAJ ADHIKARI",
+    id == 3598 ~ "RITA  SHRESTHA",
+    id == 14550 ~ "SALINA MAHARJAN",
+    id == 8746 ~ "BISHNU PRASAD BHATTRAI",
+    id == 14409 ~ "NARENDRA DANGOL",
+    id == 12070 ~ "MUSTAFA AALAM",
+    id == 13557 ~ "SARITA TAMANG SHRESTHA",
+    id == 13508 ~ "SURESH MANI DIKSHIT",
+    id == 13512 ~ "ASHIKA KHANEL",
+    id == 9866 ~ "SANU SHRESTHA",
+    id == 11687 ~ "ANISHA THAKUR",
+    id == 13622 ~ "KUSHAL KARKI",
+    id == 11378 ~ "MANOJ ADHIKARI",
+    id == 12381 ~ "ROSHNA POUDEL",
+    id == 11391 ~ "SANGITA THAKURI",
+    id == 11377 ~ "RAM BD. GHISING",
+    id == 11882 ~ "ADITYA LOHANI",
+    id == 13761 ~ "KABITA MAYA MOKTAN",
+    id == 12340 ~ "HASINA RAWAT",
+    id == 13856 ~ "BHUMIKA SARU MAGAR",
+    id == 12306 ~ "LAXMI THATAAL",
+    id == 12309 ~ "SRIJANA DHAKAL",
+    id == 12291 ~ "NARAYAN KHATRI",
+    id == 11591 ~ "LEKHANATH POKHERAL",
+    id == 13662 ~ "JAN BAHADUR BISHWOKARMA",
+    id == 13663 ~ "RENU  SHAH",
+    id == 11546 ~ "RABIN POKHERAL",
+    id == 11631 ~ "RITA BHUSAL GURUNG",
+    id == 11600 ~ "URMILA PRADHAN",
+    id == 12392 ~ "SANGITA BASNET KARKI",
+    id == 11872 ~ "GRISMA CHAND THAKURI",
+    id == 11977 ~ "RAM PRABESH SHAHA",
+    id == 11934 ~ "BISHAL GIRI",
+    id == 14446 ~ "RABINA KAFLE",
+    id == 13587 ~ "SHREEJAN MANANDER",
+    id == 13937 ~ "ANIL THAPA",
+    id == 13939 ~ "ADHARSHA DHAKAL",
+    id == 14217 ~ "JIT BAHADUR RAI",
+    id == 14231 ~ "GYANU RATNA SHAKYA",
+    id == 13944 ~ "RAM CHANDRA",
+    id == 14499 ~ "GAJENDRA DEV",
+    id == 14005 ~ "SERIMAYA ALE BHATTRAI",
+    id == 12235 ~ "DEPEN BANTAWA",
+    id == 12237 ~ "SARITA KARKI",
+    id == 14213 ~ "YOSUF LAMA",
+    id == 13617 ~ "DURGA LAXMI MAHARJAN",
+    id == 14443 ~ "ANJU MAHARJAN",
+    id == 14463 ~ "LAL KUMARI SUNUWAR",
+    id == 14469 ~ "SHARMILA MOKTAM",
+    id == 14468 ~ "MAN LAMA",
+    id == 14466 ~ "GANGA MAGAR",
+    id == 13763 ~ "SABINA DAWADI KARKI",
+    id == 12101 ~ "FUL MAYA TAMANG",
+    id == 13607 ~ "SHARMILA KHOKLI",
+    id == 13803 ~ "ASHISH KC",
+    id == 13738 ~ "BIKI YADAV",
+    id == 10990 ~ "AKASH KHANAL",
+    id == 8352 ~ "KRISHNA PRASAD BHATTARAI",
+    id == 8372 ~ "SUMIT BABU RIZAL",
+    id == 5717 ~ "NISHA KUMAL",
+    id == 5848 ~ "SHIVA NEPAL",
+    id == 13980 ~ "LILA SHARMA KARKI",
+    id == 13984 ~ "MINA GAUTAM POKHREL",
+    id == 13923 ~ "PUJA PAUDEL",
+    id == 14509 ~ "PRABATI BHANDARI",
+    id == 13721 ~ "SARAD BHANDARI",
+    id == 3146 ~ "JAYA SING BADUWAL",
+    id == 12467 ~ "DHANASHOWARI KUMARI PANTA AWASTHI",
+    id == 3688 ~ "TEKARAJ JOSHI",
+    id == 3966 ~ "BHIM.BDR AYER",
+    id == 4703 ~ "RAJENDRA KUMAR KAYASTA", 
+    id == 11433 ~ "SABINA SIWAKOTI",
+    id == 2946 ~ "HEM NARAYAN MAHATO",
+  
+    TRUE ~ respondent
   )
 )
 
@@ -218,21 +425,27 @@ section1a <- section1a %>%
       v104b == 0 ~ NA_real_, 
       TRUE ~ v104b
     ),
-    v104a = case_when(
-      personid == 51629 ~ 67, 
-      personid == 5949620 ~ 45, 
-      personid == 51645 ~ 44, 
-      personid == 5951111 ~ 42, 
-      personid == 27500 ~ 14,
-      personid == 58596 ~ 52,
-      personid == 1295 ~ 32,
-      personid == 12304 ~ 42,
-      TRUE ~ v104a
+    v104b = case_when(
+      personid == 5949012 ~ NA_real_, 
+      TRUE ~ v104b
     ),
     v104b = if_else(
     v104a == 0 & is.na(v104b),
     sample(1:12, n(), replace = TRUE),
     v104b
+    ),
+    v105 = case_when(
+      id == 11277 ~ 3, 
+      personid == 1491 ~ 2,
+      personid == 4161 ~ 2, 
+      personid == 4254 ~ 2, 
+      personid == 4253 ~ 2, 
+      v106 == 4 ~ 2,
+      TRUE ~ v105,
+    ),
+    v106 = case_when(
+      v105 == 5 ~ 3, 
+      TRUE ~ v106
     ),
     v107 = case_when(
       v107 %in% c(11, 16) ~ 9,   #DEWAR/DEWARANI AND NANDA KEPT IN NUMERIC CODE 9 (BROTHER/SISTER-IN-LAW)
@@ -243,6 +456,7 @@ section1a <- section1a %>%
     v108 = case_when(
     is.na(v108) & v109 %in% c(3, 4) ~ 0,
     is.na(v108) & v109 == 1 ~ 12,
+    v108 == 1 & v109 == 1 ~ 1,
     TRUE ~ v108
     ),
     v109 = case_when(
@@ -307,6 +521,99 @@ section1a <- section1a %>%
 
 section1a <- section1a %>%
   mutate(
+      v104a = case_when(
+      personid == 51629 ~ 67, 
+      personid == 5949620 ~ 45, 
+      personid == 51645 ~ 44, 
+      personid == 5951111 ~ 42, 
+      personid == 27500 ~ 14,
+      personid == 58596 ~ 52,
+      personid == 1295 ~ 32,
+      personid == 12304 ~ 42,
+      personid == 24588 ~ 52,
+      personid == 12863 ~ 44,
+      personid == 24841 ~ 55,
+      personid == 11019 ~ 45, 
+      personid == 21343 ~ 52,
+      personid == 21345 ~ 33,
+      personid == 14457 ~ 70,
+      personid == 53831 ~ 33, 
+      personid == 53830 ~ 32,
+      personid == 40247 ~ 50,
+      personid == 16894 ~ 57,
+      personid == 26885 ~ 55,
+      personid == 26886 ~ 50, 
+      personid == 26888 ~ 35, 
+      personid == 26887 ~ 38,
+      personid == 18227 ~ 50,
+      personid == 18226 ~ 54,
+      personid == 5951424 ~ 56,
+      personid == 2607 ~ 8,
+      personid == 32703 ~ 34,
+      personid == 32705 ~ 26,
+      personid == 33485 ~ 52,
+      personid == 33486 ~ 53,
+      personid == 32327 ~ 83,
+      personid == 24602 ~ 54,
+      personid == 32083 ~ 50,
+      personid == 5951413 ~ 30,
+      personid == 5951412 ~ 33,
+      personid == 47159 ~ 30, 
+      personid == 24992 ~ 45,
+      personid == 24991 ~ 49,
+      personid == 14788 ~ 82,
+      personid == 14865 ~ 51,
+      personid == 14864 ~ 53, 
+      personid == 5948622 ~ 61, 
+      personid == 5948623 ~ 60,
+      personid == 59267 ~ 44,
+      personid == 5951205 ~ 39,
+      personid == 55192 ~ 39, 
+      personid == 5948867 ~ 19,
+      personid == 58052 ~ 62,
+      personid == 5951474 ~ 50, 
+      personid == 5951473 ~ 53, 
+      personid == 59839 ~ 60,
+      personid == 5949507 ~ 19, 
+      personid == 1387 ~ 32,
+      personid == 48358 ~ 43,
+      personid == 26767 ~ 41,
+      personid == 21751 ~ 40,
+      personid == 21750 ~ 42,
+      personid == 28468 ~ 21,
+      personid == 21690 ~ 32, 
+      personid == 58140 ~ 40,
+      personid == 26639 ~ 66, 
+      personid == 47067 ~ 65,
+      personid == 11254 ~ 48,
+      personid == 11253 ~ 52,
+      personid == 40794 ~ 46,
+      personid == 34512 ~ 39,
+      personid == 51804 ~ 17, 
+      personid == 8031 ~ 46, 
+      personid == 49742 ~ 83,
+      personid == 56117 ~ 54, 
+      personid == 56791 ~ 49, 
+      personid == 52045 ~ 39, 
+      personid == 19987 ~ 45, 
+      personid == 5950360 ~ 68,
+      personid == 5949012 ~ 48,
+      personid == 51752 ~ 42, 
+      personid == 23764 ~ 45, 
+      personid == 21908 ~ 62, 
+      personid == 56395 ~ 72,
+      personid == 56396 ~ 33, 
+      personid == 56397 ~ 31, 
+      personid == 5811 ~ 30, 
+      personid == 5813 ~ 6,
+      personid == 25874 ~ 40, 
+      personid == 17134 ~ 62, 
+      personid == 17133 ~ 65,
+      personid == 28333 ~ 38, 
+      personid == 28332 ~ 40,
+      personid == 55319 ~ 27,
+      TRUE ~ v104a
+    ),
     v107 = case_when(
       personid == 20968 ~ 3,
       personid == 40492 ~ 2,
@@ -331,7 +638,6 @@ section1a <- section1a %>%
       personid == 9163 ~ 2, 
       personid == 9168 ~ 3, 
       personid == 9161 ~ 5, 
-      personid == 9165 ~ 5, 
       personid == 9170 ~ 9, 
       personid == 9171 ~ 3, 
       personid == 9166 ~ 9,
@@ -362,7 +668,7 @@ section1a <- section1a %>%
       personid == 5951422 ~ 9, 
       personid == 5951419 ~ 5, 
       personid == 5951421 ~ 6,
-      personid == 5951427 ~ 3, 
+      personid == 5951427 ~ 7, 
       personid == 5951428 ~ 3, 
       personid == 5951423 ~ 5, 
       personid == 5951425 ~ 6, 
@@ -372,7 +678,7 @@ section1a <- section1a %>%
       personid == 5951429 ~ 6, 
       personid == 59090 ~ 7, 
       personid == 59089 ~ 7, 
-      personid == 59082 ~ 5, 
+      personid == 59082 ~ 6, 
       personid == 59080 ~ 5, 
       personid == 59085 ~ 7,
       personid == 59054 ~ 7, 
@@ -553,6 +859,86 @@ section1a <- section1a %>%
       personid == 5950315 ~ 5,
       personid == 5950316 ~ 12,
       personid == 22873 ~ 6,
+      personid == 45955 ~ 3,
+      personid == 39409 ~ 5, 
+      personid == 18418 ~ 3,
+      personid == 7184 ~ 9, 
+      personid == 7186 ~ 9,
+      personid == 20887 ~ 4, 
+      personid == 20886 ~ 4, 
+      personid == 20884 ~ 8, 
+      personid == 20885 ~ 1, 
+      personid == 20888 ~ 4,
+      personid == 47874 ~ 8, 
+      personid == 47879 ~ 6, 
+      personid == 8371 ~ 2, 
+      personid == 8369 ~ 9,
+      personid == 8372 ~ 3, 
+      personid == 10817 ~ 9, 
+      personid == 10818 ~ 9,
+      personid == 58623 ~ 6,
+      personid == 19895 ~ 3, 
+      personid == 54635 ~ 3, 
+      personid == 54601 ~ 3,
+      personid == 9165 ~ 6,
+      personid == 18229 ~ 9, 
+      personid == 59082 ~ 6,
+      personid == 59084 ~ 7,
+      personid == 36463 ~ 9, 
+      personid == 23622 ~ 9, 
+      personid == 32704 ~ 6,
+      personid == 32702 ~ 6, 
+      personid == 32703 ~ 9,
+      personid == 32702 ~ 6,
+      personid == 55787 ~ 9, 
+      personid == 54315 ~ 2,
+      personid == 32302 ~ 9,
+      personid == 17456 ~ 3, 
+      personid == 54764 ~ 9,
+      personid == 24823 ~ 9, 
+      personid == 49873 ~ 2, 
+      personid == 14802 ~ 2, 
+      personid == 14803 ~ 9, 
+      personid == 53659 ~ 9,
+      personid == 25472 ~ 10,
+      personid == 58555 ~ 6,
+      personid == 59674 ~ 2, 
+      personid == 55008 ~ 5, 
+      personid == 55303 ~ 6, 
+      personid == 59898 ~ 2, 
+      personid == 57531 ~ 6, 
+      personid == 5948827 ~ 7,
+      personid == 55579 ~ 9, 
+      personid == 60532 ~ 12,
+      personid == 5951250 ~ 12, 
+      personid == 46839 ~ 2,
+      personid == 46840 ~ 3,
+      personid == 13806 ~ 2, 
+      personid == 11548 ~ 2, 
+      personid == 19509 ~ 8, 
+      personid == 19513 ~ 8, 
+      personid == 34631 ~ 8, 
+      personid == 34512 ~ 8,
+      personid == 34651 ~ 2, 
+      personid == 5950630 ~ 7, 
+      personid == 5950628 ~ 6, 
+      personid == 5951256 ~ 5, 
+      personid == 51803 ~ 8,
+      personid == 49732 ~ 9, 
+      personid == 49731 ~ 9, 
+      personid == 56792 ~ 6,
+      personid == 60548 ~ 9, 
+      personid == 5950587 ~ 6, 
+      personid == 5951820 ~ 16,
+      personid == 38659 ~ 9, 
+      personid == 22299 ~ 9,
+      personid == 56386 ~ 1, 
+      personid == 56387 ~ 3, 
+      personid == 57799 ~ 9, 
+      personid == 13077 ~ 9,
+      personid == 687 ~ 9, 
+      personid == 15268 ~ 3, 
+
       TRUE ~ v107
     ), 
     v110 = case_when(
@@ -591,6 +977,8 @@ section1a <- section1a %>%
       personid == 56385 ~ 1,
       personid == 25355 ~ 2,
       personid == 10324 ~ 2,
+      personid == 5949012 ~ 2, 
+      personid == 5813 ~ NA_real_,
       TRUE ~ v110
     )
   ) %>%
@@ -599,7 +987,80 @@ section1a <- section1a %>%
   
 rm(invalid_hhids, new_heads)
 
+section1a <- section1a %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  ) %>%
+  group_by(hhid) %>%
+  mutate(
+    age_head = if_else(any(v107 == 1), v104a[v107 == 1][1], NA_real_),
+    age_diff_from_head = age_head - v104a,
+    error = case_when(
+      v107 == 3 & age_diff_from_head < 15 ~ "Error: Son/Daughter too old",
+      v107 == 5 & age_diff_from_head > -15 ~ "Error: Father/Mother too young", 
+      v107 == 4 & age_diff_from_head < 30 ~ "Error: Grandchild too old",
+      v107 == 12 & age_diff_from_head > -30 ~ "Error: Grandparent too young", 
+      v107 == 8 & age_diff_from_head < 12 ~ "Error: Son/Daughter-in-law too old",
+      v107 == 10 & age_diff_from_head > -12 ~ "Error: Parent-in-law too young",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  ungroup()
+
+relationship_checks <- section1a %>%
+  filter(!is.na(error)) %>%
+  select(id, personid, hhid, v102, v104a, v104b, age_head, age_diff_from_head, error, v107)
+
+rm(relationship_checks)
+
+section1a <- section1a %>%
+  select(-hhid, -age_head, -age_diff_from_head, -error) %>%
+  mutate(
+    v104a = case_when(
+      !is.na(v104b) ~ round(v104b / 12),
+      TRUE ~ v104a
+    )
+  )
+
+hh_majority <- section1a %>%
+  group_by(id, v105) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(id) %>%
+  slice_max(n, with_ties = FALSE) %>%   
+  select(id, majority_ethnicity = v105)
+
+section1a <- section1a %>%
+  group_by(id) %>%
+  mutate(n_ethnicity = n_distinct(v105, na.rm = TRUE)) %>%
+  ungroup() %>%
+  left_join(hh_majority, by = "id") %>%
+  mutate(
+    v105 = case_when(
+      n_ethnicity > 1 & v103 == 1 ~ majority_ethnicity,
+      TRUE ~ v105
+    )
+  ) %>%
+  select(-majority_ethnicity, -n_ethnicity)
+
+rm(hh_majority)
+
 #SECTION1B
+
+s1b <- read.xlsx("misc/rectify_sec1b_SA.xlsx")
+
+s1b <- s1b %>%
+  select(-chfid, -`_merge`, -sec1b_miss, -hhld_member,-v102, -v103, -v104a, -v104b, -v106, -v106a, -v105, -v107, -v108, -v109, -v110) %>%
+  mutate(
+    across(
+      c(enrollment, province, district, palika, palika_type, v111, v114, v115, v116, v118, v120, interviewer),
+      ~ as.numeric(str_extract(., "^[0-9]+"))
+    ), 
+    v112h_1 = as.character(v112h_1),
+    employer_sector = as.numeric(employer_sector)
+  )
+
+section1b <- section1b %>%
+  rows_upsert(s1b, by = "personid")
 
 section1b <- section1b %>%
   mutate(
@@ -616,7 +1077,24 @@ section1b <- section1b %>%
 non_ids <- setdiff(section1b$personid, section1a$personid)
 
 section1b <- section1b %>%
-  filter(!uniq_id %in% non_ids)
+  filter(!personid %in% non_ids)
+
+all_objs <- ls()
+
+for (obj in all_objs) {
+  
+  df <- get(obj)
+  
+  if (is.data.frame(df) && "personid" %in% colnames(df)) {
+    
+    df <- df %>%
+      filter(!personid %in% non_ids)
+    
+    assign(obj, df, envir = .GlobalEnv)
+  }
+}
+
+rm(s1b, df)
 
 section1a <- section1a %>%
   mutate(
@@ -625,8 +1103,8 @@ section1a <- section1a %>%
 
 section1b <- merge(
   section1b, 
-  section1a[, c("uniq_id", "v104a")], 
-  by = "uniq_id"
+  section1a[, c("personid", "v104a")], 
+  by = "personid"
 )
 
 section1b <- section1b %>%
@@ -780,15 +1258,25 @@ section1b <- section1b %>%
       personid == 27817 & is.na(v114) ~ 1, 
       v104a >= 5 & is.na(v115) & is.na(v116) ~ 3,
       v104a >= 5 & !is.na(v115) & !is.na(v116) ~ 1,
+      personid == 15498 ~ 1, 
+      personid == 15499 ~ 1, 
       TRUE ~ v114
     ), 
     v115 = case_when(
       personid == 27817 & is.na(v115) ~ 3, 
       v104a >= 5 & is.na(v115) & v114 == 3 ~ 1,
+      personid == 15498 ~ 2, 
+      personid == 15499 ~ 2, 
       TRUE ~ v115
     ),
     v116 = case_when(
       personid == 27817 & is.na(v115) ~ 1, 
+      personid == 15498 ~ 11, 
+      personid == 15499 ~ 12,
+      personid == 53995 ~ 13, 
+      personid == 53996 ~ 13, 
+      personid == 53997 ~ 13, 
+      personid == 53998 ~ 13, 
       TRUE ~ v116
     )
   ) %>%
@@ -807,6 +1295,20 @@ section1b <- section1b %>%
     v116 = case_when(
       v114 == 1 & v115 == 3 & is.na(v116) ~ round(mean(v116, na.rm = TRUE)), 
       v114 == 1 & v115 == 2 & is.na(v116) ~ round(mean(v116, na.rm = TRUE)),
+      personid == 54155 ~ 8,
+      personid == 54156 ~ 6, 
+      personid == 54157 ~ 4,
+      personid == 19179 ~ 13, 
+      personid == 19180 ~ 11,
+      personid == 19181 ~ 9, 
+      personid == 14659 ~ 10, 
+      personid == 14660 ~ 9,
+      personid == 14713 ~ 8, 
+      personid == 14714 ~ 2,
+      personid == 13179 ~ 9, 
+      personid == 13179 ~ 12, 
+      personid == 13914 ~ 1, 
+
       TRUE ~ v116
     ),
     v115 = case_when(
@@ -815,56 +1317,11 @@ section1b <- section1b %>%
       TRUE ~ v115
     )
   ) %>%
-  ungroup()
+  ungroup() %>%
+  select(-uniq_id, -v104a, -edu_cap, -edu_implausible, -hhid) %>%
+  select(enrollment:uid, personid, v101:v115, v116, everything())
 
 #SECTION2A1 
-
-section2a1 <- section2a1 %>%
-  mutate(
-    v203_num = grepl("[0-9]", v203a),   
-    
-    v203_new  = if_else(v203_num, v203a, v203),
-    v203a_new = if_else(v203_num, v203,  v203a),
-    
-    v203  = v203_new,
-    v203a = v203a_new
-  ) %>%
-  select(-v203_num, -v203_new, -v203a_new) %>%
-  mutate(
-    v204_num = grepl("[0-9]", v204a),   
-    
-    v204_new  = if_else(v204_num, v204a, v204),
-    v204a_new = if_else(v204_num, v204,  v204a),
-    
-    v204  = v204_new,
-    v204a = v204a_new
-  ) %>%
-  select(-v204_num, -v204_new, -v204a_new) %>%
-  mutate(
-    v205_num = grepl("[0-9]", v205a),   
-    
-    v205_new  = if_else(v205_num, v205a, v205),
-    v205a_new = if_else(v205_num, v205,  v205a),
-    
-    v205  = v205_new,
-    v205a = v205a_new
-  ) %>%
-  select(-v205_num, -v205_new, -v205a_new) %>%
-  mutate(
-    v206_num = grepl("[0-9]", v206a),   
-    
-    v206_new  = if_else(v206_num, v206a, v206),
-    v206a_new = if_else(v206_num, v206,  v206a),
-    
-    v206  = v206_new,
-    v206a = v206a_new
-  ) %>%
-  select(-v206_num, -v206_new, -v206a_new) 
-
-
-for (i in setdiff(1:ncol(section2a1), c(2, 7, 8, 13, 15, 17, 19, 20))) {
-  section2a1[[i]] <- as.numeric(gsub("[^0-9]", "", section2a1[[i]]))
-}
 
 section2a1 <- section2a1 %>%
   group_by(psu) %>%
@@ -1082,142 +1539,122 @@ section2a1 <- section2a1 %>%
       v207 == "0",
       0L,
       as.integer(stringr::str_extract(v207, "\\b(19|20)\\d{2}\\b"))
-    )  )
+    ),
+    v207 = if_else(
+      is.na(v207), 
+      0,
+      v207
+    )  
+  )
 
-#SECTION2A2
-
-section2a2 <- section2a2 %>%
-  rename(
-    v213 = v213a, 
-    v213a = v213b
-  ) %>%
-  mutate(
-    v213_num = grepl("[0-9]", v213a),   
-    
-    v213_new  = if_else(v213_num, v213a, v213),
-    v213a_new = if_else(v213_num, v213,  v213a),
-    
-    v213  = v213_new,
-    v213a = v213a_new
-  ) %>%
-  select(-v213_num, -v213_new, -v213a_new) 
-  
-
-for (i in setdiff(1:ncol(section2a2), c(2, 7, 8, 16))) {
-  section2a2[[i]] <- as.numeric(gsub("[^0-9]", "", section2a2[[i]]))
-}
+#SECTION2A2  
 
 section2a2 <- section2a2 %>%
   mutate(
-    v208 = case_when(
-      is.na(v209) & is.na(v210) ~ 2,
-      !is.na(v209) & !is.na(v210) ~ 1,
-      TRUE ~ v208
-    ),
-
-    v211 = if_else(!is.na(v212), 1, v211),
-
-    v213 = ifelse(v211 == 1 & !is.na(v212), NA_real_, v213),
-
-    v213 = case_when(
-      v213a %in% c(
-        " AAFANTA LE DINU BHAKO", " QUARTER IN COMPANY", " QUARTER PROVIDED BY COMPANY",
-        " SAWSYASASTHAKO LE DIYAKO ROOM", " KAM GARE BAPAT KO ACCOMODATIONS HOTEL LE UPLABDH",
-        " COMPANY'S ROOM", " COMPANY PROVIDED", " OFFICE RESIDENCE", " QUARTER MA"
-      ) ~ 2,
-
-      v213a %in% c(
-        " GHAR KO ROOM MATRA VADA MA LEYAKO", " ROOM EUTA LEKO", " EUTA ROOM LEYEKO",
-        " FLAT VADA MA LEYEKO", " 96", " SAJHEDARI MA BASEKO",
-        " GHAR KO 2 TA ROOM VADA MA LEYEKO", " TWO ROOM RENT MA LEYEKO",
-        " 1UTA ROOM VADA MA LEYEKO", " EUTA ROOM LEKO", " FLAT LEYEKO",
-        " JAGGA LEEJ MA LIYERA AFAILE TEMPORARY TAHARA HALERA BASEKO RA ANNUALLY 32000 RUPAYA BUJHAUNE GAREKO",
-        " AFNO GHAR BANAI RAKHEKO BHAYERA KAILA PAISA TIRNEY KAILA NATIRNEY",
-        " LAND KO RENT TIREKO RA AAFULIE TESMA GHAR BANAYEKO",
-        " EUTA ROOM RENT MA", " FLAT MA LEYEKO", " 2 TA ROOM LEYEKO",
-        " GHAR MA BASEKO BAAPAT KAKA LAI KHETI PAATI KO 50 DINU PARNEY",
-        " BANDAKI LIYEKO 450000 3YRS CHODA SABAI PAISSA RETURN HUNCHA",
-        " RENT MA BASEKO", " 1 ROOM RENT MA LEYEKO",
-        " HOSTEL", " 1 ROOM MA BASEKO", " 2 ROOM RENT MA",
-        " HOSTEL MA BASEKO", " FLAT RENT MA LEYAKO"
-      ) ~ 1,
-
-      v208 == 2 & is.na(v213a) ~ 2,
-      v213 == 96 ~ 1,
-      TRUE ~ v213
-    ),
-
-    v213a = ifelse(v211 == 1 & !is.na(v212), NA_character_, v213a),
     v214  = ifelse(v211 == 1 & !is.na(v212), NA_real_, v214),
     v215  = ifelse(v211 == 1 & !is.na(v212), NA_real_, v215),
     v213 = if_else(v213 > 3, 2, v213),
     v214 = if_else(v214 > 100000, v214 / 100, v214),
-    v215 = if_else(v215 > 100000, v215 / 100, v215)
+    v215 = if_else(v215 > 100000, v215 / 100, v215),
   )
 
+section2a2 <- section2a2 %>%
+  mutate(
+    v213 = if_else(!is.na(v211) & !is.na(v212), NA_real_, v213),
+    v214 = if_else(!is.na(v211) & !is.na(v212), NA_real_, v214),
+    v215 = if_else(!is.na(v211) & !is.na(v212), NA_real_, v215),
+    v213 = if_else(v208 == 1 & v211 == 2, NA_real_, v213), 
+    v209 = if_else(v208 == 2, NA_real_, v209),
+    v210 = if_else(v208 == 2, NA_real_, v210), 
+    v211 = if_else(v208 == 2, NA_real_, v211), 
+    v212 = if_else(v208 == 2, NA_real_, v212)
+  )
+
+section2a2 <- section2a2 %>%
+  mutate(
+    v213 = case_when(
+      v208 == 2 & is.na(v213) ~ 1, 
+      TRUE ~ v213
+    )
+  ) %>%
+  group_by(palika) %>%
+  mutate(
+    v214 = case_when(
+      v208 == 2 & v213 == 1 & is.na(v214) ~ round(mean(v214, na.rm = TRUE), -2), 
+      TRUE ~ v214 
+    ), 
+    v215 = case_when(
+      v208 == 2 & v213 == 1 & is.na(v215) ~ round(mean(v215, na.rm = TRUE), -2), 
+      TRUE ~ v215 
+    ),
+    v214 = if_else(
+      v215 > v214, 
+      v215 + 1000, 
+      v214
+    ), 
+    v215 = if_else(
+      v213 %in% c(2, 3), 
+      0, 
+      v215
+    ),
+    v214 = if_else(
+      !is.na(v213) & is.na(v214), 
+      0, 
+      v214
+    ), 
+    v213 = if_else(
+      is.na(v208), 
+      1, 
+      v213
+    ),
+    v214 = if_else(
+      is.na(v208), 
+      round(mean(v214)), 
+      v214
+    ), 
+    v215 = if_else(
+      is.na(v208), 
+      round(mean(v215)),
+      v215
+    ),
+    v208 = case_when(
+      is.na(v208) ~ 2, 
+      is.na(v209) & is.na(v210) & is.na(v211) & is.na(v212) ~ 2,
+      TRUE ~ v208
+    )
+  ) %>%
+  ungroup()
+
+section2a2 <- section2a2 %>%
+  group_by(province) %>%
+  mutate(
+    v213 = case_when(
+      id == 2244 ~ 1, 
+      id == 3757 ~ 1, 
+      id %in% c(11126, 11197, 11708, 12231) ~ 2,
+      TRUE ~ v213
+    ), 
+    v214 = case_when(
+      v213 == 1 & is.na(v214) ~ round(mean(v214, na.rm = TRUE), -2),
+      TRUE ~ v214
+    ), 
+    v215 = case_when(
+      v213 == 1 & is.na(v215) ~ round(mean(v215, na.rm = TRUE), -2), 
+      TRUE ~ v215
+    )
+  ) %>%
+  ungroup() %>%
+  mutate(
+    v214 = case_when(
+      v213 == 1 & v214 == 0 & v215 > 0 ~ v215 + 1000,
+      TRUE ~ v214
+    )
+  )
 
 #SECTION2A3 
 
 section2a3 <- section2a3 %>%
   mutate(
-    v216_num = grepl("[0-9]", v216a),   
-    
-    v216_new  = if_else(v216_num, v216a, v216),
-    v216a_new = if_else(v216_num, v216,  v216a),
-    
-    v216  = v216_new,
-    v216a = v216a_new
-  ) %>%
-  select(-v216_num, -v216_new, -v216a_new) %>%
-  mutate(
-    v218_num = grepl("[0-9]", v218a),   
-    
-    v218_new  = if_else(v218_num, v218a, v218),
-    v218a_new = if_else(v218_num, v218,  v218a),
-    
-    v218  = v218_new,
-    v218a = v218a_new
-  ) %>%
-  select(-v218_num, -v218_new, -v218a_new)
-
-for (i in setdiff(1:ncol(section2a3), c(2, 7, 8, 11, 14, 24, 33))) {
-  section2a3[[i]] <- as.numeric(gsub("[^0-9]", "", section2a3[[i]]))
-}
-
-section2a3 <- section2a3 %>%
-  mutate(
-    v216 = case_when(
-      v216a %in% c(
-        "BORING KO PANI", "DEEP BORING", "DIP BORNING",
-        " UNDERGROUND WATER", " BOARDING BATA"
-      ) ~ 3,
-
-      v216a %in% c(
-        "COMMON TAP", "GHAR XEU KO MANXE  KO DHARO USE GAREKO",
-        "SARBAJANIK", "SARBAJANIK DHARA",
-        "SARBJANIK", "SARBJANIK DHARA",
-        "XIMAKINKO GHAR BATA PAISA DEYERA",
-        "XIMEKI KO GHAR MA MAGERA KHANU HUNCHA",
-        " DHUGEDHARA"
-      ) ~ 2,
-      v216a %in% c(
-        "HOSTEL MA PAY GAREKO", "v216a"
-      ) ~ 1,
-      v216a %in% c(
-        "JAAR", "JAAR AND TANKER",
-        "JAR", "JAR  KO PANI", "JAR KO",
-        "JAR KO PANI", "JARKO", "JARKO KO",
-        "JARKO PANI",
-        "जार", "जारको पानी",
-        " JAAR", " JAAR KO PANI",
-        " JAR", " JAR KO PANI"
-      ) ~ 8,
-      v216a %in% c(
-        "TANKER", "TYANKAR KINEKO", "TYANKER KINNE",
-        " TANKER BATA LERA AAUNE"
-      ) ~ 9,
-      TRUE ~ v216
-    ), 
     v216 = if_else(
       is.na(v216), 
       8, 
@@ -1271,386 +1708,158 @@ section2a3 <- section2a3 %>%
     )
   )
 
+section2a3 <- section2a3 %>%
+  group_by(palika, v216) %>%
+  mutate(
+    v217 = if_else(
+      v216 %in% c(8,9) & v217 == 0,
+      round(mean(v217)),
+      v217
+    )
+  ) %>%
+  ungroup() %>%
+  mutate(
+    v219a = if_else(
+      is.na(v219a1), 
+      2, 
+      1
+    ), 
+    v219b = if_else(
+      is.na(v219b1), 
+      2, 
+      1
+    ), 
+    v219c = if_else(
+      is.na(v219c1), 
+      2, 
+      1
+    ), 
+    v219d = if_else(
+      is.na(v219d1), 
+      2, 
+      1
+    ),
+    v221 = if_else(
+      v221 < 10, 
+      0, 
+      v221
+    ),
+    v222c1 = if_else(
+      v222c1 > 36000,
+      v222c1 / 10,
+      v222c1
+    )
+  )
+
 #SECTION2B
+
+cols_232 <- paste0("v232", letters[1:10])   
+serial_vals_232 <- setNames(1:10, cols_232) 
+cols_233 <- paste0("v233", letters[1:10])
+serial_vals_233 <- setNames(1:10, cols_233)
 
 section2b <- section2b %>% 
   mutate(
     v226 = case_when(
       v227 != "" ~ "1",
       TRUE ~ v226
+    ), 
+    v228 = case_when(
+      enrollment %in% c(1, 3) ~ 1,
+      TRUE ~ v228
+    ),
+    v229 = case_when(
+      enrollment == 1 ~ 1,
+      enrollment == 3 ~ 2,
+      TRUE ~ v229
     ),
     v230 = case_when(
-      v230 %in% c(
-        "10% AAFAILE ARU OFFICE LE",
-        "10% AAFNO RA OFFICE LE 22%",
-        "10% AFULEY BAKI OFFICE BATA",
-        "10% AFULEY BAKI OFFICE LEY",
-        "10%AFNO RA 20% OFFICE KO",
-        "10/20",
-        "1700 SELF",
-        "1750",
-        "20% AAFULE BAKI OFFICELE",
-        "22% SANSHA 10% AAFAI",
-        "50% AAFU LYA 50%SARKAR LAY",
-        "50% SELF & 50% GOVERNMENT",
-        "AADHA AAFAI LE AADHA SARKAR LE",
-        "AADHA ROJGAR DATALE",
-        "AADHI AFAI LE TIREKO ADHI SARKAR LE",
-        "COMPANY RA AFU",
-        "HALF OFFICE HALF SELF",
-        "OFFICE AND SELF",
-        "OFFICE KO SALARY BATE",
-        "OFFICE LE AAFNU SALARIE BATA",
-        "OFFICE LE AAFNU SALARIE BATA GAREKO",
-        "OFFICE RA AFU",
-        "OFFICE RACAFU",
-        "PALIKALE 50%AAFULE 50%"
-      ) ~ "6",
-
-      v230 %in% c(
-        "11 % PAID BY RESPONDENT & 20% PAID BY OFFICE",
-        "11 PERCENT AAFNAI TIRAYKO BAKI OFFICE LA TIRAYKO.",
-        "11 PERCENT SELF PAYMENT REMAINING PAID BY OFFICE.",
-        "11% AAFNAI 20% OFFICELE",
-        "11% AAFNAI BAKI OFFICELE",
-        "11% AAFNAI BAKI SCHOOL LE",
-        "11% AAPHULE",
-        "11% AFAI BAKI OFFICE",
-        "11% AFAI BAKI OFFICE LEY",
-        "11% AFAILE TIREKO ARU HOSPITAL LEY",
-        "11% AFAILEY BAKI OFFICE BATA PAYMENT",
-        "11% AFNAI RA 20% OFFICE LE TIRIDIYEKO",
-        "11% AFULE ARU HOSPITAL LE",
-        "11% APHULE",
-        "11% APHULE TIREKO",
-        "11% PAID BY STAFF AND OTHERS BY SAHAKARI",
-        "11% RESPONDENT & 20% ORGANIZATION",
-        "11% SELF",
-        "11% SELF 20% SASTHA LE",
-        "11%AAFU LAY 22 AAFU LYA",
-        "11%AFAI BAKI OFFICE",
-        "11%AFU 20%OFFICE",
-        "11%AFU LE RA 20 %OFFICE LE",
-        "11%AFU RA 20% COMPANY",
-        "11%APHULE 20% OFFICE",
-        "11%RESPONDENT & 20%ORGANIZATION",
-        "20% OFFICE LE 11% APHAILE TIREKO",
-        "20% SCHOOL 11% AAFU",
-        "20%OFFICE 11%AAFU",
-        "20%OFFICE RA 11% AFNU",
-        "20%SCHOOL 11% AAFAI",
-        "20%SCHOOL 11% AAFULA",
-        "20%SCHOOL11% AAFULA",
-        "AFU LE 11%RA COMPANI LE 20%",
-        "AFU LE11%RA OFFICE LE 20%",
-        "AFULE 11%20OFFICE",
-        "APHAILE 11% SCHOOL LE 20%",
-        "OFFICE LE 20%",
-        "OFFICE LE 20% AAFULE 11%",
-        "OFFICE LE 20%11%AFNU",
-        "OFFICE LE 20%AFU LE 11%",
-        "SASTHALE 20%",
-        "SELF-11%",
-        "SSF",
-        "WE PAID 11 PERCENT AND THE OFFICE COVERED THE REST.."
-      ) ~ "5",
-
-      v230 %in% c(
-        "COMPANY", "COMPANY LE", "COMPANY'", "EMPLOYER",
-        "EMPLOYER PAID", "OFFICE", "OFFICE BATAW",
-        "OFFICE LE", "OFFICE LEY", "OFFICER",
-        "ORGANIZATION", "RAJGAR DATA",
-        "ROJGAAR DATA", "ROJGAR DATA",
-        "SCHOOL", "SCHOOL LE",
-        "SCHOOL LE GARIDEYAKO"
-      ) ~ "7",
-
-      v230 %in% c(
-        "GOVERNMENT",
-        "NAPAL SARAKAR",
-        "NEPAL GOVERNMENT",
-        "NEPAL SARAKAR",
-        "NEPAL SARKAR",
-        "SARKAR"
-      ) ~ "8",
-
-      v230 %in% c(
-        "HOSPITAL",
-        "HOSPITAL 89%AAFULE11%",
-        "HOSPITAL LE"
-      ) ~ "9",
-
-      v230 %in% c(
-        "B GROUP SASTHYA",
-        "BIZU",
-        "CHEPANG SANGH",
-        "RAKAM TIRNA PAREKO CHHOINA",
-        "SWASTHYA LE",
-        "THAHA XINA"
-      ) ~ "2",
-
-      v230 %in% c(
-        "KAKA SASURA",
-        "PAILA AFAI LEY TIRNU BHAKO",
-        "UNCLE HARULE"
-      ) ~ "1",
-
-      v230a %in% c(
-        " 10 % AFULE 22% OFFICE LE",
-        " 10% AAFU LA 22%COLLAGE LA",
-        " 10% AFNAI 10% OFFICE BATA",
-        " 10% APHAILE 22% OFFICE LE",
-        " 10% PERSONAL AND 10% OFFICE",
-        " 10% RA OFFICE LE 22%",
-        " 10% SELF AND 10% FROM OFFICE",
-        " 20% SELF 80% OFFICE",
-        " 2000 OFFICE LA 6000 AAAFU LA",
-        " 22% OFFICE LA 10% AAAFU LA",
-        " 50% GOVERNMENT.50% AFAI LE TIRE KO",
-        " 50% SELF 50% GOVERNMENT"
-      ) ~ "6",
-
-      v230a %in% c(
-        " 11% AFAILE 20% OFFICE LE",
-        " 11% AFAILE TIRNE BAKI OFFICE LE",
-        " 11% AFNO RA 20% OFFICE KO CONTRIBUTION",
-        " 11% PAID AND OTHER PAID BY HOSPITAL",
-        " 11% SELF AND REMAINING IS BY HOSPITAL",
-        "20% OFFICE",
-        "AAFULE11%"
-      ) ~ "5",
-
-      v230a %in% c(
-        " OFFICE",
-        " OFFICE LE",
-        " OFFICE LE TIREKO",
-        " ORGANIZATION",
-        " ROJGAR DATA"
-      ) ~ "7",
-
-      v230a %in% c(
-        " NEPAL SARAKAR",
-        " NEPALI SARKAR"
-      ) ~ "8",
-
-      v230a %in% c(
-        " THAHA XINA",
-        " SASTHALE"
-      ) ~ "2",
-
+      enrollment == 1 & v228 == 1 & is.na(v230) ~ 1,
+      enrollment == 3 & v228 == 1 & is.na(v230) ~ 6,
       TRUE ~ v230
+    ),
+    across(
+      c(v232a:v232j),
+      ~ na_if(.x, enrollment %in% c(1, 3))
     )
   ) %>%
-  rename(
-  v227h_1 = v227a
+  rowwise() %>%
+  mutate(
+    all_na_232 = all(is.na(c_across(all_of(cols_232))))
   ) %>%
   mutate(
-  v227_new = ifelse(grepl("\\b1\\b", v227), 1, 0),
-  v227b = ifelse(grepl("\\b2\\b", v227), 1, 0),
-  v227c = ifelse(grepl("\\b3\\b", v227), 1, 0),
-  v227d = ifelse(grepl("\\b4\\b", v227), 1, 0),
-  v227e = ifelse(grepl("\\b5\\b", v227), 1, 0),
-  v227f = ifelse(grepl("\\b6\\b", v227), 1, 0),
-  v227g = ifelse(grepl("\\b7\\b", v227), 1, 0),
-  v227h = ifelse(grepl("\\b96\\b", v227), 1, 0)
+    across(
+      all_of(cols_232),
+      ~ {
+        if (enrollment %in% c(2,4) && all_na_232) {
+          chosen <- sample(cols_232, 2)   
+          if (cur_column() %in% chosen) {
+            serial_vals[cur_column()]
+          } else {
+            NA_real_
+          }
+        } else {
+          .x
+        }
+      }
+    )
   ) %>%
-  select(-v227) %>%
-  rename(
-  v227a = v227_new
-  ) %>%
-  select(-v227h_1, everything(), v227h_1) %>%
+  ungroup() %>%
+  select(-all_na_232) %>%
   mutate(
-    v230 = case_when(
-      v230a %in% c(
-        " HALF GOVERNMENT HALF 1700 AFULE ( AS AN FCHV)",
-        " AAKHA SARKAR LE AADHA AAFAILE", " COMPANY LE",      
-        " 50 PERCENT GOVERNMENT RA 50 PERCENT AAFAILE TIRNE",  
-        " 50%GOVERNMENT LE .50% AFAI LE"
-      ) ~ "3",
-      TRUE ~ v230
+    across(
+      c(v233a:v233j),
+      ~ na_if(.x, enrollment %in% c(2, 4))
+    )
+  ) %>%
+  rowwise() %>%
+  mutate(
+    all_na_233 = all(is.na(c_across(all_of(cols_233))))
+  ) %>%
+  mutate(
+    across(
+      all_of(cols_233),
+      ~ {
+        if (enrollment %in% c(1, 3) && all_na_233) {
+          chosen <- sample(cols_233, 2)   
+          if (cur_column() %in% chosen) {
+            serial_vals[cur_column()]
+          } else {
+            NA_real_
+          }
+        } else {
+          .x
+        }
+      }
+    )
+  ) %>%
+  ungroup() %>%
+  select(-all_na_233) %>%
+  mutate(
+    v234 = case_when(
+      enrollment %in% c(2, 3, 4) ~ NA_real_,
+      TRUE ~ v234
+    ), 
+    v235 = case_when(
+      enrollment == 1 & is.na(v234) ~ 2,
+      enrollment %in% c(2, 3, 4) ~ NA_real_,
+      TRUE ~ v235
     ),
-    v232k = trimws(v232k),
-    v232k = case_when(
-    v232k %in% c("BHANEKO BELA PAISA NABHAYARA", "BIDESH KO BUDA AAYERA GARNE VANERA TETTIKAI VAKO XA.",
-                "GARNAW MANN XAH TARA YEARLY NAI BHUJAUNW CHAI SAKINAW YEI VAYERA", "PAISA KO ABHAWA VAYER. PRIVETA HOSPITAL HARUMA LAGU NAVAYEKO LE",
-                "PAISA NABHAYERA", "PAISA NABHAYERA TETI BELA BIMA GARNEY NAM TIPAUNEY BELA .",
-                "PAISA VAYENAW PAXI", "WAHA LAI BIMA KO PAISA TIRNU SAKNU HUNNA VANERA VANNU VAAKO CHA",
-                "YAKMUSTA PAISA NABHAYARA") ~ "1",
-
-    v232k %in% c("/", "AABASYAK ABHAYARA", "AAFULE SAMAYA NANIKALEKOLE", "AAILE SAMMA JARURI NA SOCHERA",
-                "ABA SSF GARNE BHANEKO CHHA OFFICE LE", "ABAW COMPANY LE GARIDINU HUNXA", "ABAW GARNI PROCESSING MA HUDAI XAH COMPANY BATAW",
-                "ABAW PROCESSING HUDAI XAH", "ABAW PROCESSING MA RAHEKO XUH", "AGE 65BHAYO MA KARARKO KARMACHARI BHAYEKO LE",
-                "ARMY KO BATA HUNX VANERA NAGAREKO", "ARMY KO COVER HUNE BHAYERA", "AWASYEK PARDA SAMJHINCHA NABHAYE BIRSHINCHA ANI YESARI GARNA BHYAYEKO CHAINA",
-                "AYURVEDIC HOSPITAL MA BISWAS GARNU HUNEY VAAKO VAYERA BIMA NAGARNU VAAKO", "BANAUNA NAVYER NA BANAKO",
-                "BIDESH THIYE 1 BARSA AGADI NAYA AAKO KURO THA VAYENA", "BIMA BATA K K SUBIDHA PAUCHA THA N BHAYAKO LE KAHA GAYAR GARNE HO TYO NE THA N BHAYAKO LE",
-                "BIMA GARAUNU PARCHA VANERA THANAVAYEKO", "BIMA GARDA KATI PAISA LAGXA THAHA NAVAYEKO", "BIMA LIYE PANI KAAM NALAAGNEY VAYERA",
-                "BIMA MA ABADHA HUNEY SAMAYA MA AFU GHAR MULI GHAR BATA TADHA RAHEKO TEI BHARA TES BARELY JANAKARI NAPAYEKO RA GHAR KO ARU SADASHYA BATA PANI JANAKARI NAPAKO,ANI TYO BELA MA TETI WASTA NAGAREKO.",
-                "BINOD KUMAR GHARTI MAGAR HAD TAKEN OUT LIFE INSURANCE.NOW,AFTER SUFFERING A STROKE,HE HAS RECEIVED A TOTAL SUM OF 1 MILLION FROM THE LIFE INSURANCE.IT HAS BEEN ABOUT A MONTH SINCE HE RECEIVED THE AMOUNT.HE IS CURRENTLY USING THE SAME AMOUNT TO PAY FOR MEDICAL TREATMENT .APART FROM THAT,HE INFORMED THAT HIS EMPLOYER HAD ALSO SENT HIM SOME FUNDS FOR HIS TREATMENT.",
-                "BIRAMI HUDA GARNU PARCHA BHANNE LAGCHA ANI PHERI BIRSIENCHA", "CARD BANEKO VAKHAR 2 DIN VAYO CHAALU HUNA 3 MONTHS LAGXA YO BARSA 2081 SAAL VARI CHAI VAYEKO THIYENA. (1 BARSA AGI KINA NAHUNU VAYEKO VANERA SODDA KHERI YO ANSWER)",
-                "COMPANY LE SAHABHAGI NABANAYARA", "DOCUMENT PURA NAVAYAR", "DON'T KNOW ABOUT SSF", "EKLAII HUNX SAB KATA KATA BASXAN ANI TAII VAERA",
-                "EKLAII VAERA NAGARAKO", "ENROLLMENT IS IN PROCESS", "FURSAD NABHAYERA", "GARCHU BHANDABHANDAI DHILA BHAYEKO",
-                "GARNA MANN LAGEKO TARA PHURSAD NAVAYEKO KARAN LE", "GARNE BHANE FAMILY TOGETHER NA BHAYERA MILENA", "GARNE BHANNE SOCHA BHAYAKO BUT NAGAREKO",
-                "GARNE PROCESS MA XU", "GHAR KO HAJUR AAMA MATRA JESTA NAGARIK BAT BIMA BHAYAKO", "GHAR PARIWAR KO SADASYA SANGA KURAKANI GARDA,SAMAYA ABHAB LEY GARNA FURSAD TATHA MESO NAHUNEY BHARA",
-                "GHAR PARIWAR LE PACHI GARUMA BHANER N GAREKO", "GHARMA SIRMAN LE BIMA GARNA NAMANER", "HAL SALAI DHARMA PARIWARTAN GARNU BHAYEKO KARAN LEY GARDA TETI WASTA NABAHYEKO",
-                "HAME LAI SSF KO KEHE KURA HARU TAHA N BHAYAR PANI HO", "HAMI LAI KEI THA XAINAW YESKO BAREMA KASAI LEY BHANEKO",
-                "HE DOES NOT THINK IT'S OF ANY BENEFIT STILL IS OPEN TO IT IN FUTURE.", "HUSBAND AAUNU BHAYESI GARNE",
-                "HUSBAND LE GARNA NAMANEKO", "HUSBAND POLICE HO HUSBAND KO BATA NAI HUNXA SEWA SUBIDA", "ICCHHYA NABHAYERA",
-                "ICHYAA CHHA JANA K K MILIRAHEKO XAINA", "IN PROCESS ON ENROLLMENT. RECENTLY JOINED", "INTEREST NABHARA,JANAKARI NABHARA",
-                "INTERSTATE NA VAYER PAISA CHAHIYEKO BELA MA NIKALNA MILDAI", "JESHTHA NAGRIK KO CARD BAT SAHULIYAT LIRAHEKO HUDA",
-                "K K KURA MA SAHAYOGI HUNCHA R KASLE R KAHA GAYAR GARNE THA N BHAYAR", "KAHA KASARI GARNE TESKO FAIDA THA CHHAINA",
-                "KAILE KASKO NAGRITA NAVETINE KAILE KASKO TEIVAERA NAGAREKO", "KAMM MA BESTA VAYERA",
-                "LAAGU HUNA 3MAHINA LAAGNE XITO NAVAYERA NAGAREKO TURUNTA BIRAMI HUDA PAIYENA.", "LACK OF INFORMATION ABOUT HEALTH INSURANCE AND SOCIAL SECURITY FUNDS.",
-                "MA AFU DHERAII JASO INDIA BASTHEE INIHARULEY GARENAXAN", "MA INDIAN ARMY BHAYAKOLE TEHI BATA SWASTHYA BIMA BHAYAKO HUDA AAWASYAK PARENA",
-                "MAN NABHAYAR", "MANN NAVAYERA", "MERO SRIMA NAI MANDARIN BIMA GARNA LAI", "NAGARIKATA NABHAYEKO KARAN BUWA AAMA PATTA NALAGEKO",
-                "NEPAL ARMY KO BIMA", "NEPAL ARMY MA HUNUBHAYEKO LE HEALTH SUBIDHA PRAPTA BHAIRAKO LE BIMA NAGAREKO TARA ABA GARNE BICHAR GAREKO.ARMY KO HEALTH SUBIDHA LINA TA-DA BHAYEKO LE.,",
-                "PACHI GARUMA LA BHANNE SOCHERA", "PAHILA 6 BARSHE BIMA NISHULKA PAYEKO ABA YESHKO PAISHA NIRNUPARNE NAPARNE THANAI NAVAYERA",
-                "PAHILA BIMA THIYO PACHHI PARIWARBATA CHHUTIAEPACHHI CHHUTAI AAFNAI PARIWARKO GARNE BHANEKO TARA GARNA MILDAINA BHANERA NAGAREKO",
-                "PAILA PRIVATE LIFE INSURANCE GARNU BHAKO THIYO ANI UHA KO PARIWAR MA CHAI SCAM BHAKO BHAYERA UHA KO BISWASH GHAR VAYEKO KARAN LEY NAGARUNU BHAKO .",
-                "PENDING", "PROCESS GARDAI XU", "PROCESS MA XU", "PROCESSING HUDAI XAH", "PROCESSING MA CHA. JUST ENROLLED,",
-                "PROCESSING MA RAHEKO", "PROCESSING MA XUH", "RAMRO SANGA YESKO BAREMA KNOWLEDGE XAINW", "SAMAYE NAMILERA",
-                "SHE HAD HEARD OF IT BUT DID NOT KNOW HOW SHE SAYS \"MALAI MESO BHAYENA\"", "SHREEMAN BIDESH BAT AAYAPAXI MATRA GARAUNU VNNERA",
-                "SHREEMAN INDIAN ARMY BHAYAKOLE TEHI BATA SABAI GHAR PARIWARKO SWASTHYA BIMA BHAYAKO HUDA KHASAI AABASEK NAPARERA",
-                "SUNEKO MATRAI XAH YES KO BAREMA KEI GYAN HARU TETI DHERAI NABHAYERA", "THA NAVAYERA", "THAHA CHHAINA",
-                "THE ENROLLMENT IS IN PROCESS FOR KAMALA GHIMIRE,", "THEY ARE GOING TO ENROLL NOW,BUT TILL THIS POINT THEY NEVER GOT TO.",
-                "WAITING FOR THE VISA SO,DIDN'T ENROLL IN INSURANCE", "YASMA ENROLLMENT HUNDA UPACHAR K K PAUCHA ARU K K HUNACHA",
-                "YASKO BAREMA THA NAI CHHAINA", "YO BARSHA AABADHA HUNE NIRNAY GAREKA CHHAU", "YO BARSHA VARI MA BIMA GARNEY ANUMAN GARNU VAAKO CHA") ~ "2",
-
-    v232k %in% c("- ARUKO GUNASO SUNERA PANI NAGAREKO.", "AAPATKALIN ABASTHAMA UPACHAR NAPAUNE HUDA,AUSADHIKO UPALABDHATA KO ABASTHA KHASAI RAMRO NADEKHERA,",
-                "AAUSADHI HARU PANI SABAI PAUDAINA BHANER", "AAUSADHI SABAI NAPARNE VAYERA,DIN VARI SAMAYA LAGNE VARA,REFERL LE JHYAU",
-                "AFULE USE GARNE MEDICINE KAHILE NAPAUNE,REFER KO SYSTEM JHANJHATILO,TIME DHERAI LAGNE", "ARU LE BHANEKO SUNER JHANJATILO BHAYAR",
-                "ARUKO GUNASO SUNERA", "ARUKO KURA SUNERA", "BADHI SAMAYA KURNU PARNE BHAYARA",
-                "BEEMA GAREKO MANXE LAI RAMRARI NAHERNE RA LINE BASNA PARNE AAUSADHI RAMRO NAPAUNE VAYEKO LE.", "BEEMA LE GARDA DHILAI HUNXA VANERA.",
-                "BIMA GARAUNE HARU LE BHANEKO AAUSADHI PAUDAINA RE ANI HOSPITAL MA NE LINE BASNUN PARX RE DIN BHARI TEHI BHAYAR",
-                "BIMA MA DHERAI JHANJATILO CHHA VANEKO SUNER NABANAYAKO", "DHERAI LINE BASNU PAERNE VAYERA.",
-                "EMERGENCY CONDITION MA KAAM NALAGNE BHANERA BIMA GARNA CHAHINA", "ENGAGE HUNE SATHIHARU LE BHANEKO TETI RAMRO CHHAINA RE PENSON UPACHAR BHANER",
-                "HOSPITAL GAYA PANI RAMRO GARDAINA BHANER N GAREKO", "JHANJITALO VAYERA LAIN BASNU PAERNE VAYERA",
-                "LACK OF TRANSPARENCY IN THE PAYMENT PROCESS ANDQ UNAVAILABILITY OF THE HEALTH SERVICES WHEN THE INDIVIDUAL LEAVES THE SSF,",
-                "LINE BASNA KO JHYAU LE", "PALO NAPAUNEE BHAYAR JHANJATILO VAYAR", "REFERRAL TIME LE DELAY HUNE BHAYERA ANI TIME MA SERVICE NA PAUNE BHAYERA WHEN IN EMERGENCY BUT THIS YEAR THEY ARE PLANNING TO",
-                "SARKARI MA RAMRO SEWASUBIDHA NA VAYEKO BIMA GARAUNE LAI LAMO LINE LAGNU PARNE", "SEWA SUBIDHA DHILO PAYAKO SUNERA",
-                "SHE DOES NOT THINK BIMA IS BENEFICIAL FOR PEOPLE LIKE HER WHO LIVE IN MANANG", "SWASTHYA BINA JHANJHATILO HUNE BHANNE SUNEKO LE",
-                "UPACHAR RAMRO N HUNE BHAYAKO R LINE BASNA JHANJHAT") ~ "3",
-
-    v232k %in% c("KHI SAMAYA PAHILA SAMMA BARAMBAR BIRAMI BHAINE SAMASYAA NABHAYARA.", "TESTO DIRGHA ROGE KEHE N BHAYAR") ~ "4",
-
-    v232k %in% c("- PAHILA GARNE VANDA BEEMA BAAREY RAMRO JAANKARI PAIYENA.", "AAFU LE KHANE AUSHADHI BIMA AT UPLABDH NAHUNE VAYER. SAMAY MA SEWA LIN NAPUNE VAKO,",
-                "BIMA GAREKO MANCHHELAI HOSPITAL MA KHASAI RAMRO BEBAHAR NAHUNE BHAYARA.", "BIMA GAREPANI AAFNO KHARCHA LAGNI BHAAEKOLE",
-                "DHERAI LINE BASNU PARNE,EMERGENCY PARDA BIMA KO BIRAMI LAI TATKAL UPACHAR NAGARNE RA BIMA KO PATIENT LAI HOSPITAL KO KARMACHARI HARULE RAMRO BYABAHAR NAGARNE HUNALE.",
-                "GARNAW MANN XAH HOSPITAL DHERAI TADA XAG", "HOSPITAL JADA HEALTH INSURANCE SEWA LINA JANE BIRAMI HARUKO LINE RA DABAI NAPAYAKO GUNASO SUNERA.",
-                "HOSPITAL MA LINE DHERAI BHAYAR NAGAREKO,", "KEHI BARSHA AGHI BIMA GAREKO HOSPITAL MA UPACHAR GARNA JADA SWASTHYA KARMI HARULE RAMRO BEBAHAR NAGAREKALE RENO NAGAREKO",
-                "LINE BASNU PARNE SUNERA,", "LINE DHERAI BASNU PARNE SAMAYA NABHAYAR NA GAREKO", "LINE DHERAI BASNU PARNE,AAUSADHI NA PAINE SUNERA",
-                "LINE DHERAI BASNU PARX VANERA NA GAREKO", "LINE HUNXA VANNE JHANJHAT LE,SABAI AAUSADHI NAVAYERA", "MAHANGO AUSADHI HARU NADINEY ANI SASTO MATRAI DINEY.",
-                "SABAI UPACHAR GARNA BAHIRA PATHAUNI,MAHANGO AAUSADHI NADINE SASTO MATRA DINE VAYEKO LE,TIME LAGNE VAYERA",
-                "SWASTHYA UPACHAR JHANJHATILO HUNE BHANNE SUNEKO LE R BIMA HUNDA NE AAUSADHI BAHIRA KINNU PARNE BHAYAKO LE",
-                "UPACHAR RAMRO GARDAINA RE BHANNE SUNER AAUSADHI SABAI DENDAINA BHANEKO LE", "UPACHAR RAMRO HUNDAINA BHANER LINE BASNUN PARNE BHANEKO AAUSADHI N HUNE",
-                "UPACHAR RAMRO HUNDAINA LINE BASNUN PARNE RE 3/4 HOURS", "UPACHAR SAHAG CHHAINA AAUSADHI N PAUNE") ~ "5",
-
-    v232k %in% c("4 JANA KO BEEMA NAGARNU KO KARAN YESTO XA - BEEMA GARNE VANDA VANDAI BEEMA GARAUNE MANXE NAAKO PAXI AAUDA YESTAI SAMAYA NAMILERA NAGAREKO GARNA MAN NAVAYERA HOINA TARA 2 JANA SENIOR CITIZEN KO CHAI PAALIKA LE NISULKA GARDERA GAREKO.",
-                "AB GARNE HO YASPALI", "AB INSURANCE MA AABADDHA HUNE PLAN GAREKA CHHAU", "ABA GARNE BICHAR CHA", "ABA GARNE HO",
-                "APPLY GAREKO CHAU ABA KO 2/3MAHINAMA START HUNCHA HOLA", "ARKO MONTH DEKHI ABADDHA MITI SURU HUNEY",
-                "BIMA GARAUNE MANXE LAI BOLAUDA PANI NA AAYAR", "BIMA GARNA AAUDA KHET MA GAYAKO LE VET N BHAYAR N GAREKO",
-                "BIMA GARNE KO HO KASARI GARNE KE THAHA NABHAYAR .BIMA KO FAIDA NI THAHA THIYAN", "BIMA GARWNU VKO TARA CARD AAKO XAINA,SADHI PARIWAR BHANERA DARTHA GAREKO",
-                "BIMA KAHA GARNE THAHA NAVYER", "BIMA KARTA BIMA GARNA NAAAIDIYAKO", "BIMA KASALE BANAUXA THAHA NAI THIYEN.",
-                "BIMA KASLE GARAUNE THA N BHAYAR", "BIMA RENEW GARNA DARTA SAHAYOGI GHARMA NAAUNE", "BIWAHA DARTA HAR KO THIYO RA BACHHAHARU JANM DARTA NA VAYEKO LE GARDA",
-                "BOLAUDA GARNA AYENA AND HE ALSO HAS HEARD MANY COMPLAINS ON HEALTH INSURANCE WHOCH LED HIM TO DECIDE IT ISNT MUCH OF USE.",
-                "DARTA SAHAYOGI KO ABHAB BHAYERA RENEW GARNA NAPAYEKO", "DARTA SAHAYOGI LE BELAIMA KHABAR NAGARETA", "DON'T KNOW ABOUT THE RENEWAL PROCESS",
-                "GARNE PROCESS MA XU GARXU", "GARNI PROCESS MA XUH", "GARNI TARA PAXI", "GARNI VANDHAI RAHEKO", "GARXUH GARXUH VANDHAI RAYO",
-                "GARXUH VANA VANDHAI RAHEKO", "GARXUH VANDHA VANDHAI RAHEKO", "GARXUH VANDHAI RAHEKO", "GARXUH VANDHAI RAHEKO TARA YETA BIMA KO KEI HOSPITAL XAINAW",
-                "HEALTH INSURANCE GARAUNE BHANERA PAISA LIYERA TYO MANCHHE BHAGEKO HUNALE NI DAR LAGYO.", "JHANJATILO BHAYERA", "JHANJHATILO BHAYARA",
-                "JHANJHATILO CHA BHANERA", "MERO TIME NAMILEKO BELA DARTA SAHAYOGI KO TIME NAMILERA ANI DARATA SAHYOGI KO TIME MILEKO BELA MERO NAMILERA",
-                "NEPAL KO NAGARIKTA CHHAINE", "RAMRO UPACHAR HUNDAINA BHANNE SUNEKO R BIMA GARNA KOI N AAYAKO YAHA",
-                "RENEW GARNAU NEY BAREY JANKARI NABHAKO", "SHE WENT TO GET SERVICES BUT FOR SOME REASON SHE COULDN'T UTILIZE IT THAT YEAR AFTER THAT SHE CLAIMED NO ONE CAME FOR RENEWAL.",
-                "THEY MISSED ENROLLMENT OFFICER DUE TO BEING AWAY IN KHET", "TIME NA BHIYAR MATRA NAGAREKO", "TIME NA BHIYAUNE BHAYAR BIMA MA DHERAI LINE BASNU PAREN BHAYAR",
-                "TIME NAI NAVAYERA", "WADA MA GAYER DHERAI PATAK BIMA MA AABADDHA HUN KHOJEKO TAR WADA BAT SAHAYOG NA PAYEKO.",
-                "WAITING GARDA GARO VAYERA", "YAHAKO BATO TA YATAYAT KO RAMRO PAHUCHA GARI VAYOKO.REFER MA JHANTHAT VAYER") ~ "6",
-
-    v232k %in% c("PAHILE VARNA VAYAKO TARA AHILE RENEW 2 BARSA VAYO NAGAREKO", "PAILA CHAI", "PAILA GARERA XODEKO",
-                "RENEW NAGAREKO", "RENEW NAGAREKO") ~ "8",
-
-    v232k %in% c("JAGIR THAI NAVAYEKO KARAN", "JANKARI NAVAYERA VRKHAR OFFICE JOIN VAYEKO LE 1 YRS MATRA VAYEKO XA JOINE VAYEKO",
-                "KAM GAREKO THAU MA KURA HUDAI XA GARDINU HUNXA HOLA", "KAM MA AAYAR PACHI YAHA N BHAYAKO LE", "KHOI KEHE KURA THA CHHAINA SSF KO",
-                "M LAI YO SSF BHANEKO K HO TAHA PANI CHHAINA", "OFFICE BATA SSF GAREDEYA HAME GARNA CAHANCHUM R SSF KO BAREMA JANKARI NE CHHAINA",
-                "OFFICE JOINE VAYEKO 1YR MATRA VAYEKO VARNA PROCESS MA RAHEKO", "OFFICE KO KARMACHARI HARULE NAGERKO",
-                "OFFICE LE GARNE PROCESS MA XA 1YRS MATRA VAYO OFFICE JOIN GAREKO.", "OFFICE LE GARNU VANEKO XAH200", "OFFICE LE PROCESS GARDAI XA",
-                "OFFICE LE PROCESS GARDAI XA TARA VAYEKO XINA", "OFFICE LE PROCESS GERDAI XA VAYEKO XINA.", "OFFICE LE PROCESS GRADHAI XAH",
-                "OFFICE MA LAGU NAI BHAYAKO CHHAINA", "ON THE PROCESS", "PAHELA SSF MA AABADHA BHAYAKO BUT SEWA SUBIDHA MAN NAPARERA CHODEKO.",
-                "PAHILE KO JOB KO BATA FREE HEALTH CHECKUP HUNE BHAYERA BIMA MA AABADDA NABHAYEKO", "PROJECT HARU SHORT TERM VAERA",
-                "RECENTLY STARTED WORKING AND ENROLLMENT IN SSF IS IN PROCESS,", "SALARY THORAI XA SSF MA DARTA HUDA JHAN THORAI HUNXAH ANI NAGAREKO",
-                "SAMAJIK SURAKSHA KUSA VAYEKO LE HAMILAI AAWASYAKTA NAVAYE KO", "SSF BHAYAR. AABASEK NATHANERA", "SSF FAIDA HARU THA N BHAYAR",
-                "SSF HUNCHA BHANNE TAHA N BHAYAR", "SSF KO BAREMA CLEAR KURA THA NA BHAYAKO LE", "SSF KO BAREMA KEHE THA NAI CHHAINA R OFFICE LE NE KEHE BHANEKO CHHAINA TEHI BHAYAR",
-                "SSF KO BAREMA KHASAI BUJHEKO CHHAINA", "SSF KO BAREMA SUNEKO T HO TARA AJHA DETAILS THA NAI CHHAINA HAMRO LAGI K K HUNCHA BHANER",
-                "SSF KO BAREMA THA CHHAINA", "SSF KO BAREMA THA NAVAYERA", "SSF KO BAREMA THA NE N BHAYAR HO", "SSF KO BAREMA THA XAINAW",
-                "SSF KO FAIDA HARU KO KURA NAI THA BHAYAN", "SSF KO FAIDA HARU THA N BHAYAR PANI HO", "SSF KO FAIDA HARU THA NBHAYAKO LE",
-                "SSF KO KEHE KURA HARU TETI MAN N PARER JASTI UPACHAR KO KURA HARU", "RETIREMENT KO KURA LE",
-                "SSF MA PAHILA DEKHI HUNE SATHI HARU LE YASKO KEHE FAIDA CHHAINA BHANEKO LE N BASEKO", "THAHA NA PAYEKO SSF BANAUNA PARXA RA YASKO FAIDA BARE MA THAHA NA VAYEKO",
-                "THE EMPLOYEE ASKED THE COMPANY TO GIVE THE SOCIAL SECURITY FUND (SSF) SCHEME.", " BUT THE COMPANY HAS NOT REPLIED TO THE REQUEST",
-                "VRKHAR OFFICE JOINE GAREKO OFFICE LE GARNE PROCESS MA XA", "YO BAREMA THA NAI CHHAINA R OFFICE NE KEHE BHANEKO CHHAINA",
-                "YO OFFICE MA LAGU BHAYAKO CHHAINA AFU LE KASARI KAHA GARNE THA N BHAYAR", "YO SSF KO BAREMA KEHE THA CHHAINA",
-                "YO SSF KO BAREMA KEHE THA NAI CHHAINA") ~ "9",
-
-    v232k %in% c("BECAUSE THEY DO DIRECTLY TO PRIVATE HOSPITALS OF KATHMANDU.", "INDIA BATA AUSADHI LERAYAKHANE", "NO NEED TO YET") ~ "10",
-
-    TRUE ~ v232k
-    ),
-    v233j = trimws(v233j), 
-    v233j = case_when(
-    v233j %in% c("AFNO UPACHAR R PACHI KO LAGI BACHAT HUNCHA BHANER", 
-                 "COMPANY LE GARDEKO") ~ "1",
-
-    v233j %in% c("HEALTH INSURANCE SHOULD BE DONE FOR EMERGENCY", 
-                 "KUNAI DURGHATANA BHAYO BHANE SAHAYOG HUNCHHA.", 
-                 "६० वर्षपछि पेन्सन आउँछ भनेर") ~ "2",
-
-    v233j %in% c("60YRS PAXI RAMRO HUNXA VANERA", "BIMA MA AABADDHA VAYEKO AAJAI THAHA PAYE", 
-                 "BIMA MA AABADHA CHHU", "COMPANY INITIATION", "OLD AGE VAYARA PAXI GARNU PARXA VANARA", 
-                 "PACHHIKO LAGI PAISA BACHAT HUNE DEKHRA", "PACHHINKO PANSON KO LAGI", 
-                 "PACHI BHABISYA MA RAMRO HUNCHA BHANER", "PACHI LAI RAMRO HUNCHA BHANER", 
-                 "PAXI VBISAYA KO LAGI SECURED HUNXA VANERA", "HOSPITAL MA LAMO SAMAYA LAGNE BHAYAKO LE", 
-                 "HAME JASTO BUDA BUDI LAI SAJILA UPACHAR PAINCHA BHANER") ~ "3",
-
-    v233j %in% c("AUSADHIKO UPALABDHATA HUNCHHA BHANERA HO TARA PAIDAINA", "BACHAT HUNCHHA BHANER", 
-                 "GARNE BHANDA BHANDAI GAREKO CHAINA", "GHAR MA BUDHA BUDHI AMA BUWA HUNU BHAYAKO LE UPACHAR KO LAGI GAREKO", 
-                 "JACH PANI GARINE BHAYERA", "KHARCHA DHERAI N HOS BHANNU KO LAGI", 
-                 "OFFICE LE BHANER YASMA SSF MA GAYAKO", "SINCE,THE COMPANY STARTED", 
-                 "SSF GARDEKO BHAYERA", "SSF MA AABADH VAYEKO LE", "SSF VAYEKO LE", 
-                 "SWASTHYA UPACHAR MA SUBIDH HUNX BHANER", "TIME MILAUNA NASAKRA USE NAGAREKO", 
-                 "UPACHAR KHARCHA DHERAI HUNDAINA", "UPACHAR KHARCHA KUM LAGACHA BHANER", 
-                 "UPACHAR SAJILO HUNX BHANER", 
-                 "बाबुको लागि स्कुलले गरिदिएको र परिवारको लागि भन्ने साथै पैसा निकाल्न गाह्रो भएकोले नगरेको") ~ "4",
-
-    v233j %in% c("HE BELIEVES INSURANCE SHOULD BE DONE BY EVERYONE,WHETHER THEY END UP USING IT OR NOT,AS IT IS FOR THE ONES WHO MIGHT NEED IT AND ANYONE CAN BE IN THAT POSITION.", 
-                 "PALIKA LE BANAUNU PARXA VANER BANAKO", "SWOYAMSEBIKA SABAILAI GARNA PARXA VANERA", 
-                 "बिमा कर्ता ले गरिदिएको यसको बारेमा केही पनि थाहा नभएको") ~ "5",
-
-    v233j %in% c("AAFU LAI KAI SAHAJ HUNXA VANERA", "AAFULE BACHAT RAKHEKO BHAYAKO LE 1400 LE FAMILY KO NAI BIMA HUNCHHA BHANERA", 
-                 "GHAR MA SANO SANO BACHHA HARU BHAYAKO LE KHARCHA DHERAI HUNE BHAYAKO LE", "N/A", "NO", 
-                 "UPACHAR GARNA POISA N HUNE LAI SAHAJ HUNCHA BHANER", 
-                 "UPACHAR GARNA SAJILO N NESULKA HOLA BHANER") ~ "6",
-
-    v233j %in% c("SUBIDA RAMRO XA VANERA") ~ "9",
-
-    v233j %in% c("ALSO BECAUSE PALIKA DID IT FOR THEM FOR FREE", "BABU RED CARD WALA DISABLED CHILD", 
-                 "FCHV BHAYAR FREE BHAYAKO LE", "FCHV KO FAMILY LAI RA JESTA NAGARIK LAI FREE MA INSURANCE GARAUNE HUNALE", 
-                 "FCHV LAI ANIBARYA HEALTH INSURANCE SEWA PRADAN GAREKO CHHA", 
-                 " HALF GOVERNMENT HALF 1700 AFULE ( AS AN FCHV)",
-                 "GHAR MA AAPANGATA BHAYAKO PATIWAR BHAYAR R UPACHAR GARNA KO LAGI", 
-                 "GHARMULIKO CHHORI FCHV HUNUHUNTHYO ANI BUBA RA AMA LAI PANI JOIN GARERA BIMA GARAKO", 
-                 "JESTA NAGARIK KO BIMA SARKAR LE GARAIDIYEKOLE", "JESTHA NAGARIK FREE", 
-                 "JESTHA NAGARIK VAYAKO LE BANEKO,FAMILY KO ARU KASAIKO PANI BIMA XAINA", 
-                 "NAGARPALIKA LE JESTA NAGARIK KO NISULKA HEALTH INSURANCE GAREKOLE", 
-                 "PALIKA LE FREE MA GARDIYA KO LE", "SARKAR BATA BIMA GARIDINUBHAKO LE", 
-                 "SARKAR BATA FCHV LAI ANIBARYA HEALTH INSURANCE SEWA DINE BHAYERA", 
-                 "SARKAR LE GARDEKO LE", "SARKAR LE GARDINE BHAYERA PAUNE SUBIDHA LI RAHEKO", 
-                 "SARKAR LE GARIDINE BHAYERA", "SARKARI LE GARIDIYERA", "SAVING HUNE BHAYARA", 
-                 "SCHOOL LE GARIDEYAKO", "VULNERABLE POPULATION AS IT WAS NEAR DUMPING SITE.", 
-                 "कम्पनी आफैंले गरिदिएको") ~ "11",
-
-    TRUE ~ v233j
+    v236 = case_when(
+      enrollment %in% c(2, 3, 4) ~ NA_real_,
+      TRUE ~ v236
+    ), 
+    v238 = case_when(
+      enrollment %in% c(1, 2, 4) ~ NA_real_,
+      TRUE ~ v238
+    ), 
+    v239 = case_when(
+      enrollment == 2 & is.na(v239) ~ 2, 
+      enrollment %in% c(1, 2, 4) ~ NA_real_,
+      TRUE ~ v239
     )
   )
 
-for (i in setdiff(1:ncol(section2b), c(2, 7, 8, 14:21, 23, 35, 45, 82))) {
-  section2b[[i]] <- as.numeric(gsub("[^0-9]", "", section2b[[i]]))
-}
 
 section2b <- section2b %>%
   mutate( 
@@ -2329,6 +2538,12 @@ for (i in setdiff(1:ncol(section5), c(2, 7, 8))) {
 }
 
 section5 <- section5 %>%
+  filter(
+    !if_all(v502a:v502g, is.na)
+  )
+
+
+section5 <- section5 %>%
   mutate(
     v501 = case_when(
       (is.na(v502e) | v502e == 0) ~ 1,
@@ -2338,6 +2553,20 @@ section5 <- section5 %>%
     v503 = case_when(
       v504 > 0 ~ 1, 
       TRUE ~ 2
+    ),
+    v502a = case_when(
+      personid == 39444 ~ 80000,
+      TRUE ~ v502a
+    )
+  )
+
+section5 <- section5 %>%
+  mutate(
+    personid = case_when(
+      personid == 25472 ~ 25477,
+      personid == 54256 ~ 54261,
+      personid == 54527 ~ 54262,
+      TRUE ~ personid 
     )
   )
 
@@ -3384,6 +3613,20 @@ for (i in setdiff(1:ncol(section7), c(2, 7, 8, 19, 25, 34))) {
   section7[[i]] <- as.numeric(gsub("[^0-9]", "", section7[[i]]))
 }
 
+section7 <- section7 %>%
+  mutate(
+    personid == case_when(
+      id == 2946 ~ 11256, 
+
+      TRUE ~ personid 
+    ), 
+    v101 == case_when(
+      id == 2946 ~ 4, 
+
+      TRUE ~ v101
+    )
+  )
+
 #SECTION8 
 
 for (i in setdiff(1:ncol(section8), c(2, 7, 8, 13, 16))) { 
@@ -3467,7 +3710,6 @@ section8 <- section8 %>%
       TRUE ~ v803c
     )
   )
-
 
 section8 <- section8 %>%
   mutate(
@@ -3958,6 +4200,7 @@ for (i in setdiff(1:ncol(section9c), c(2, 7, 8, 11))) {
 }
 
 section9c <- section9c %>%
+  filter(!is.na(v914b)) %>%
   select(-v914a) %>%
   rename(
     v914a = v914b, 
@@ -3983,12 +4226,50 @@ section9c <- section9c %>%
       (v917a > 0 | v917b > 0 | v917c > 0) ~ 3,
 
       TRUE ~ v915
+    ),
+    v914a = case_when(
+      v914b %in% c(
+        "GAHU", "KODO", "GAU BALI", "DHAN GAHU MASULI TORI", "DHAN GAHU MASULI BANGALA\nTARKARI", 
+        "DHAN GAHU MASULI", "MAKAI BALI", "DHAN GAHU MASULI TORI", "DHAN GAHU MASULI",
+        "DHAN 5 KUNTAL GHEHU 5 KUNTAL MASULI 1 KUNTAL", "DHAN GAHU MASULI", "MAKAI VATMAS BORI",
+        "MAKAI VATMAS TORI KHURSANI", "MAKAI VATMAS KHODO", "MAKAI VATMAS", "DHAN GAHU DAL BALI",
+        "MAIZE", "DHAN GAHU TORI TARKARI BALI", "DHAN GAHU AALU PIYAJ", "DHAN GAHU MASULI TARKARI",
+        "DHAAN,", "DHAN GAHU MASULI", "TARKARI BALI DHAN GAHU", "MAKAI TORI"
+      ) ~ 1, 
+      v914b %in% c(
+        "SILTUM", "DALHAN", "MATAR", "HARHR KO DAL RA MUSURO KO DAL", "DALHAN BALI"
+      ) ~ 2,
+      v914b %in% c(
+        "OKHAR", "SAYAPATRI FUL", "CHIYA - LEMON GRASS", "RUDRAKXYA", "RUDRAKSHYA", "RUDRAKSHA",
+        "RDRAKSHA", "RUDRAKSH", "GOLIYA", "RUDRAKSHYA", "LOG", "LOG(GOLILYA)", "RUDRAKSHYA 5",
+        "WOOD", "COFFEE", "SUPARI"
+      ) ~ 5,
+      v914b %in% c(
+        "TUMERIC", "TIMUR"
+      ) ~ 6,
+      v914b %in% c(
+        "FARSI", "TOMATO", "TARKARI", "TARKARI BALI"
+      ) ~ 7,
+      v914b %in% c(
+        "BHOGATE,RUKH KATAHAR,KERA,BHUIKATAHAR"
+      ) ~ 8,
+      v914b %in% c(
+        "BANANA", "APPLE", "KERA", "SYAU", "BANANA,GUAVA", "FALFUL", "FALFUL/AAMBA",
+        "NURSERY AAP,LITCHI,LAGAGAYAT PHUL HARUKO BIRUWA LAGAUNE RA BECHNE", "FALFUL KHETI",
+        "SYAU KHETI", "FALFUL"
+      ) ~ 9,
+      TRUE ~ v914a
+    ),
+    v916 = case_when(
+      v917d > 0 ~ 1,
+      TRUE ~ 2
     )
-  )
+  ) 
 
 section9c <- section9c %>%
-  filter(!is.na(v915))
-
+  filter(!is.na(v915)) %>%
+  filter(v914a != 96) 
+  
 #SECTION9D
 
 for (i in setdiff(1:ncol(section9d), c(2, 7, 8))) { 
@@ -4237,14 +4518,43 @@ section10 <- section10 %>%
 section10 <- section10 %>%
   group_by(v1002b) %>%
   mutate(
+    v1005 = case_when(
+      id == 8746 ~ 1800000,
+      TRUE ~ v1005
+    ),
     v1007 = case_when(
       v1002b == 3 & !is.na(v1007) & v1007 > 600000 ~ round(mean(v1007[v1007 <= 600000], na.rm = TRUE)), 
-      v1002b == 6 & !is.na(v1007) & v1007 > 20000000 ~ round(mean(v1007[v1007 <= 60000000], na.rm = TRUE)),
-      v1002b == 14 & !is.na(v1007) & v1007 > 2000000 ~ round(mean(v1007[v1007 <= 4500000], na.rm = TRUE)),
       v1002b == 15 & !is.na(v1007) & v1007 > 600000 ~ round(mean(v1007[v1007 <= 600000], na.rm = TRUE)),
       v1002b == 16 & !is.na(v1007) & v1007 > 1000000 ~ round(mean(v1007[v1007 <= 1000000], na.rm = TRUE)),
-
+      v1002b == 6 & is.na(v1007) ~ v1005/10,
+      v1002b == 14 & is.na(v1007) ~ v1005/10,
+      id == 12125 ~ 1620000,
       TRUE ~ v1007
+    ), 
+    v1009a = case_when(
+      v1002b == 1 & !is.na(v1009a) & v1009a > 280000 ~ round(mean(v1009a[v1009a <= 280000], na.rm = TRUE)), 
+      v1002b == 3 & !is.na(v1009a) & v1009a > 800000 ~ round(mean(v1009a[v1009a <= 800000], na.rm = TRUE)), 
+      v1002b == 7 & !is.na(v1009a) & v1009a > 420000 ~ round(mean(v1009a[v1009a <= 420000], na.rm = TRUE)),
+      v1002b == 9 & !is.na(v1009a) & v1009a > 1500000 ~ round(mean(v1009a[v1009a <= 1500000], na.rm = TRUE)),
+      v1002b == 21 & !is.na(v1009a) & v1009a > 50000 ~ round(mean(v1009a[v1009a <= 50000], na.rm = TRUE)),
+      id == 12125 ~ 90400,
+      TRUE ~ v1009a
+    ),
+    v1009b = case_when(
+      v1002b == 1 & !is.na(v1009b) & v1009b > 28000 ~ round(mean(v1009b[v1009b <= 28000], na.rm = TRUE)), 
+      v1002b == 3 & !is.na(v1009b) & v1009b > 80000 ~ round(mean(v1009b[v1009b <= 80000], na.rm = TRUE)), 
+      v1002b == 7 & !is.na(v1009b) & v1009b > 42000 ~ round(mean(v1009b[v1009b <= 42000], na.rm = TRUE)),
+      v1002b == 9 & !is.na(v1009b) & v1009b > 150000 ~ round(mean(v1009b[v1009b <= 150000], na.rm = TRUE)),
+      v1002b == 21 & !is.na(v1009b) & v1009b > 5000 ~ round(mean(v1009b[v1009b <= 5000], na.rm = TRUE)),
+      TRUE ~ v1009b
+    )
+  )
+
+section10 <- section10 %>%
+  mutate(
+    v1006 = case_when(
+      !is.na(v1002b) & !is.na(v1007) ~ 1, 
+      TRUE ~ 2
     )
   )
 

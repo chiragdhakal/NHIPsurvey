@@ -1997,7 +1997,42 @@ wage_income <- section8 %>%
     .groups = "drop"
   )
 
-crop_production_income <- section9e %>%
+crop_production_income <- section9c %>%
+  mutate(
+    crop = case_when(
+      v914a == 1 ~ "Cereals", 
+      v914a == 2 ~ "Pulses/Legumes", 
+      v914a == 3 ~ "Tuber & Bulb Crops", 
+      v914a == 4 ~ "Oilseed Crops", 
+      v914a == 5 ~ "Cash Crops", 
+      v914a == 6 ~ "Spices", 
+      v914a == 7 ~ "Vegetables", 
+      v914a == 8 ~ "Citrus Fruits", 
+      v914a == 9 ~ "Non Citrus Fruits",
+      TRUE ~ NA_character_
+    ),
+    across(
+      c(v918a:v918d),
+      ~ na_if(.x, 0)
+    )
+  ) %>%
+  rename(total_sales = v918d) %>%
+  group_by(crop) %>%
+  summarise(
+    across(
+      total_sales,
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    n = sum(!is.na(total_sales)),
+    .groups = "drop"
+  )
+
+livestock_income <- section9e %>%
   filter(!is.na(v938b)) %>%
   mutate(
     livestock_type = case_when(
@@ -2180,8 +2215,8 @@ wb <- createWorkbook()
 addWorksheet(wb, "Wage Income")
 writeData(wb, "Wage Income", wage_income)
 
-addWorksheet(wb, "Crop Production Income")
-writeData(wb, "Crop Production Income", crop_production_income)
+addWorksheet(wb, "Livestock Income")
+writeData(wb, "Livestock Income", livestock_income)
 
 addWorksheet(wb, "Livestock Item Income")
 writeData(wb, "Livestock Item Income", livestock_item_income)

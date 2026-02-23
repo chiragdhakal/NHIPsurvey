@@ -2227,4 +2227,156 @@ bad_hh <- section1b %>%
   filter(!has_enrolled_head)
 
 ############################################################################
-  
+
+section5 <- section5 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
+section1b <- section1b %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
+section1a <- section1a %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld),
+    uniq_id = paste0(psu, "-", hhld, "-", v101)
+  )
+
+section5 <- merge(
+  section5, 
+  section1b[, c("uniq_id", "v116")],
+  by = "uniq_id"
+)
+
+section5 <- merge(
+  section5, 
+  section1a[, c("uniq_id", "v104a", "v104b")],
+  by = "uniq_id"
+)
+
+##################################################################################
+
+ssf <- section0 %>%
+  filter(enrollment == 3)
+
+nonssf <- section0 %>%
+  filter(enrollment == 4)
+
+ssf_wages <- section8 %>%
+  filter(!is.na(v803c) & enrollment == 3) 
+
+nonssf_wages <- section8 %>%
+  filter(!is.na(v803c) & enrollment == 4)
+
+length(unique(ssf_wages$id))
+
+length(unique(nonssf_wages$id))
+
+sum(section0$enrollment == 3)
+
+sum(section0$enrollment == 4)
+
+setdiff(ssf$id, ssf_wages$id)
+
+setdiff(nonssf$id, nonssf_wages$id)
+
+######################################################################################
+
+ssf_s1b <- section1b %>%
+  filter(enrollment == 3) %>%
+  filter(v112b == 2)
+
+length(unique(ssf_s1b$id))
+
+######################################################################################
+
+ssf <- section0 %>%
+  filter(enrollment == 3)
+
+nonssf <- section0 %>%
+  filter(enrollment == 4)
+
+ssf_wages <- section8 %>%
+  filter(!is.na(v803c) & enrollment == 3) 
+
+ssf_wages <- merge(
+  ssf_wages, 
+  section0[, c("id", "respondent", "phone")],
+  by = "id"
+)
+
+ssf_wages <- merge(
+  ssf_wages, 
+  section1a[, c("personid", "v102")],
+  by = "personid"
+)
+
+ssf_wages <- ssf_wages %>%
+  mutate(
+    respondent = respondent %>%
+      str_to_upper() %>%
+      str_trim() %>%
+      str_squish(),
+
+    v102 = v102 %>%
+      str_to_upper() %>%
+      str_trim() %>%
+      str_squish()
+  )
+
+ssf_wages <- ssf_wages %>%
+  rowwise() %>%
+  filter(
+    stringdist(respondent, v102, method = "lv") <= 4
+  ) %>%
+  ungroup()
+
+ssf_wages <- ssf_wages %>%
+  mutate(
+    respondent = respondent %>% str_to_upper() %>% str_trim() %>% str_squish(),
+    v102 = v102 %>% str_to_upper() %>% str_trim() %>% str_squish()
+  )
+
+mismatch_df <- ssf_wages %>%
+  group_by(id) %>%
+  filter(respondent != v102) %>%
+  ungroup()
+
+section1a <- section1a %>%
+  mutate(
+    nid = paste0(id, "-", v102)
+  )
+
+ssf <- ssf %>%
+  mutate(
+    nid = paste0(id, "-", respondent)
+  )
+
+nonssf <- nonssf %>%
+  mutate(
+    nid = paste0(id, "-", respondent)
+  )
+
+ssf_incorrect_name <- anti_join(
+  ssf,
+  section1a,
+  by = "nid"
+)
+
+ssf_incorrect_name <- ssf_incorrect_name %>%
+  select(id, respondent)
+
+nonssf_incorrect_name <- anti_join(
+  nonssf, 
+  section1a, 
+  by = "nid"
+)
+
+nonssf_incorrect_name <- nonssf_incorrect_name %>%
+  select(id, respondent)
+
+rm(nonssf_incorrect_name, ssf_incorrect_name, ssf, nonssf)
