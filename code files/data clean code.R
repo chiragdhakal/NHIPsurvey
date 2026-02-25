@@ -28,6 +28,8 @@ rm(sections)
 
 gc()
 
+set.seed(123)
+
 #SECTION0
 
 normalize_name <- function(x) {
@@ -336,7 +338,6 @@ section0 <- section0 %>%
     id == 13512 ~ "ASHIKA KHANEL",
     id == 9866 ~ "SANU SHRESTHA",
     id == 11687 ~ "ANISHA THAKUR",
-    id == 13622 ~ "KUSHAL KARKI",
     id == 11378 ~ "MANOJ ADHIKARI",
     id == 12381 ~ "ROSHNA POUDEL",
     id == 11391 ~ "SANGITA THAKURI",
@@ -398,6 +399,8 @@ section0 <- section0 %>%
     id == 4703 ~ "RAJENDRA KUMAR KAYASTA", 
     id == 11433 ~ "SABINA SIWAKOTI",
     id == 2946 ~ "HEM NARAYAN MAHATO",
+    id == 13622 ~ "NIRMAL KARKI",
+    id == 11751 ~ "PIRTI SHARMA",
   
     TRUE ~ respondent
   )
@@ -612,6 +615,14 @@ section1a <- section1a %>%
       personid == 28333 ~ 38, 
       personid == 28332 ~ 40,
       personid == 55319 ~ 27,
+      personid == 46006 ~ 53,
+      personid == 21335 ~ 25,
+      personid == 25252 ~ 25,
+      personid == 31196 ~ 25,
+      personid == 38361 ~ 49,
+      personid == 40917 ~ 25, 
+      personid == 59011 ~ 21,
+      personid == 5951821 ~ 48,
       TRUE ~ v104a
     ),
     v107 = case_when(
@@ -938,7 +949,47 @@ section1a <- section1a %>%
       personid == 13077 ~ 9,
       personid == 687 ~ 9, 
       personid == 15268 ~ 3, 
-
+      personid == 20622 ~ 3,
+      personid == 1493 ~ 9,
+      personid == 9605 ~ 6,
+      personid == 15534 ~ 3,
+      personid == 16382 ~ 6,
+      personid == 17144 ~ 6, 
+      personid == 19381 ~ 6, 
+      personid == 20402 ~ 3, 
+      personid == 21335 ~ 3,
+      personid == 23772 ~ 16,       #NON RELATIVE
+      personid == 24652 ~ 3, 
+      personid == 25252 ~ 3, 
+      personid == 31196 ~ 8,
+      personid == 33333 ~ 6, 
+      personid == 35256 ~ 16, 
+      personid == 7749 ~ 16, 
+      personid == 38362 ~ 16,
+      personid == 40917 ~ 8,
+      personid == 52173 ~ 16, 
+      personid == 53790 ~ 16, 
+      personid == 55237 ~ 16, 
+      personid == 55320 ~ 16, 
+      personid == 55603 ~ 16, 
+      personid == 55991 ~  16, 
+      personid == 56219 ~ 6, 
+      personid == 56501 ~  16, 
+      personid == 57684 ~ 16, 
+      personid == 58649 ~ 16, 
+      personid == 58962 ~ 16, 
+      personid == 59011 ~ 3,
+      personid == 59331 ~ 16,
+      personid == 59412 ~ 16,
+      personid == 59818 ~ 16,
+      personid == 60385 ~ 16, 
+      personid == 5948478 ~ 5, 
+      personid == 5951822 ~ 12, 
+      personid == 5951821 ~ 5, 
+      personid == 5951818 ~ 6, 
+      personid == 5951820 ~ 5, 
+      personid == 5951819 ~ 3, 
+      personid == 5953222 ~ 16, 
       TRUE ~ v107
     ), 
     v110 = case_when(
@@ -1002,10 +1053,19 @@ section1a <- section1a %>%
       v107 == 12 & age_diff_from_head > -30 ~ "Error: Grandparent too young", 
       v107 == 8 & age_diff_from_head < 12 ~ "Error: Son/Daughter-in-law too old",
       v107 == 10 & age_diff_from_head > -12 ~ "Error: Parent-in-law too young",
+      v107 == 2 & age_diff_from_head > 20 ~ "Error: Husband/Wife too old",
       TRUE ~ NA_character_
     )
   ) %>%
   ungroup()
+
+section1a <- section1a %>%
+  mutate(
+    v104a = case_when(
+      error == "Error: Husband/Wife too old" ~ age_head - 4,
+      TRUE ~ v104a
+    )
+  )
 
 relationship_checks <- section1a %>%
   filter(!is.na(error)) %>%
@@ -1267,6 +1327,8 @@ section1b <- section1b %>%
       v104a >= 5 & is.na(v115) & v114 == 3 ~ 1,
       personid == 15498 ~ 2, 
       personid == 15499 ~ 2, 
+      v104a > 25 & v116 < 13 ~ 2,
+      v104a > 20 & v104a <= 25 & v116 < 10 ~ 2,
       TRUE ~ v115
     ),
     v116 = case_when(
@@ -1308,6 +1370,18 @@ section1b <- section1b %>%
       personid == 13179 ~ 9, 
       personid == 13179 ~ 12, 
       personid == 13914 ~ 1, 
+      personid == 54242 ~ 9,
+      personid == 54243 ~ 8, 
+      personid == 54244 ~ 12,
+      personid == 54245 ~ 10, 
+      personid == 54246 ~ 5,
+      personid == 54247 ~ 2,
+      personid == 54248 ~ 13,
+      personid == 54249 ~ 13, 
+      personid == 54250 ~ 1, 
+      personid == 54252 ~ 12, 
+      personid == 54253 ~ 13, 
+      personid == 54244 ~ 1,
 
       TRUE ~ v116
     ),
@@ -1761,7 +1835,7 @@ serial_vals_233 <- setNames(1:10, cols_233)
 section2b <- section2b %>% 
   mutate(
     v226 = case_when(
-      v227 != "" ~ "1",
+      v227 != "" ~ 1,
       TRUE ~ v226
     ), 
     v228 = case_when(
@@ -1794,7 +1868,7 @@ section2b <- section2b %>%
         if (enrollment %in% c(2,4) && all_na_232) {
           chosen <- sample(cols_232, 2)   
           if (cur_column() %in% chosen) {
-            serial_vals[cur_column()]
+            serial_vals_232[cur_column()]
           } else {
             NA_real_
           }
@@ -1823,7 +1897,7 @@ section2b <- section2b %>%
         if (enrollment %in% c(1, 3) && all_na_233) {
           chosen <- sample(cols_233, 2)   
           if (cur_column() %in% chosen) {
-            serial_vals[cur_column()]
+            serial_vals_233[cur_column()]
           } else {
             NA_real_
           }
@@ -1854,12 +1928,49 @@ section2b <- section2b %>%
       TRUE ~ v238
     ), 
     v239 = case_when(
-      enrollment == 2 & is.na(v239) ~ 2, 
+      enrollment == 3 & is.na(v239) ~ 2, 
       enrollment %in% c(1, 2, 4) ~ NA_real_,
       TRUE ~ v239
-    )
-  )
+    ), 
+    v241 = case_when(
+      enrollment == 1 & is.na(v241) ~ 1,
+      enrollment == 2 & is.na(v241) ~ sample(1:3, n(), replace = TRUE),
+      enrollment %in% c(3, 4) ~ NA_real_,
+      TRUE ~ v241
+    ),
+    v242 = case_when(
+      enrollment == 1 & is.na(v242) ~ 1, 
+      enrollment %in% c(2, 3, 4) ~ NA_real_,
+      TRUE ~ v242
+    ), 
+    v243 = case_when(
+      enrollment == 1 & is.na(v243) ~ 2,
+      enrollment == 1 & is.na(v244) ~ 2,
+      enrollment == 1 & !is.na(v244) ~ 1,
+      enrollment %in% c(2, 3, 4) ~ NA_real_,
+      TRUE ~ v243
+    ), 
+    v244 = case_when(
+      v243 == 2 ~ NA_real_,
+      is.na(v243) ~ NA_real_,
+      TRUE ~ v244
+    ),
+    v245 = case_when(
+      enrollment == 2 & !is.na(v246) ~ 1,
+      enrollment == 2 & is.na(v246) ~ 2, 
+      TRUE ~ NA_real_
+    ),
+    v250 = case_when(
+      is.na(v250) ~ sample(1:3, n(), replace = TRUE), 
+      TRUE ~ v250
+    ), 
+    v251 = case_when(
+      is.na(v252) ~ 2, 
+      !is.na(v252) ~ 1,
+      TRUE ~ v251
+    ), 
 
+  )
 
 section2b <- section2b %>%
   mutate( 
@@ -1873,35 +1984,13 @@ section2b <- section2b %>%
 #SECTION2C
 
 section2c <- section2c %>%
+  filter(!is.na(v259)) %>%
   mutate(
-    v260_num = grepl("[0-9]", v260a),
-
-    v260_new  = if_else(v260_num, v260a, v260),
-    v260a_new = if_else(v260_num, v260,  v260a),
-
-    v260  = v260_new,
-    v260a = v260a_new
-  ) %>%
-  select(-v260_num, -v260_new, -v260a_new) %>%
-  mutate(
-    v261_num = suppressWarnings(as.numeric(str_extract(v261, "\\d+"))),
-
-    v261_txt = str_trim(
-      str_remove_all(v261, "\\d+|,")
+    v256 = case_when(
+      is.na(v256) | v256 > 2000 ~ 1, 
+      TRUE ~ v256
     ),
 
-    v261  = v261_num,
-    v261a = if_else(v261_txt != "", v261_txt, as.character(v261a))
-  ) %>%
-  select(-v261_num, -v261_txt)
-
-
-for (i in setdiff(1:ncol(section2c), c(2, 8, 7, 13, 17, 19))) {
-  section2c[[i]] <- as.numeric(gsub("[^0-9]", "", section2c[[i]]))
-}
-
-section2c <- section2c %>%
-  mutate(
     v258 = if_else(
       is.na(v258), 
       2, 
@@ -1918,7 +2007,7 @@ section2c <- section2c %>%
       v260a %in% c(
         "OLD AGE MULTI ORGAN FAIL", "AGE VAYERA", "BUDO VAYE RA", "AGE VAYERA", "BRIDHABASTHA",
         "UMER PUGER", "UMER PUGERA", "OLD AGE", "NORMAL", "UMER PUGER BITNU  VAYEKO", "BUDO VAYARA",
-        "UMERA PUGER BITNU BHAYEKO", " OLD AGE"
+        "UMERA PUGER BITNU BHAYEKO", " OLD AGE", "UMER PUGERA MRITYU VAYEKO, 96", "96"
       ) ~ 9,
       v260a %in% c(
         "HART PROBLEM", "KIDDNI FAIL", "DIMAG KO NASA FATERA", "HIP MA GHAU", "HEART ATECT",
@@ -1935,10 +2024,6 @@ section2c <- section2c %>%
   )
 
 #SECTION3A
-
-for (i in setdiff(1:ncol(section3a), c(2, 8, 7))) {
-  section3a[[i]] <- as.numeric(gsub("[^0-9]", "", section3a[[i]]))
-}
 
 section3a <- section3a %>%
   mutate(
@@ -1974,144 +2059,61 @@ section3a <- section3a %>%
   )
 
 section3a  <- section3a %>%
-  group_by(psu, v301) %>%
+  group_by(district, v301) %>%
   mutate(
-  v303 = case_when(
-    v301 == 1 & v302 == 1 & v303 > 1500 ~ mean(v303[v303 <= 1500], na.rm = TRUE),
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 1 & v302 == 1 & v304 > 1500 ~ mean(v304[v304 <= 1500], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v304 = case_when(
-    v301 == 2 & v302 == 1 & v304 > 400 ~ mean(v304[v304 <= 400], na.rm = TRUE),
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 2 & v302 == 1 & v303 > 400 ~ mean(v303[v303 <= 400], na.rm = TRUE), 
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 3 & v302 == 1 & v304 > 1000 ~ mean(v304[v304 <= 1000], na.rm = TRUE),
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 3 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 4 & v302 == 1 & v304 > 500 ~ mean(v304[v304 <= 500], na.rm = TRUE),
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 4 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 5 & v302 == 1 & v304 > 500 ~ mean(v304[v304 <= 500], na.rm = TRUE),
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 5 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE),
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 6 & v302 == 1 & v304 > 300 ~ v304/10,
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 6 & v302 == 1 & v303 > 300 ~ v303/10,
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 7 & v302 == 1 & v304 > 500 ~ mean(v304[v304 <= 500], na.rm = TRUE), 
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 7 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE), 
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 8 & v302 == 1 & v304 > 600 ~ mean(v304[v304 <= 600], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 8 & v302 == 1 & v303 > 300 ~ mean(v303[v303 <= 300], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 9 & v302 == 1 & v304 > 500 ~ mean(v304[v304 <= 500], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 9 & v302 == 1 & v303 > 500 ~ mean(v303[v303 <= 500], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 10 & v302 == 1 & v304 > 300 ~ mean(v304[v304 <= 300], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 10 & v302 == 1 & v303 > 100 ~ mean(v303[v303 <= 100], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 11 & v302 == 1 & v304 > 100 ~ mean(v304[v304 <= 100], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 11 & v302 == 1 & v303 > 50 ~ mean(v303[v303 <= 50], na.rm = TRUE), 
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 12 & v302 == 1 & v304 > 250 ~ mean(v304[v304 <= 250], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 12 & v302 == 1 & v303 > 50 ~ mean(v303[v303 <= 50], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 13 & v302 == 1 & v304 > 2000 ~ mean(v304[v304 <= 2000], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 13 & v302 == 1 & v303 > 100 ~ mean(v303[v303 <= 100], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 14 & v302 == 1 & v304 > 300 ~ mean(v304[v304 <= 300], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 14 & v302 == 1 & v303 > 20 ~ mean(v303[v303 <= 20], na.rm = TRUE), 
-    TRUE ~ v303
-  ),
-  v304 = case_when(
-    v301 == 15 & v302 == 1 & v304 > 350 ~ mean(v304[v304 <= 350], na.rm = TRUE), 
-    TRUE ~ v304
-  ),
-  v303 = case_when(
-    v301 == 15 & v302 == 1 & v303 > 50 ~ mean(v303[v303 <= 50], na.rm = TRUE), 
-    TRUE ~ v303
-  )
+    v303 = case_when(
+      v301 == 1 & v302 == 1 & v303 > 1500 ~ round(mean(v303[v303 <= 1500], na.rm = TRUE), -2),
+      v301 == 2 & v302 == 1 & v303 > 400  ~ round(mean(v303[v303 <= 400],  na.rm = TRUE), -2),
+      v301 == 3 & v302 == 1 & v303 > 500  ~ round(mean(v303[v303 <= 500],  na.rm = TRUE), -2),
+      v301 == 4 & v302 == 1 & v303 > 500  ~ round(mean(v303[v303 <= 500],  na.rm = TRUE), -2),
+      v301 == 5 & v302 == 1 & v303 > 500  ~ round(mean(v303[v303 <= 500],  na.rm = TRUE), -2),
+      v301 == 6 & v302 == 1 & v303 > 300  ~ v303/10,
+      v301 == 7 & v302 == 1 & v303 > 500  ~ round(mean(v303[v303 <= 500],  na.rm = TRUE), -2),
+      v301 == 8 & v302 == 1 & v303 > 300  ~ round(mean(v303[v303 <= 300],  na.rm = TRUE), -2),
+      v301 == 9 & v302 == 1 & v303 > 500  ~ round(mean(v303[v303 <= 500],  na.rm = TRUE), -2),
+      v301 == 10 & v302 == 1 & v303 > 100 ~ round(mean(v303[v303 <= 100],  na.rm = TRUE), -2),
+      v301 == 11 & v302 == 1 & v303 > 50  ~ round(mean(v303[v303 <= 50],   na.rm = TRUE), -2),
+      v301 == 12 & v302 == 1 & v303 > 50  ~ round(mean(v303[v303 <= 50],   na.rm = TRUE), -2),
+      v301 == 13 & v302 == 1 & v303 > 100 ~ round(mean(v303[v303 <= 100],  na.rm = TRUE), -2),
+      v301 == 14 & v302 == 1 & v303 > 20  ~ round(mean(v303[v303 <= 20],   na.rm = TRUE), -2),
+      v301 == 15 & v302 == 1 & v303 > 50  ~ round(mean(v303[v303 <= 50],   na.rm = TRUE), -2),
+      TRUE ~ v303
+    ),
+
+    v304 = case_when(
+      v301 == 1 & v302 == 1 & v304 > 1500 ~ round(mean(v304[v304 <= 1500], na.rm = TRUE), -2),
+      v301 == 2 & v302 == 1 & v304 > 400  ~ round(mean(v304[v304 <= 400],  na.rm = TRUE), -2),
+      v301 == 3 & v302 == 1 & v304 > 1000 ~ round(mean(v304[v304 <= 1000], na.rm = TRUE), -2),
+      v301 == 4 & v302 == 1 & v304 > 500  ~ round(mean(v304[v304 <= 500],  na.rm = TRUE), -2),
+      v301 == 5 & v302 == 1 & v304 > 500  ~ round(mean(v304[v304 <= 500],  na.rm = TRUE), -2),
+      v301 == 6 & v302 == 1 & v304 > 300  ~ v304/10,
+      v301 == 7 & v302 == 1 & v304 > 500  ~ round(mean(v304[v304 <= 500],  na.rm = TRUE), -2),
+      v301 == 8 & v302 == 1 & v304 > 600  ~ round(mean(v304[v304 <= 600],  na.rm = TRUE), -2),
+      v301 == 9 & v302 == 1 & v304 > 500  ~ round(mean(v304[v304 <= 500],  na.rm = TRUE), -2),
+      v301 == 10 & v302 == 1 & v304 > 300 ~ round(mean(v304[v304 <= 300],  na.rm = TRUE), -2),
+      v301 == 11 & v302 == 1 & v304 > 100 ~ round(mean(v304[v304 <= 100],  na.rm = TRUE), -2),
+      v301 == 12 & v302 == 1 & v304 > 250 ~ round(mean(v304[v304 <= 250],  na.rm = TRUE), -2),
+      v301 == 13 & v302 == 1 & v304 > 2000~ round(mean(v304[v304 <= 2000], na.rm = TRUE), -2),
+      v301 == 14 & v302 == 1 & v304 > 300 ~ round(mean(v304[v304 <= 300],  na.rm = TRUE), -2),
+      v301 == 15 & v302 == 1 & v304 > 350 ~ round(mean(v304[v304 <= 350],  na.rm = TRUE), -2),
+      TRUE ~ v304
+    )
   ) %>%
   ungroup() %>%
   group_by(v301) %>%
   mutate(
-  v304 = case_when(
-    v301 == 1 & v302 == 1 & is.na(v303) & is.na(v304) & is.na(v305) ~ mean(v304[v304 <= 1500], na.rm = TRUE),
-    TRUE ~ v304
-  ), 
-  v303 = case_when(
-    v301 == 6 & v302 == 1 & v303 > 300 ~ mean(v303[v303 <= 300], na.rm = TRUE),
-    TRUE ~ v303
-  ), 
-  v304 = case_when(
-    v301 == 6 & v302 == 1 & v304 > 300 ~ mean(v304[v304 <= 300], na.rm = TRUE),
-    TRUE ~ v304
-  )
+    v304 = case_when(
+      v301 == 1 & v302 == 1 & is.na(v303) & is.na(v304) & is.na(v305) ~ 
+        round(mean(v304[v304 <= 1500], na.rm = TRUE), -2),
+      v301 == 6 & v302 == 1 & v304 > 300 ~ 
+        round(mean(v304[v304 <= 300], na.rm = TRUE), -2),
+      TRUE ~ v304
+    ),
+    v303 = case_when(
+      v301 == 6 & v302 == 1 & v303 > 300 ~ 
+        round(mean(v303[v303 <= 300], na.rm = TRUE), -2),
+      TRUE ~ v303
+    )
   ) %>%
   ungroup()
   
@@ -2133,11 +2135,34 @@ section3a <- section3a %>%
     )
   )
 
-#SECTION3B
+district_means <- section3a %>%
+  filter(v301 %in% c(1, 2, 6, 7)) %>%
+  group_by(district, v301) %>%
+  summarise(
+    mean_v303 = round(mean(v303, na.rm = TRUE), -2),
+    mean_v304 = round(mean(v304, na.rm = TRUE), -2),
+    .groups = "drop"
+  )
 
-for (i in setdiff(1:ncol(section3b), c(2, 8, 7))) {
-  section3b[[i]] <- as.numeric(gsub("[^0-9]", "", section3b[[i]]))
-}
+section3a <- section3a %>%
+  left_join(district_means, by = c("district", "v301"))
+
+section3a <- section3a %>%
+  group_by(hhid) %>%
+  mutate(
+    all_na_304 = all(is.na(v304))
+  ) %>%
+  ungroup()
+
+section3a <- section3a %>%
+  mutate(
+    v304 = ifelse(all_na_304, mean_v304, v304)
+  ) %>%
+  select(-mean_v303, -mean_v304, -all_na_304, -hhid)
+
+rm(district_means)
+
+#SECTION3B
 
 section3b <- section3b %>%
   mutate(
@@ -2150,22 +2175,22 @@ section3b <- section3b %>%
   group_by(psu, v306) %>%
   mutate(
     v308 = case_when(
-      v306 == 1 & v307 == 1 & v308 > 400   ~ round(mean(v308[v308 <= 400], na.rm = TRUE)),
-      v306 == 2 & v307 == 1 & v308 > 3000  ~ round(mean(v308[v308 <= 3000], na.rm = TRUE)),
-      v306 == 4 & v307 == 1 & v308 > 150   ~ round(mean(v308[v308 <= 150], na.rm = TRUE)),
-      v306 == 5 & v307 == 1 & v308 > 5000  ~ round(mean(v308[v308 <= 5000], na.rm = TRUE)),
-      v306 == 6 & v307 == 1 & v308 > 300   ~ round(mean(v308[v308 <= 300], na.rm = TRUE)),
-      v306 == 7 & v307 == 1 & v308 > 2000  ~ round(mean(v308[v308 <= 2000], na.rm = TRUE)),
-      v306 == 8 & v307 == 1 & v308 > 1000  ~ round(mean(v308[v308 <= 2000], na.rm = TRUE)),
+      v306 == 1 & v307 == 1 & v308 > 400   ~ round(mean(v308[v308 <= 400], na.rm = TRUE), -2),
+      v306 == 2 & v307 == 1 & v308 > 3000  ~ round(mean(v308[v308 <= 3000], na.rm = TRUE), -2),
+      v306 == 4 & v307 == 1 & v308 > 150   ~ round(mean(v308[v308 <= 150], na.rm = TRUE), -2),
+      v306 == 5 & v307 == 1 & v308 > 5000  ~ round(mean(v308[v308 <= 5000], na.rm = TRUE), -2),
+      v306 == 6 & v307 == 1 & v308 > 300   ~ round(mean(v308[v308 <= 300], na.rm = TRUE), -2),
+      v306 == 7 & v307 == 1 & v308 > 2000  ~ round(mean(v308[v308 <= 2000], na.rm = TRUE), -2),
+      v306 == 8 & v307 == 1 & v308 > 1000  ~ round(mean(v308[v308 <= 2000], na.rm = TRUE), -2),
       TRUE ~ v308
     ),
     v309 = case_when(
-      v306 == 1 & v307 == 1 & v309 > 250   ~ round(mean(v309[v309 <= 250], na.rm = TRUE)),
-      v306 == 4 & v307 == 1 & v309 > 150   ~ round(mean(v309[v309 <= 150], na.rm = TRUE)),
-      v306 == 5 & v307 == 1 & v309 > 5000  ~ round(mean(v309[v309 <= 5000], na.rm = TRUE)),
-      v306 == 6 & v307 == 1 & v309 > 300   ~ round(mean(v309[v309 <= 300], na.rm = TRUE)),
-      v306 == 7 & v307 == 1 & v309 > 2000  ~ round(mean(v309[v309 <= 2000], na.rm = TRUE)),
-      v306 == 8 & v307 == 1 & v309 > 500   ~ round(mean(v309[v309 <= 2000], na.rm = TRUE)),
+      v306 == 1 & v307 == 1 & v309 > 250   ~ round(mean(v309[v309 <= 250], na.rm = TRUE), -2),
+      v306 == 4 & v307 == 1 & v309 > 150   ~ round(mean(v309[v309 <= 150], na.rm = TRUE), -2),
+      v306 == 5 & v307 == 1 & v309 > 5000  ~ round(mean(v309[v309 <= 5000], na.rm = TRUE), -2),
+      v306 == 6 & v307 == 1 & v309 > 300   ~ round(mean(v309[v309 <= 300], na.rm = TRUE), -2),
+      v306 == 7 & v307 == 1 & v309 > 2000  ~ round(mean(v309[v309 <= 2000], na.rm = TRUE), -2),
+      v306 == 8 & v307 == 1 & v309 > 500   ~ round(mean(v309[v309 <= 2000], na.rm = TRUE), -2),
       TRUE ~ v309  
     )
   ) %>%
@@ -2175,11 +2200,11 @@ section3b <- section3b %>%
   group_by(district, v306) %>%
   mutate(
     v308 = case_when(
-      is.nan(v308) ~ round(mean(v308, na.rm = TRUE)),
+      is.nan(v308) ~ round(mean(v308, na.rm = TRUE), -2),
       TRUE ~ v308
     ), 
     v309 = case_when(
-      is.nan(v309) ~ round(mean(v309, na.rm = TRUE)),
+      is.nan(v309) ~ round(mean(v309, na.rm = TRUE), -2),
       TRUE ~ v309
     ) 
   ) %>%
@@ -2189,21 +2214,17 @@ section3b <- section3b %>%
   group_by(province, v306) %>%
   mutate(
     v308 = case_when(
-      is.nan(v308) ~ round(mean(v308, na.rm = TRUE)),
+      is.nan(v308) ~ round(mean(v308, na.rm = TRUE), -2),
       TRUE ~ v308
     ), 
     v309 = case_when(
-      is.nan(v309) ~ round(mean(v309, na.rm = TRUE)),
+      is.nan(v309) ~ round(mean(v309, na.rm = TRUE), -2),
       TRUE ~ v309
     ) 
   ) %>%
   ungroup()
 
 #SECTION4A
-
-for (i in setdiff(1:ncol(section4a), c(2, 8, 7))) {
-  section4a[[i]] <- as.numeric(gsub("[^0-9]", "", section4a[[i]]))
-}
 
 section4a <- section4a %>%
   mutate(
@@ -2229,35 +2250,35 @@ section4a <- section4a %>%
   group_by(psu, v401) %>%
   mutate(
     v403a = case_when(
-      v401 == 1 & v402 == 1 & v403a > 100000 ~ round(mean(v403a[v403a <= 100000], na.rm = TRUE)),
+      v401 == 1 & v402 == 1 & v403a > 100000 ~ round(mean(v403a[v403a <= 100000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 1 & v402 == 1 & v403b > 20000 ~ round(mean(v403b[v403b <= 20000], na.rm = TRUE)),
+      v401 == 1 & v402 == 1 & v403b > 20000 ~ round(mean(v403b[v403b <= 20000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
-      v401 == 2 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE)),
+      v401 == 2 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 2 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE)),
+      v401 == 2 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
-      v401 == 3 & v402 == 1 & v403a > 650000 ~ round(mean(v403a[v403a <= 650000], na.rm = TRUE)),
+      v401 == 3 & v402 == 1 & v403a > 650000 ~ round(mean(v403a[v403a <= 650000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 3 & v402 == 1 & v403b > 650000 ~ round(mean(v403b[v403b <= 650000], na.rm = TRUE)),
+      v401 == 3 & v402 == 1 & v403b > 650000 ~ round(mean(v403b[v403b <= 650000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
-      v401 == 4 & v402 == 1 & v403a > 126000 ~ round(mean(v403a[v403a <= 126000], na.rm = TRUE)),
+      v401 == 4 & v402 == 1 & v403a > 126000 ~ round(mean(v403a[v403a <= 126000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 4 & v402 == 1 & v403b > 11000 ~ round(mean(v403b[v403b <= 11000], na.rm = TRUE)),
+      v401 == 4 & v402 == 1 & v403b > 11000 ~ round(mean(v403b[v403b <= 11000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
@@ -2270,27 +2291,27 @@ section4a <- section4a %>%
       TRUE ~ v403a
     ),
     v403a = case_when(
-      v401 == 8 & v402 == 1 & v403a > 100000 ~ round(mean(v403a[v403a <= 100000], na.rm = TRUE)),
+      v401 == 8 & v402 == 1 & v403a > 100000 ~ round(mean(v403a[v403a <= 100000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 8 & v402 == 1 & v403b > 10000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE)),
+      v401 == 8 & v402 == 1 & v403b > 10000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
-      v401 == 9 & v402 == 1 & v403a > 75000 ~ round(mean(v403a[v403a <= 75000], na.rm = TRUE)),
+      v401 == 9 & v402 == 1 & v403a > 75000 ~ round(mean(v403a[v403a <= 75000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 9 & v402 == 1 & v403b > 12000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE)),
+      v401 == 9 & v402 == 1 & v403b > 12000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
-      v401 == 10 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE)),
+      v401 == 10 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 10 & v402 == 1 & v403b > 2000 ~ round(mean(v403b[v403b <= 2000], na.rm = TRUE)),
+      v401 == 10 & v402 == 1 & v403b > 2000 ~ round(mean(v403b[v403b <= 2000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
@@ -2298,19 +2319,19 @@ section4a <- section4a %>%
       TRUE ~ v403a
     ), 
     v403a = case_when(
-      v401 == 13 & v402 == 1 & v403a > 40000 ~ round(mean(v403a[v403a <= 40000], na.rm = TRUE)),
+      v401 == 13 & v402 == 1 & v403a > 40000 ~ round(mean(v403a[v403a <= 40000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 13 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE)),
+      v401 == 13 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
-      v401 == 14 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE)),
+      v401 == 14 & v402 == 1 & v403a > 25000 ~ round(mean(v403a[v403a <= 25000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 14 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE)),
+      v401 == 14 & v402 == 1 & v403b > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE), -2),
       TRUE ~ v403b
     ),
     v403a = case_when(
@@ -2322,19 +2343,19 @@ section4a <- section4a %>%
       TRUE ~ v403b
     ), 
     v403a = case_when(
-      v401 == 18 & v402 == 1 & v403a > 70000 ~ round(mean(v403a[v403a <= 70000], na.rm = TRUE)), 
+      v401 == 18 & v402 == 1 & v403a > 70000 ~ round(mean(v403a[v403a <= 70000], na.rm = TRUE), -2), 
       TRUE ~ v403a
     ),
     v403b = case_when(
-      v401 == 18 & v402 == 1 & v403b > 10000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE)), 
+      v401 == 18 & v402 == 1 & v403b > 10000 ~ round(mean(v403b[v403b <= 10000], na.rm = TRUE), -2), 
       TRUE ~ v403b
     ), 
     v403a = case_when(
-      v401 == 19 & v402 == 1 & v403a > 35000 ~ round(mean(v403a[v403a <= 35000], na.rm = TRUE)), 
+      v401 == 19 & v402 == 1 & v403a > 35000 ~ round(mean(v403a[v403a <= 35000], na.rm = TRUE), -2), 
       TRUE ~ v403a
     ),
     v403b = case_when(
-      v401 == 19 & v402 == 1 & v403b > 25000 ~ round(mean(v403b[v403b <= 25000], na.rm = TRUE)), 
+      v401 == 19 & v402 == 1 & v403b > 25000 ~ round(mean(v403b[v403b <= 25000], na.rm = TRUE), -2), 
       TRUE ~ v403b
     ), 
     v403a = case_when(
@@ -2358,18 +2379,18 @@ section4a <- section4a %>%
       TRUE ~ v403a
     ), 
     v403a = case_when(
-      v401 == 22 & v402 == 1 & v403a > 50000 ~ round(mean(v403a[v403a <= 50000], na.rm = TRUE)),
+      v401 == 22 & v402 == 1 & v403a > 50000 ~ round(mean(v403a[v403a <= 50000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 22 & v402 == 1 & v403a > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE))
+      v401 == 22 & v402 == 1 & v403a > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE), -2)
     ), 
     v403a = case_when(
-      v401 == 22 & v402 == 1 & v403a > 50000 ~ round(mean(v403a[v403a <= 50000], na.rm = TRUE)),
+      v401 == 22 & v402 == 1 & v403a > 50000 ~ round(mean(v403a[v403a <= 50000], na.rm = TRUE), -2),
       TRUE ~ v403a
     ), 
     v403b = case_when(
-      v401 == 22 & v402 == 1 & v403a > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE)), 
+      v401 == 22 & v402 == 1 & v403a > 5000 ~ round(mean(v403b[v403b <= 5000], na.rm = TRUE), -2), 
       TRUE ~ v403b
     ), 
     v403a = case_when(
@@ -2409,10 +2430,6 @@ section4a <- section4a %>%
 
 #SECTION4B
 
-for (i in setdiff(1:ncol(section4b), c(2, 7, 8))) {
-  section4b[[i]] <- as.numeric(gsub("[^0-9]", "", section4b[[i]]))
-}
-
 section4b <- section4b %>%
   mutate(
     v404 = case_when(
@@ -2425,15 +2442,15 @@ section4b <- section4b %>%
   group_by(v405) %>%
   mutate(
     v407a = case_when(
-      v405 == 3 & v406 == 1 & v407a > 250000 ~ round(mean(v407a[v407a <= 250000], na.rm = TRUE)),
+      v405 == 3 & v406 == 1 & v407a > 250000 ~ round(mean(v407a[v407a <= 250000], na.rm = TRUE), -2),
       TRUE ~ v407a
     ), 
     v407a = case_when(
-      v405 == 1 & v406 == 1 & v407a > 400000 ~ round(mean(v407a[v407a <= 400000], na.rm = TRUE)),
+      v405 == 1 & v406 == 1 & v407a > 400000 ~ round(mean(v407a[v407a <= 400000], na.rm = TRUE), -2),
       TRUE ~ v407a
     ),
     v407a = case_when(
-      v405 == 8 & v406 == 1 & v407a > 160000 ~ round(mean(v407a[v407a <= 160000], na.rm = TRUE)),
+      v405 == 8 & v406 == 1 & v407a > 160000 ~ round(mean(v407a[v407a <= 160000], na.rm = TRUE), -2),
       TRUE ~ v407a
     )
   ) %>%
@@ -2474,7 +2491,7 @@ section4c <- section4c %>%
   select(-tmp_v412a) %>%
   group_by(v408) %>%
   mutate(
-    commodity_mean = round(mean(v412a[v412a > 0 & v412a <= 29], na.rm = TRUE)),
+    commodity_mean = round(mean(v412a[v412a > 0 & v412a <= 29], na.rm = TRUE), -2),
     v412a = if_else(
       (v412a > 29 | (v412a == 0 & v412b > 0)) & !is.nan(commodity_mean),
       commodity_mean,
@@ -2492,7 +2509,7 @@ section4c <- section4c %>%
       ~ {
         p5   <- quantile(.x, 0.05, na.rm = TRUE)
         p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
+        mu   <- round(mean(.x, na.rm = TRUE), -2)
 
         if_else(.x < p5 | .x > p95, mu, .x)
       }
@@ -2502,19 +2519,17 @@ section4c <- section4c %>%
 
 #SECTION4D
 
-for (i in setdiff(1:ncol(section4d), c(2, 7, 8))) {
-  section4d[[i]] <- as.numeric(gsub("[^0-9]", "", section4d[[i]]))
-}
-
 section4d <- section4d %>%
   group_by(psu, v414) %>%
   mutate(
+    v416a = as.numeric(v416a),
+    v416b = as.numeric(v416b),
     across(
       c(v416a, v416b),
       ~ {
         p5   <- quantile(.x, 0.05, na.rm = TRUE)
         p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
+        mu   <- round(mean(.x, na.rm = TRUE), -2)
 
         if_else(.x < p5 | .x > p95, mu, .x)
       }
@@ -2533,15 +2548,10 @@ section4d <- section4d %>%
 
 #SECTION5 
 
-for (i in setdiff(1:ncol(section5), c(2, 7, 8))) {
-  section5[[i]] <- as.numeric(gsub("[^0-9]", "", section5[[i]]))
-}
-
 section5 <- section5 %>%
   filter(
     !if_all(v502a:v502g, is.na)
   )
-
 
 section5 <- section5 %>%
   mutate(
@@ -2566,25 +2576,103 @@ section5 <- section5 %>%
       personid == 25472 ~ 25477,
       personid == 54256 ~ 54261,
       personid == 54527 ~ 54262,
+      personid == 19178 ~ 19181,
+      personid == 22665 ~ 22666,
+      personid == 26137 ~ 26139,
+
       TRUE ~ personid 
     )
-  )
-
-section5 <- section5 %>%
-  group_by(psu) %>%
-  mutate(
-    across(
-      c(v502a, v502b, v502c, v502d, v502e, v502f, v502g),
-      ~ {
-        p5   <- quantile(.x, 0.05, na.rm = TRUE)
-        p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
-
-        if_else(.x < p5 | .x > p95, mu, .x)
-      }
+  ) %>%
+  filter(!personid %in% c(
+    54242, 54243, 54244, 54248, 54249, 54253, 54256, 54257, 
+    54258, 54259 
     )
   ) %>%
+  group_by(personid) %>%
+  slice(1) %>%
   ungroup()
+
+section5 <- merge(
+  section5,
+  section1a[, c("personid", "v104a")], 
+  by = "personid"
+)
+
+section5 <- merge(
+  section5,
+  section1b[, c("personid", "v116")],
+  by = "personid"
+)
+
+section5 <- section5 %>%
+  mutate(
+    years_required = case_when(
+      v116 == 1 ~ 5, 
+      v116 == 2 ~ 6,
+      v116 == 3 ~ 7, 
+      v116 == 4 ~ 8, 
+      v116 == 5 ~ 9, 
+      v116 == 6 ~ 10, 
+      v116 == 7 ~ 11, 
+      v116 == 8 ~ 12, 
+      v116 == 9 ~ 13, 
+      v116 == 10 ~ 14, 
+      v116 == 11 ~ 15, 
+      v116 == 12 ~ 15, 
+      v116 == 13 ~ 17, 
+      v116 == 14 ~ 20, 
+      v116 == 15 ~ 22,
+      v116 == 16 ~ 26, 
+      TRUE ~ NA_real_
+    ),
+    error = case_when(
+      v104a < years_required ~ "ERROR",
+      v104a >= 30 & v116 <= 12 ~ "ERROR",
+      TRUE ~ NA_character_
+    )  
+  ) %>%
+  select(-v101)
+
+education_error <- section5 %>%
+  filter(!is.na(error)) %>%
+  select(id, personid, v104a, v116)
+
+rm(education_error)
+
+section5 <- merge(
+  section5, 
+  section1a[, c("personid", "v101")], 
+  by = "personid"
+)
+
+section5 <- section5 %>%
+  select(-error, -v116, -v104a, -years_required) %>%
+  select(enrollment:uid, personid, v101, everything())
+
+education_section <- section5 %>%
+  group_by(id) %>%
+  summarise(n = n()) %>%
+  ungroup()
+
+section1b <- merge(
+  section1b,
+  section1a[, c("personid", "v104a")], 
+  by = "personid"
+)
+
+section1b <- section1b %>%
+  mutate(
+    v115 = case_when(
+      personid %in% section5$personid & v104a >= 5 ~ 3,
+      !personid %in% section5$personid & v115 == 3 ~ 2,
+      TRUE ~ v115
+    ), 
+    v114 = case_when(
+      personid %in% section5$personid & v104a >= 5 ~ 1, 
+      TRUE ~ v114
+    )
+  ) %>%
+  select(-v104a)
 
 #SECTION6A
 
@@ -3345,12 +3433,146 @@ section7 <- section7 %>%
     ward = as.numeric(gsub("[^0-9]", "", ward)),
     v702 = as.numeric(gsub("[^0-9]", "", v702)), 
     v703 = as.numeric(gsub("[^0-9]", "", v703)),
-    v721 = as.numeric(gsub("[^0-9]", "", v721))
+    v721 = as.numeric(gsub("[^0-9]", "", v721)),
+    v714a = as.numeric(gsub("[^0-9]", "", v714a)),
+  ) %>%
+  filter(
+    personid != 56798
   )
-
 
 section7 <- section7 %>%
   mutate(
+    v708 = case_when(
+      is.na(v708) &
+      v709a %in% c(
+        "PUROHIT"
+      ) ~ 2,
+      is.na(v708) &
+      v709a %in% c(
+        "QUALITY ASSURANCE ENGINEER", "AD", "FCHV KO TALIM LIYERA BHATTA"
+      ) ~ 3,
+      is.na(v708) &
+      v709a %in% c(
+        "LOAN KO KAMM MA GARNI", "JUNIOR ASSISTANT IN FINANCE DEPARTMENT", "RECEPTIONIST IN FINANCE",
+        "MARKETER OR MONEY COLLECTOR"
+      ) ~ 4,
+      is.na(v708) &
+      v709a %in% c(
+        "BYAPAR", "SALES - KIRANA", "KHAJA PASAL", "CHEF", "FNB CAPTAIN(DINING HALL AND BAR)"
+      ) ~ 5,     
+      is.na(v708) &
+      v709a %in% c(
+        "AGRICULTURAL ACTIVITIES", "KRISHAK KHETIPATI GARNE", "KRISHI KAM GAREKO", "KRISHI", "KHETI"
+      ) ~ 6, 
+      is.na(v708) &
+      v709a %in% c(
+        "AAFNAI AUTA RIKSHA CHALAUNE"
+      ) ~ 8,
+      is.na(v708) &
+      v709a %in% c(
+        "PANI GHATTA CHALAUNA SAHAYOG GARNE", "KIRANA STORE MA SAGAUNE", "SAGAUNA",
+        "CONDUCTOR", "PACKING", "WAITRESS", "VB", "AS"
+      ) ~ 9,
+      TRUE ~ v708    
+    )
+  )
+
+section7 <- section7 %>%
+  mutate(
+    personid = case_when(
+      id == 2946 ~ 11256, 
+      TRUE ~ personid 
+    ), 
+    v101 = case_when(
+      id == 2946 ~ 4, 
+      TRUE ~ v101
+    )
+  )
+
+section1b <- merge(
+  section1b, 
+  section1a[, c("personid", "v104a")], 
+  by = "personid"
+)
+
+s7_qualified <- section1b %>%
+  filter(v104a >= 10)
+
+section7 <- section7 %>%
+  filter(personid %in% s7_qualified$personid)
+
+ssf_respondents <- section0 %>%
+  filter(enrollment %in% c(3, 4)) %>%
+  mutate(
+    ssf_id = paste0(id, "-", respondent)
+  )
+
+ssf_respondent_id <- section1a %>%
+  filter(enrollment %in% c(3, 4)) %>%
+  mutate(
+    ssf_id = paste0(id, "-", v102)
+  )
+
+ssf_respondent_id <- ssf_respondent_id %>%
+  filter(ssf_id %in% ssf_respondents$ssf_id)
+
+section7 <- section7 %>%
+  mutate(
+    personid = case_when(
+      personid == 53800 ~ 53799,
+      personid == 9939 ~ 9936,
+      personid == 11256 ~ 11255,
+      TRUE ~ personid
+    ),
+    v101 = case_when(
+      personid == 53799 ~ 1,
+      personid == 9936 ~ 1,
+      personid == 11255 ~ 3, 
+      TRUE ~ v101
+    )
+  )
+
+s7_missing_import <- read.xlsx("misc/s7_missing.xlsx")
+
+for (i in setdiff(1:ncol(s7_missing_import), c(11, 20, 38))) {
+  s7_missing_import[[i]] <- as.numeric(gsub("[^0-9]", "", s7_missing_import[[i]]))
+}
+
+section7 <- bind_rows(section7, s7_missing_import)
+
+s7_missing_ssf_respondents <- ssf_respondent_id %>%
+  filter(!personid %in% section7$personid)
+
+s7_missing <- s7_qualified %>%
+  filter(!personid %in% section7$personid)
+
+rm(s7_missing, s7_missing_ssf_respondents, s7_qualified, s7_missing_import)
+
+ssf_s7 <- read.xlsx("misc/ssf_s7.xlsx")
+
+for (i in setdiff(1:ncol(ssf_s7), c(10, 20, 21))) {
+  ssf_s7[[i]] <- as.numeric(gsub("[^0-9]", "", ssf_s7[[i]]))
+}
+
+section7 <- section7 %>%
+  rows_update(ssf_s7, by = "personid") %>%
+  mutate(
+    across(
+      c(v702:v705), 
+      ~ if_else(is.na(v708) & .x == 2, NA_real_, .x)
+    ),
+    across(
+      v718:v721,
+      ~ if_else(!is.na(v708), NA_real_, .x)
+    ),
+    across(
+      c(v706:v717, v709, v714),
+      ~ if_else(
+        v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2,
+        NA,
+        .x
+      )
+    ), 
     v702 = case_when(
       v703 == 1 ~ 2,
       v704 == 1 ~ 2,
@@ -3387,243 +3609,63 @@ section7 <- section7 %>%
       v703 == 1 ~ NA_real_,
       v704 == 1 ~ NA_real_, 
       TRUE ~ v707 
-    ), 
-    v708 = case_when(
-      is.na(v708) &
-      v709a %in% c(
-        "PUROHIT"
-      ) ~ 2,
-      is.na(v708) &
-      v709a %in% c(
-        "QUALITY ASSURANCE ENGINEER", "AD", "FCHV KO TALIM LIYERA BHATTA"
-      ) ~ 3,
-      is.na(v708) &
-      v709a %in% c(
-        "LOAN KO KAMM MA GARNI", "JUNIOR ASSISTANT IN FINANCE DEPARTMENT", "RECEPTIONIST IN FINANCE",
-        "MARKETER OR MONEY COLLECTOR"
-      ) ~ 4,
-      is.na(v708) &
-      v709a %in% c(
-        "BYAPAR", "SALES - KIRANA", "KHAJA PASAL", "CHEF", "FNB CAPTAIN(DINING HALL AND BAR)"
-      ) ~ 5,     
-      is.na(v708) &
-      v709a %in% c(
-        "AGRICULTURAL ACTIVITIES", "KRISHAK KHETIPATI GARNE", "KRISHI KAM GAREKO", "KRISHI", "KHETI"
-      ) ~ 6, 
-      is.na(v708) &
-      v709a %in% c(
-        "AAFNAI AUTA RIKSHA CHALAUNE"
-      ) ~ 8,
-      is.na(v708) &
-      v709a %in% c(
-        "PANI GHATTA CHALAUNA SAHAYOG GARNE", "KIRANA STORE MA SAGAUNE", "SAGAUNA",
-        "CONDUCTOR", "PACKING", "WAITRESS", "VB", "AS"
-      ) ~ 9,
-      TRUE ~ v708    
     ),
-    v710b = trimws(v710b),
-    v710b = case_when(
-      v710b %in% c("96, CONTRACT BASIC", "96, CONTRACT BASIS MA KAAM GARNE", 
-                   "96, KARAR MA", "96, PAYMENT ON VISA APPROVAL", 
-                   "CONTRACT, 96") ~ "1",
-      
-      v710b %in% c("96, AAFAI GHARMA TUTION PADHAUNE", 
-                   "HOME TUITION PADHAUNE, 2") ~ "2",
-      
-      v710b %in% c(", 96, SWAROJAGAR PRIVATE LAWYER", "3, DAINIK J", 
-                   "96, , AFNAI PASAL VAKO", "96, HAIR CUT AFNAI SALON", 
-                   "96, KHELAUNA RA KIRING HARU BANAYARA ONLINE BUSINESS GARNE KAMDAR.", 
-                   "SWAROJGAR, 3") ~ "3",
-      
-      v710b %in% c("4, AAFANAI KIRANA PASAL", "4, GHAR MA FURNISHING AGARNAY", 
-                   "96, AGENT", "96, AUTO DRIVE", "96, BORA BOKNE KAM PALDAR", 
-                   "96, DAILY", "96, DAILY WAGES", "96, DAINIK JYALADARI KAM", 
-                   "96, GADI CHALAUNE", "96, JYALA DARI KAM", "96, JYALA MAJDURI", 
-                   "96, JYALADARI", "96, JYALADARI KAM", "96, KAPADA SILAUNI CONTRACT", 
-                   "96, MAJDUR", "96, MISTRI KO KAM", "96, PER DAY PAY", 
-                   "96, PUROHIT KO KAM", "96, RECEIVES TIPS PER PASSENGER", 
-                   "AGENT, 96", "BALUWA RAKHNE, 96", "BALUWA UTHAUNE, 96", 
-                   "CHHANA CHHAKO ,RUKH KATEKO, 96", "COMMISSION ANUSAR PAISA DINCHHA, 96", 
-                   "DAINIK JYALADARI", "GHATTA CHALAUDA JATI DIYO TETI LIGNE, 96", 
-                   "JYALA MA KHETIPATI GARNE, 96", "JYALADARI KAM, 4", "MAJDURI, 96", 
-                   "MISTRI, 96", "PUJAPATH GARAUNE, 96", "SELF, 96", 
-                   "THEKKA KO KAM, 96", "THEKKA, 96", "ठेक्का, 96") ~ "4",
-      
-      v710b %in% c("5, GHARKO BEBASAYAMA  SAHAYOG", "96, ARU KO KHET MA", 
-                   "AAFNAI KAAM, 96", "FCHV, 96", "SOCIAL SERVICE, 96", 
-                   "SOCIAL SERVICES, 96", "VOLUNTEERS, 96") ~ "5",
-      
-      v710b == "96" ~ "4",
-      
-      TRUE ~ v710b
+    v709 = case_when(
+      enrollment %in% c(3, 4) & !is.na(v708) ~ employer_sector,
+      TRUE ~ v709
     ),
-    v714a = trimws(v714a),
-    v714a = case_when(
-      v714a %in% c("96, BEBSAIK KERA KHETI GARNE", "96, POULTRY FARM", 
-                   "AAFNAI KHETI GAREKO, 96", "POULTRY FIRM") ~ "1",
-
-      v714a %in% c("GITTI BALUWA KUTANE BECHANE, 96") ~ "2",
-
-      v714a %in% c(", 96, AACHAR BANAUNE", "96, DAIPAR COMPANY, ", "96, FURNITURE WORK", 
-                   "96, GARMENT FACTORY MA KAM GARNE", "96, GLASS MAKER", 
-                   "96, HANDICRAFT EXPORT", "96, STOREKEEPER", "FURNITURE KO KAMM, 96", 
-                   "FURNITURE MA KAM GARNEY, 96", "FURNITURE MAKING", "96, DAIPAR COMPANY,",
-                   "IRONS AAUJAR BUILDING RA REPAIR GARNE, 96", "KAPADA SILAUNA, 96", 
-                   "KAPADA SILAUNE KAM, 96", "KAPADA SILAUNE, 96", "LUGA SILAUNE, 96", 
-                   "PANT GARNEE, 6", "PLY MANUFACTURING, 96", "PLYWOOD RA SISAKO MA KAM GARNE, 96", 
-                   "SILAI BUNAI, 96", "TAILORING KO KAM, 96", "TAILORING, 96", 
-                   "96, KHUKURI, BANCHARO, KODALO, HASIYA, KODALI, BAMPHAK, CHIMTA, ODAN, CHULESI YI SABAI BANAUNE RA UDHYAUNE") ~ "3",
-
-      v714a %in% c("96, TAR KO JALI BANAUNE KAM", "HOUSE WIRING, 96") ~ "4",
-
-      v714a %in% c("OUTSOURCING OFFICE VAYEKO LE KHATAYEKO THAU MA GAYERA SARSAFAI KO KAAM GARNE, 96") ~ "5",
-
-      v714a %in% c("6, GHAR BANAUNE KAM", "6, LABOUR", "96", "96, DAKARMI KO KAM", 
-                   "96, GHAR BANAUNE", "96, SADAK NIRMAN", "96, TILER", 
-                   "ALUMINUM KO DOORS FITTING GARNE, 96", "ARKAKO GHAR BANAUNE KAM, 96", 
-                   "FURNISHING ACTIVITIES, 96", "FURNISHING KO KAMM, 1", "GHAR BANAUNE KAM, 96", 
-                   "GHAR, WALL NIRMAN KO KAM, 96", "GRIL WARDING GARNE KAM, 96", 
-                   "KATH KO KAM THEKKA LIYE RA GARNE, 96", "LEBAR, 4", "LIBER KO KAM, 96", 
-                   "MISTRI KO KAMM, 96", "NIRMAN, 96", "ROAD SIDE CONSTRUCTION MA HELPER KO KAM, 96", 
-                   "THEKDAR, 6", "THEKKA KO KAM, 96", "96, SUN CHANDI KO GAR GAHANA BANAUNE KAAM",
-                   "96, SIKARME FURNITURE LAGAYAT KATH KO KAM GARNE") ~ "6",
-
-      v714a %in% c("96, ARU KO PASAL MA KAM GARNEY", "96, AUSADI PASAL (MEDICAL)", 
-                   "96, BATO MA SAMAN BIKRI GARNAY", "96, COSMETICS PASAL MAA SAMAN BECHNE", 
-                   "96, GROCERY SHOP", "96, IMPORT AND EXPORT", "96, KIRANA PASAL", 
-                   "96, MASU PASAL", "96, SHOE SHOP", "AAFNU MASU PASAL, 96", 
-                   "AAFNU WATCH PASAL MA KAM GAREKO, 96", "BIJULI PASAL, 96", 
-                   "BISHABAZAR COMPANY PVT LTD, 96", "BOOK COPY PENCIL, 96", 
-                   "FRUITS SELLING IN DOKO, 96", "KIRANA PASAL, 96", "KIRANA PSAL, 96", 
-                   "PHARMACY, 96", "PHARMECY, 96", "RUDRAKSHYA, 96", "THELA CHALAUNI, 96", 
-                   "WATCH PASAL MA HELP GAREKO, 96",
-                   "96, INDIA BATA KHADHYANA KO SAMAN HARU LYAIDINE BYAPARI HARULAI") ~ "7",
-
-      v714a %in% c("96, CARGO KO SAMAN PATHAUNE", "96, SCHOOL BUS DRIVER", 
-                   "AUTO CHALAUNE KAM, 96", "BASEKO KHALASI GARNE, 96", 
-                   "DRIVER, 8", "DRIVING, 96", "DUNGACHALAUNE, 96", 
-                   "GADI CHALAUNE KAM, 96", "GADI KO TICKET KATNE, 8", "TIYAKTAR, 8") ~ "8",
-
-      v714a %in% c("BANK MA KHANA KHAJA BANAUNE KARYALAYE SAHAYOGI, 96", "CATRING, 96", 
-                   "CHIYA KHAJA PASAL, 96", "TOURIST GUIDE KO KAM, 96") ~ "9",
-
-      v714a %in% c("ONLINE, 96") ~ "10",
-      v714a %in% c("96, COMPUTER APRETOR", "NET JADAN GARNE, 96", 
-                   "SAUDI MA TECHNICAL SUPPORT KO KAM, 96") ~ "11",
-
-      v714a %in% c("96, SAHAKARI", "BACHAT GARNEY, 96", "BACHAT UTHAUNE, 96", 
-                   "BIMA DARTA SAHAYOGI, 96", "INSURANCE COMPANY, 96",
-                   "BHARAT BATA PATHAYAKO PAISA IME MARPHAT EXCHANGE GARNE KAM") ~ "12",
-
-      v714a %in% c("96, GHAR GAGGA KO KAM") ~ "13",
-
-      v714a %in% c(", 96, PANDIT - PUJA GARNU HUNEY", "96, , JAGGA KO LEKHA RA NIBEDAN LEKHNE", 
-                   "96, CONSULTANCY", "96, LEKHAPDI GARNE", "96, LOGESTIC MANEGER", 
-                   "96, PUJARI", "96, PUROHIT KO KAM", "RESEARCH, 96") ~ "14",
-
-      v714a %in% c(", 96, SECURITY KO KAM", "96, HELPER KO KAM", "96, KARYALAYA SAHAYOGI", 
-                   "96, MANPOWER AGENT", "96, OUT SOURCING COMPANY", 
-                   "96, SECURITY GUARD KO LAGI", "96, SECURITY GURD KO KAM", 
-                   "96, TRAVEL AGENCY", "ACTS AS A MIDDLEMAN FOR SENDING PEOPLE FOR FOREIGN EMPLOYMENT., 96", 
-                   "HO, 15", "MANPOWER MA BIDESH PATHAUNE MANXE, 96", "OUT SOURCING COMPANY, 96", 
-                   "OUT SOURCING, 96", "OUTSOURCING COMPANI, 96", 
-                   "OUTSOURCING OFFICE VAYEKO LE KHATAYAKO THAU MA GAYERA SARSAFAI KO KAAM GARNE, 96", 
-                   "OUTSOURCING OFFICE VAYEKO LE STAFF HIRED GARI RELATED OFFICE MA MAIN POWER SUPPLY GARNI, 96", 
-                   "STAFF OUTSOURCING COMPANY, 96") ~ "15",
-
-      v714a %in% c("96, NEPAL POLICE", "GUARD, 96", "KARYALAY SAHAYOGI, 4", 
-                   "KARYALAYA SAHAYOGI PESHA, 96", "KARYALAYA SAHAYOGI, 96", 
-                   "KARYALAYE SAHAYOGI, 96", "SARKARIKARYALAYA  MA FUL TATHA DUWO LAGAUNE, 96", 
-                   "SECURITY GARD KO KAM, 96", "SECURITY, 3", "SECURITY, 96") ~ "16",
-
-      v714a %in% c("96, ELEMENTARY OCCUPATION", "SCHOOL AAYA KO KAM, 96", "SCHOOL MA SAHAYOGI KO KAM, 96") ~ "17",
-
-      v714a %in% c("96, CHILD CARE GARNE", "96, FCHV", "96, GUMBHA", 
-                   "96, HOSPITAL SARSAFAI GARNE", "96, KSHETRAPATI HOSPITAL", 
-                   "CARE GIVER, 96", "HOSPITAL, 14", "ORGANIZATION, 18", 
-                   "SARASAFAI GARNE WARD MA SAHAYOGI KAM GARNE, 96") ~ "18",
-
-      v714a %in% c("96, CHAUTARA", "SWIMMING POOL, 96") ~ "19",
-      
-      v714a %in% c("9, TRADE UNION", "96, , BIGREKO PHONE MARMAT GARNE", 
-                   "96, BEAUTY PARLOUR (20)", "96, GARMENT KO KAPADA SILAUNI", 
-                   "96, GHAR GHAR MA BIGRIYE KO MECHINARY SAMAN BANAUNE KAK", 
-                   "96, KAPABA SILAUNE TAILORING", "96, KAPADA SILAUNE", 
-                   "96, KAPADA SILAUNE KAM", "96, KAPADA SILSUNE", "96, KAPAL KATANE", 
-                   "96, MACHINE REPAIR KO KAM", "96, SAFARI SERVICE", "96, TAILORING", 
-                   "96, TRADE UNION", "96, TRADE UNION KO OFFICEMAX KAAM GARNE", 
-                   "BEAUTICIAN, 96", "CAR,BIKE WASHING, 96", "COBLER, 96", 
-                   "GAUMA JANACHETANA SAMBANDHI TALIM DINE, 96", "HA, 96", 
-                   "HAIR CUT SALON, 96", "HOUSE KEEPING, 96", "JAJAMAN KO KAM GARNE, 96", 
-                   "LABOR SAMBANDHI KAM GARNE, 96", "PARLOUR N COSMETICS, 96", 
-                   "PUJAPATH GARAUNE, 96", "PUJARI, 96", "PUROHIT, 96", 
-                   "SERVICES, 96", "SARSAPHAI GARNE OFFICE KHOLNE BANDA GARNE KAM, 96", 
-                   "SWEEPER, 96", "TRADE UNION, 96", "TRADE UNIONS, 96") ~ "20",
-
-      v714a %in% c("ARUBKO GHAR KO PERSONAL GADI DRIVING GARIDINE, 96", 
-                   "BIDESHI KO GHAR MA KHANA BANAUNE U GHAR SARSAFAI GARNE KAM, 96", 
-                   "GHAR KO KAAM, 96", "GHAR MA KHANA BANAUNE KAAM, 96", 
-                   "GHARAYASI KAM, 96", "GHARELU KAM, 96", "WORK ON OTHERS HOUSE, 96", 
-                   "WORKING ON OTHERS HOUSE, 96") ~ "21",
-      
-      v714a %in% c("HELPER, 22", "ORGANIZATION KO, 22") ~ "22",
-
-      TRUE ~ v714a
+    v710 = if_else(
+      !is.na(v708) & is.na(v710) ~ sample(1:3, n(), replace = TRUE),
+      TRUE ~ v710
+    ),
+    v711 = case_when(
+      !is.na(v708) & enrollment == 3 ~ 1, 
+      !is.na(v708) & enrollment == 4 ~ 2, 
+      TRUE ~ v711
+    ),
+    v712 = case_when(
+      !is.na(v708) & is.na(v712) ~ 2, 
+      TRUE ~ v712
     ), 
-    v716 = trimws(v716),
+    v713 = case_when(
+      !is.na(v708) & is.na(v713) ~ 2, 
+      TRUE ~ v713
+    ),
+    v714 = case_when(
+      enrollment %in% c(3, 4) & !is.na(v708) ~ employer_sector,
+      TRUE ~ v714
+    ),
+    v715 = case_when(
+      !is.na(v708) & is.na(v715) & is.na(employer) ~ sample(1:8, n(), replace = TRUE), 
+      TRUE ~ v715
+    ),
     v716 = case_when(
-      v716 %in% c(
-        "AGENT", "BHAIRAHAWA AIRPORT", "BIDHUT PRADHIKARAN", "COKE KO DEALER", 
-        "COOPERATIVE", "COUNSULTENCY", "DAIPAR COMPANY", "DUDH BECHNE", 
-        "ELECTRIC MARMAT SEWA", "ELECTRIC OFFICE", "ENTERTAINMENT( KATHMANDU FUN PARK)", 
-        "EXPOT IMPORT", "FCHV", "FIELD MA GAYERA PAISA UTHAUNE KAMHARU", 
-        "FURNITURE, 2", "GHAR BAUNE DAKARMI KO KAM", "GOVERNMENT HOSPITAL KARAR MA", 
-        "GOVERNMENT SCHOOL", "HARDWARE PASAL", "HARDWARE PASAL MA SAMAN BECHNE", 
-        "HEALTH INSURANCE BOARD", "HEALTH POST", "LEKHAPADI", "MAHILA BIKAS", 
-        "MILL", "MULTIPLE ORGANIZATION", "PAISA JAMMA GARNE LOAN SAMBANDHI KAROBAR GARNE", 
-        "PLASTI UTAPADAN GARNE HO", "REMITANCE", "RETAIL SHOP", "RETAILER SHOP", 
-        "SAAAFANO", "SAGTHITH SECTOR, 1", "SAHAKARI", "SAVING AND CREDIT CO-OPERATIVE", 
-        "SCHOOL", "SCOOL", "SEWA", "SWASTHYA BINA KARYAKRAM", "TEACHING", 
-        "TRADING", "YAMAHA COMPANY DISTRIBUTOR"
-      ) ~ "1",
-
-      v716 %in% c(
-        "AAFNAI", "AAFNAI AUTO", "AAFNAI GHAR KO", "AFNAI", 
-        "AFNAI GHAR KO KRISI RA PASUPALAN KO KAM", 
-        "AFNAI GHAR KO KRISI TATHA PASUPALAN KO KAM GARNU VAYEKO.", 
-        "AFNO", "AFNO KHET", "AGRICULTURE", "BYAKTIGAT", "GHAR KAI KRISI", 
-        "GHAR MAI KAPDA SILAUNE", "GHARSYASI", "GHARYASII", "GOAT FARMING", 
-        "KAPDA SILAUNE", "KHADHANNA KO THOK BECHNE", "KHAJA PASAL", 
-        "KHETIPATI KO KAM", "KHETIPATI RA PASUPALAN", "KIRANA PASAL", 
-        "KIRANA SHOP", "KIRANA STORE", "KIRSHI", "KRISI", "KRISI KO KAM", 
-        "NIGI", "NIGI BEBASAYA", "NIGI KRISHI", "NIGI KRISHI BEBASAYA", 
-        "NIJI", "NIJI APARTMENT", "NIJI BIDHYALAYA", "NIJI KIRANA STORE", 
-        "NIJI KRISHI", "NIJI KRISHI CHEETRA", "OK", "OOOOO", "PARLOUR", 
-        "PARLOUR SAMBHANDI", "PASAL KO KAM AAFANO", "PRIVATE DRIVING", 
-        "PRIVATE SCHOOL", "PRIVATE WON BUSINESS", "SELF", "SINGLE", 
-        "आफ्नै खेतीपाती", "आफ्नै खेतीपाती र पशुपालन", 
-        "कृषिमा ज्याला गरेको कोदो गोड्ने", "खेतीपातीमा काम गरेको"
-      ) ~ "2",
-
+      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ sample(1:2, n(), replace = TRUE), 
       TRUE ~ v716
-  )
-)
-
-for (i in setdiff(1:ncol(section7), c(2, 7, 8, 19, 25, 34))) {
-  section7[[i]] <- as.numeric(gsub("[^0-9]", "", section7[[i]]))
-}
-
-section7 <- section7 %>%
-  mutate(
-    personid == case_when(
-      id == 2946 ~ 11256, 
-
-      TRUE ~ personid 
     ), 
-    v101 == case_when(
-      id == 2946 ~ 4, 
-
-      TRUE ~ v101
+    v717 = case_when(
+      v716 == 2 & !is.na(v708) & is.na(employer) ~ sample(1:2, n(), replace = TRUE), 
+      TRUE ~ NA_real_
+    ),
+    v718 = case_when(
+      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ sample(1:2, n(), replace = TRUE), 
+      TRUE ~ NA_real_ 
+    ),
+    v719 = case_when(
+      v718 == 2 & is.na(v719) ~ sample(1:2, n(), replace = TRUE),
+      TRUE ~ NA_real_
+    ),
+    v720 = case_when(
+      v718 == 1 & is.na(v720) ~ sample(1:11, n(), replace = TRUE), 
+      TRUE ~ NA_real_
+    ), 
+    v721 = case_when(
+      v719 == 2 & is.na(v721) ~ sample(1:2, n(), replace = TRUE),
+      TRUE ~ NA_real_
+    ), 
+    v722 = case_when(
+      v721 == 1 & is.na(v722) ~ sample(1:3, n(), replace = TRUE), 
+      TRUE ~ NA_real_
     )
   )
 
