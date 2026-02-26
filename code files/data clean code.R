@@ -3522,12 +3522,16 @@ section7 <- section7 %>%
       personid == 53800 ~ 53799,
       personid == 9939 ~ 9936,
       personid == 11256 ~ 11255,
+      personid == 5949528 ~ 5949530,
+      personid == 5949530 & v101 == 3 ~ 5949528,
       TRUE ~ personid
     ),
     v101 = case_when(
       personid == 53799 ~ 1,
       personid == 9936 ~ 1,
       personid == 11255 ~ 3, 
+      personid == 5949528 ~ 1, 
+      personid == 5949530 ~ 3,
       TRUE ~ v101
     )
   )
@@ -3550,12 +3554,16 @@ rm(s7_missing, s7_missing_ssf_respondents, s7_qualified, s7_missing_import)
 
 ssf_s7 <- read.xlsx("misc/ssf_s7.xlsx")
 
-for (i in setdiff(1:ncol(ssf_s7), c(10, 20, 21))) {
+for (i in setdiff(1:ncol(ssf_s7), c(10, 20, 38))) {
   ssf_s7[[i]] <- as.numeric(gsub("[^0-9]", "", ssf_s7[[i]]))
 }
 
 section7 <- section7 %>%
-  rows_update(ssf_s7, by = "personid") %>%
+  rows_update(
+    ssf_s7, 
+    by = "personid",
+    unmatched = "ignore"
+  ) %>%
   mutate(
     across(
       c(v702:v705), 
@@ -3615,8 +3623,9 @@ section7 <- section7 %>%
       TRUE ~ v709
     ),
     v710 = if_else(
-      !is.na(v708) & is.na(v710) ~ sample(1:3, n(), replace = TRUE),
-      TRUE ~ v710
+      !is.na(v708) & is.na(v710),
+      sample(1:3, n(), replace = TRUE),
+      v710
     ),
     v711 = case_when(
       !is.na(v708) & enrollment == 3 ~ 1, 
@@ -3669,21 +3678,46 @@ section7 <- section7 %>%
     )
   )
 
+rm(ssf_s7, ssf_respondents)
+
+ssf <- section7 %>%
+  filter(personid %in% ssf_respondent_id$personid)
+
+rm(ssf)
+
 #SECTION8 
 
-for (i in setdiff(1:ncol(section8), c(2, 7, 8, 13, 16))) { 
-  section8[[i]] <- as.numeric(gsub("[^0-9]", "", section8[[i]]))
+wages <- read.xlsx("misc/wages.xlsx")
+ssf_s8_missing <- read.xlsx("misc/ssf_s8_missing.xlsx")
+
+for (i in setdiff(1:ncol(ssf_s8_missing), c(10, 17, 34))) {
+  ssf_s8_missing[[i]] <- as.numeric(gsub("[^0-9]", "", ssf_s8_missing[[i]]))
 }
 
 section8 <- section8 %>%
+  rows_update(
+      wages, 
+      by = "personid",
+      unmatched = "ignore"
+  ) %>%
+  rows_append(
+    ssf_s8_missing
+  ) %>%
   mutate(
+    personid = case_when(
+      personid == 5952053 ~ 5952054,
+      TRUE ~ personid
+    ),
+    v101 = case_when(
+      personid == 5952054 ~ 3, 
+      TRUE ~ v101
+    ),
     v802 = case_when(
       v802 == 2 & !is.na(v803) ~ 1,
       is.na(v803) & is.na(v803c) ~ 2,
       personid %in% c(14210, 51558) ~ 2,
       TRUE ~ v802
     ),
-
     v803c = case_when(
 
       is.na(v803c) & v803 %in% c(
@@ -3752,6 +3786,8 @@ section8 <- section8 %>%
       TRUE ~ v803c
     )
   )
+
+rm(ssf_s8_missing, wages)
 
 section8 <- section8 %>%
   mutate(
@@ -3920,287 +3956,437 @@ section8 <- section8 %>%
   ) %>%
   ungroup()
 
-section8 <- section8 %>%
-  group_by(v80) %>%
+ssf_s8 <- section8 %>%
+  filter(personid %in% ssf_respondent_id$personid)
+  
+ssf_s8 <- ssf_s8 %>%
+  left_join(
+    section7 %>% select(personid, v708),
+    by = "personid"
+  ) %>%
   mutate(
-    across(
-      c(v806, v807, v808a, v808b, v808c, v808d, v808e, v809, v810a, v810b),
-      ~ {
-        p5   <- quantile(.x, 0.05, na.rm = TRUE)
-        p95  <- quantile(.x, 0.95, na.rm = TRUE)
-        mu   <- round(mean(.x, na.rm = TRUE))
+    v803 = coalesce(v708, v803)
+  ) %>%
+  select(-v708)
 
-        if_else(.x < p5 | .x > p95, mu, .x)
-      }
+ssf_s8 <- ssf_s8 %>%
+  group_by(province, v803) %>%
+  mutate(
+    v808a = case_when(
+    is.na(v808a) ~ round(mean(v808a, na.rm = TRUE), -2),
+    TRUE ~ v808a
     )
   ) %>%
-  ungroup()  
+  ungroup() %>%
+  mutate(
+    across(
+      c(v808a:v810b), 
+      ~ if_else(!is.na(v805) & !is.na(v806), NA_real_, .x)
+    ),
+    across(
+      c(v805:v809), 
+      ~ if_else(!is.na(v810a), NA_real_, .x)
+    ),
+    v808a = pmax(v808a, v808b, v808c, na.rm = TRUE),
+    across(
+      c(v805:v810b),
+      ~ na_if(.x, 0)
+    ),
+    v804 = case_when(
+      !is.na(v805) ~ 1, 
+      !is.na(v808a) ~ 2, 
+      !is.na(v810a) ~ 3,
+      TRUE ~ v804
+    )
+  )
+
+section8 <- section8 %>%
+  rows_upsert(ssf_s8, by = "personid")
+
+s8_missing <- read.xlsx("misc/s8_missing.xlsx")
+
+for (i in setdiff(1:ncol(s8_missing), c(11, 16, 34))) { 
+  s8_missing[[i]] <- as.numeric(gsub("[^0-9]", "", s8_missing[[i]]))
+}
+
+s8_missing$v803b <- as.character(s8_missing$v803b)
+
+section8 <-section8 %>%
+  rows_append(s8_missing)
+
+s8_qualified <- section1b %>%
+  filter(v104a >= 10)
+
+section8 <- section8 %>%
+  filter(personid %in% s8_qualified$personid) %>%
+  mutate(
+    across(
+      c(v808a:v810b), 
+      ~ if_else(!is.na(v805) & !is.na(v806), NA_real_, .x)
+    ),
+    across(
+      c(v805:v809), 
+      ~ if_else(!is.na(v810a), NA_real_, .x)
+    ),
+    v808a = pmax(v808a, v808b, v808c, na.rm = TRUE),
+    across(
+      c(v805:v810b),
+      ~ na_if(.x, 0)
+    ),
+    v804 = case_when(
+      !is.na(v805) ~ 1, 
+      !is.na(v808a) ~ 2, 
+      !is.na(v810a) ~ 3,
+      TRUE ~ v804
+    ),
+    v802 = case_when(
+      !is.na(v803) ~ 1,
+      TRUE ~ 2 
+    ), 
+    across(
+      c(v803:v810b),
+      ~ if_else(v802 == 2, NA, .x)
+    ),
+    v802 = case_when(
+      is.na(v804) ~ 2, 
+      TRUE ~ v802
+    ),
+    across(
+      c(v803:v810b),
+      ~ if_else(is.na(v804), NA, .x)
+    )
+  )
+
+wages <- section8 %>%
+  filter(
+    !is.na(v803)
+  ) 
+  
+jobs <- section7 %>%
+  filter(personid %in% wages$personid) 
+
+jobs <- merge(
+  jobs, 
+  wages[, c("personid", "v803")],
+  by = "personid"
+)
+
+jobs <- jobs %>%
+  mutate(
+    v803 = as.numeric(v803),
+    v708 = case_when(
+      is.na(v708) ~ v803, 
+      TRUE ~ v708
+    ),
+    v702 = case_when(
+      personid == 54165 ~ 1, 
+      TRUE ~ v702
+    ),
+    v704 = case_when(
+      personid == 60526 ~ 1,
+      TRUE ~ v704
+    )
+  )
+
+jobs <- jobs %>%
+  mutate(
+    v702 = case_when(
+      is.na(v702) ~ 1, 
+      v702 == 2 & v703 == 2 & v704 == 2 & is.na(v705) ~ 1, 
+      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 ~ 1,
+      TRUE ~ v702
+    ),
+    across(
+      c(v703:v705),
+      ~ if_else(v702 == 1, NA, .x)
+    ), 
+    across(
+      c(v702:v705), 
+      ~ if_else(is.na(v708) , 2, .x)
+    ),
+    across(
+      v718:v721,
+      ~ if_else(!is.na(v708), NA_real_, .x)
+    ),
+    across(
+      c(v706:v717, v709, v714),
+      ~ if_else(
+        v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2,
+        NA,
+        .x
+      )
+    ), 
+    v702 = case_when(
+      v703 == 1 ~ 2,
+      v704 == 1 ~ 2,
+      TRUE ~ v702
+    ),
+    v702 = case_when(
+      v702 == 2 & v703 == 2 & v704 == 2 & !is.na(v708) ~ 1,
+      TRUE ~ v702
+    ),
+    v703 = case_when(
+      v702 == 1 ~ NA_real_,
+      v704 == 1 ~ 2, 
+      TRUE ~ v703
+    ), 
+    v704 = case_when(
+      v702 == 1 ~ NA_real_, 
+      v703 == 1 ~ NA_real_,
+      TRUE ~ v704
+    ), 
+    v705 = case_when(
+      v702 == 1 ~ NA_real_, 
+      v703 == 1 ~ NA_real_,
+      v704 == 1 ~ NA_real_, 
+      TRUE ~ v705 
+    ),
+    v706 = case_when(
+      v702 == 1 ~ NA_real_, 
+      v703 == 1 ~ NA_real_,
+      v704 == 1 ~ NA_real_, 
+      TRUE ~ v706 
+    ),
+    v707 = case_when(
+      v702 == 1 ~ NA_real_, 
+      v703 == 1 ~ NA_real_,
+      v704 == 1 ~ NA_real_, 
+      TRUE ~ v707 
+    ),
+    v709 = case_when(
+      enrollment %in% c(3, 4) & !is.na(v708) ~ employer_sector,
+      TRUE ~ v709
+    ),
+    v710 = if_else(
+      !is.na(v708) & is.na(v710),
+      sample(1:3, n(), replace = TRUE),
+      v710
+    ),
+    v711 = case_when(
+      !is.na(v708) & enrollment == 3 ~ 1, 
+      !is.na(v708) & enrollment == 4 ~ 2, 
+      is.na(v711) ~ 2,
+      TRUE ~ v711
+    ),
+    v712 = case_when(
+      !is.na(v708) & is.na(v712) ~ 2, 
+      TRUE ~ v712
+    ), 
+    v713 = case_when(
+      !is.na(v708) & is.na(v713) ~ 2, 
+      TRUE ~ v713
+    ),
+    v714 = case_when(
+      enrollment %in% c(3, 4) & !is.na(v708) ~ employer_sector,
+      is.na(v714) ~ sample(1:20, n(), replace = TRUE),
+      TRUE ~ v714
+    ),
+    v715 = case_when(
+      !is.na(v708) & is.na(v715) & is.na(employer) ~ sample(1:8, n(), replace = TRUE), 
+      TRUE ~ v715
+    ),
+    v716 = case_when(
+      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ sample(1:2, n(), replace = TRUE), 
+      TRUE ~ v716
+    ), 
+    v717 = case_when(
+      v716 == 2 & !is.na(v708) & is.na(employer) ~ sample(1:2, n(), replace = TRUE), 
+      TRUE ~ NA_real_
+    ),
+    v718 = case_when(
+      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ sample(1:2, n(), replace = TRUE), 
+      TRUE ~ NA_real_ 
+    ),
+    v719 = case_when(
+      v718 == 2 & is.na(v719) ~ sample(1:2, n(), replace = TRUE),
+      TRUE ~ NA_real_
+    ),
+    v720 = case_when(
+      v718 == 1 & is.na(v720) ~ sample(1:11, n(), replace = TRUE), 
+      TRUE ~ NA_real_
+    ), 
+    v721 = case_when(
+      v719 == 2 & is.na(v721) ~ sample(1:2, n(), replace = TRUE),
+      TRUE ~ NA_real_
+    ), 
+    v722 = case_when(
+      v721 == 1 & is.na(v722) ~ sample(1:3, n(), replace = TRUE), 
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  select(-v803)
+
+section7 <- section7 %>%
+  rows_update(jobs, by = "personid") %>%
+  mutate(
+    v708 = case_when(
+      !personid %in% jobs$personid ~ NA,
+      TRUE ~ v708
+    )
+  )
+
+section7 <- section7 %>%
+  mutate(
+    across(
+      c(v702:v705), 
+      ~ if_else(is.na(v708) & .x == 2, NA, .x)
+    ),
+    across(
+      v718:v721,
+      ~ if_else(!is.na(v708), NA, .x)
+    ),
+    across(
+      c(v706:v717, v709, v714),
+      ~ if_else(
+        v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2,
+        NA,
+        .x
+      )
+    ), 
+    v702 = case_when(
+      v703 == 1 ~ 2,
+      v704 == 1 ~ 2,
+      TRUE ~ v702
+    ),
+    v702 = case_when(
+      v702 == 2 & v703 == 2 & v704 == 2 & !is.na(v708) ~ 1,
+      TRUE ~ v702
+    ),
+    v703 = case_when(
+      v702 == 1 ~ NA_real_,
+      v704 == 1 ~ 2, 
+      TRUE ~ v703
+    ), 
+    v704 = case_when(
+      v702 == 1 ~ NA_real_, 
+      v703 == 1 ~ NA_real_,
+      TRUE ~ v704
+    ), 
+    v705 = case_when(
+      v702 == 1 ~ NA_real_, 
+      v703 == 1 ~ NA_real_,
+      v704 == 1 ~ NA_real_, 
+      TRUE ~ v705 
+    ),
+    v706 = case_when(
+      v702 == 1 ~ NA_real_, 
+      v703 == 1 ~ NA_real_,
+      v704 == 1 ~ NA_real_, 
+      TRUE ~ v706 
+    ),
+    v707 = case_when(
+      v702 == 1 ~ NA_real_, 
+      v703 == 1 ~ NA_real_,
+      v704 == 1 ~ NA_real_, 
+      TRUE ~ v707 
+    ),
+    v709 = case_when(
+      enrollment %in% c(3, 4) & !is.na(v708) ~ employer_sector,
+      TRUE ~ v709
+    ),
+    v710 = if_else(
+      !is.na(v708) & is.na(v710),
+      sample(1:3, n(), replace = TRUE),
+      v710
+    ),
+    v711 = case_when(
+      !is.na(v708) & enrollment == 3 ~ 1, 
+      !is.na(v708) & enrollment == 4 ~ 2, 
+      TRUE ~ v711
+    ),
+    v712 = case_when(
+      !is.na(v708) & is.na(v712) ~ 2, 
+      TRUE ~ v712
+    ), 
+    v713 = case_when(
+      !is.na(v708) & is.na(v713) ~ 2, 
+      TRUE ~ v713
+    ),
+    v714 = case_when(
+      enrollment %in% c(3, 4) & !is.na(v708) ~ employer_sector,
+      TRUE ~ v714
+    ),
+    v715 = case_when(
+      !is.na(v708) & is.na(v715) & is.na(employer) ~ sample(1:8, n(), replace = TRUE), 
+      TRUE ~ v715
+    ),
+    v716 = case_when(
+      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ sample(1:2, n(), replace = TRUE), 
+      TRUE ~ v716
+    ), 
+    v717 = case_when(
+      v716 == 2 & !is.na(v708) & is.na(employer) ~ sample(1:2, n(), replace = TRUE), 
+      TRUE ~ NA_real_
+    ),
+    v718 = case_when(
+      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ sample(1:2, n(), replace = TRUE), 
+      TRUE ~ NA_real_ 
+    ),
+    v719 = case_when(
+      v718 == 2 & is.na(v719) ~ sample(1:2, n(), replace = TRUE),
+      TRUE ~ NA_real_
+    ),
+    v720 = case_when(
+      v718 == 1 & is.na(v720) ~ sample(1:11, n(), replace = TRUE), 
+      TRUE ~ NA_real_
+    ), 
+    v721 = case_when(
+      v719 == 2 & is.na(v721) ~ sample(1:2, n(), replace = TRUE),
+      TRUE ~ NA_real_
+    ), 
+    v722 = case_when(
+      v721 == 1 & is.na(v722) ~ sample(1:3, n(), replace = TRUE), 
+      TRUE ~ NA_real_
+    )
+  )
+
+rm(jobs, wages, ssf_s8, s8_missing, s8_qualified)
+
+section7 <- section7 %>%
+  mutate(
+    v708 = case_when(
+      personid == 18223 ~ 6, 
+      personid == 21500 ~ 3, 
+      personid == 22235 ~ 9, 
+      personid == 25994 ~ 3, 
+      personid == 5953191 ~ 4,
+      TRUE ~ v708
+    )
+  )
+
+section8 <- section8 %>%
+  mutate(
+    v803 = case_when(
+      personid == 18223 ~ 6, 
+      personid == 21500 ~ 3, 
+      personid == 22235 ~ 9, 
+      personid == 25994 ~ 3, 
+      personid == 5953191 ~ 4,
+      TRUE ~ v803
+    ), 
+    v804 = case_when(
+      personid == 18223 ~ 2, 
+      personid == 21500 ~ 2, 
+      personid == 22235 ~ 2, 
+      personid == 25994 ~ 2, 
+      personid == 5953191 ~ 2,
+      TRUE ~ v804
+    ), 
+    v808a = case_when(
+      personid == 18223 ~ 240000, 
+      personid == 21500 ~ 260000, 
+      personid == 22235 ~ 200000, 
+      personid == 25994 ~ 180000, 
+      personid == 5953191 ~ 270000,
+      TRUE ~ v808a
+    )
+  )
 
 #SECTION9A1
 
 section9a <- section9a %>%
   filter(
-    !(v902b == "" & v901 == "" & v902a == "" & v905 == "")
-  ) %>%
-  select(-v907a) %>%
-  rename(
-    v907a = X24
-  ) %>%
-  mutate(
-    v901 = case_when(
-      v901 == "" ~ "1",
-      v901 == "2" ~ "1", 
-      TRUE ~ v901
-    ),
-    v907a = trimws(v907a), 
-    v907a = case_when(
-     v907a %in% c("0 NESULKA GAREKO", "2 KATHA DIYEKO", 
-                 "AFNAI DAJU BHAI LEY GARI RAKHNH BHAKO HUNUNXA TESTO PAISA LEKO XAINA", 
-                 "AFNAI MAITI KO GAREKO SO NO ANY PAYMENT", 
-                 "AILE SAMMA PAKO XAINA TARA ABA BATA PAUNE.", 
-                 "BHARKHER KHETI LAGAYAKO DEYAKO CHHAINA", 
-                 "CHHORA HARU LAI GARI KHANU DINU BHAKO", 
-                 "DIYENA", "JETHAJU LEY GARI KHA VANERA DEKO PAISA TIRNU PARDAINA", 
-                 "KEI LINE DINE NAGAREKO", "LINE DINE NAGAREKO", 
-                 "NA", "NISULKA GARI KHANA DIYAKO.", "NO", 
-                 "SKIP HUNU PARNE", "0", "96", 
-                 "AAFAI KHETI GAREKO", "AAFAI VAIKO LIYEKO LE KEI DEKO XAINA", 
-                 "AAFNO AAFANTA KO VAYERA KEHI DIYEKO XAINA.", "ADHIYA NADIYEKO", 
-                 "AFNAI CHHORA LE KAMAI GARNE GAREKO", 
-                 "AFNO VAI LAI KHATI GARNE DEYAKO R TESBAPAT POISA AANA KEHE N LENE OPTION NOT APPLICABLE BHAYAKO LE KUT THAKKA WA BHADA MA DEYAKO MA TIK LAGAYAKO", 
-                 "AGRICULTURE PRODUCTION WAS DONE ON OFFICE LAND AND SHE DIDN'T PAY ANY AMOUNT & THINGS.SHE ALSO DON'T KNOW HOW MUCH IT COST WHILE SELLING LAND", 
-                 "ARUKO JAGGA MA GAREKO HO GHAR SIDE KO PAISA ANI KEI DINU PARDAINA", 
-                 "BINA PAISA YETIKAI GARI KHAU VANERA DIYEKO BAARI BAJHAI NAHOS VANERA", 
-                 "FREE", "GHR KO BUWA LE DINE", "K HI PANI DIDAINAN YETIKAI DIYEKO", 
-                 "KAINADINE BANDHAKI LEKO KHETHO", "KEHI DUNU PARDAINA", 
-                 "KEHI LINE DINE NAGAREKO.", "KEI LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI DIYEKO", 
-                 "KEI PANI LINE GAREKO XAINA GHAR MA SASU SASURA LE GARNE GAREKO", 
-                 "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI DIYEKO", 
-                 "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANALAI LIYEKO", 
-                 "LINE DINE NAGAREKO TETTIKAI KAMAYERA KHANE", 
-                 "OO", "SELF USE", "SITTAI MA PRAYOG GAREKO", 
-                 "TETTIKAI KAMAYERA KHANALAI DIYEKO", "TETTIKAI KAMAYERA KHANE", 
-                 "YO SAL BHARKHAR LAGAKO", "केही दिनु नपर्ने", 
-                 "निःशुल्क दिएको आफ्नै भाइले गरेर खाने", 
-                 "UHA KO NAM MA JAGGA XORA XUTIYEKO HUNA LEY KHET BARI UTA GARNU HUNXA RA TES BAPAT KEI KHANEY ANNA DAL HARU DINEY"
-                 ) ~ "0",
-    v907a == "100" ~ "100",
-    v907a == "150" ~ "150",
-    v907a == "1 MURI TORI" ~ "300",
-    v907a == "500" ~ "500",
-    v907a == "KHADHAYAN BALI 15 KG" ~ "600",
-    v907a == "KHADHYAN BALI 20 KG" ~ "800",
-    v907a %in% c("1", "1000") ~ "1000",
-    v907a %in% c("30KG", "1200") ~ "1200",
-    v907a == "8 PAATHI DHAAN" ~ "1280",
-    v907a == "1300" ~ "1300",
-    v907a == "1400" ~ "1400",
-    v907a %in% c("MILLET (RS1500)", "1500", "MAKAI 18KG") ~ "1500",
-    v907a == "1600" ~ "1600",
-    v907a == "1800" ~ "1800",
-    v907a %in% c("GADAUDI 2000", "SAG PAT TARKARI UBJAU MATRA DINE 2000", "2000") ~ "2000",
-    v907a %in% c("60 KG", "2400") ~ "2400",
-    v907a == "2500" ~ "2500",
-    v907a %in% c("MILLET (10 PATHI)3000", "30", "3000") ~ "3000",
-    v907a == "3500" ~ "3500",
-    v907a %in% c("1 MAN MAKAI 20 KG BHATMAS", "3600") ~ "3600",
-    v907a == "CHAMAL 50 KG DAL 15 KG" ~ "3800",
-    v907a == "3900 CASH RECEIVED" ~ "3900",
-    v907a %in% c("1 QUENTAL DHAN", "100 KILO DHAN GAU", "1 KUNTAL GAHU", 
-                 "1 QUENTAL GAHU", "40", "4000", "SAAG") ~ "4000",
-    v907a == "4500" ~ "4500",
-    v907a == "4800" ~ "4800",
-    v907a %in% c("5000 MOHIKHETKO LAGI DIYAKO", "GAU", "5", "50", "5000") ~ "5000",
-    v907a == "5400" ~ "5400",
-    v907a == "5500" ~ "5500",
-    v907a %in% c("20KG AALU", "DHAN 1 KUNTAL GHEHU 50KG", "GAHU150KG", 
-                 "DHAN 150KG", "6000") ~ "6000",
-    v907a == "6150" ~ "6150",
-    v907a == "6350" ~ "6350",
-    v907a %in% c("2 MURI", "4 MAN DHAN DINE GARXAN") ~ "6400",
-    v907a == "6500" ~ "6500",
-    v907a %in% c("RS.7000", "7000") ~ "7000",
-    v907a == "7500" ~ "7500",
-    v907a %in% c("200 KG KHADHAN", "3 MURI DHAN", "DHAN 200KG", 
-                 "DHANN 8000", "KHADHAN BALI 200KG", "8000", 
-                 'HE SAID THAT " I DON\'T GO THERE AND I DON\'T KNOW HOW MUCH IT YIELDS; WHATEVER THEY GIVE THAT\'S IT AND THE THINGS I GET WAS 2.5 QUINTAL DHAN',
-                 "UHA KO NAM MA JAGGA  XORA XUTIYEKO HUNA LEY KHET BARI UTA GARNU HUNXA RA TES BAPAT KEI KHANEY ANNA DAL HARU DINEY",
-                 "2 KUNTAL DHAN PAKO THIYE", "2 QUINTLE", "DHAN5 MURI") ~ "8000",
-    v907a %in% c("DHAM 3 MURI", "2 QUENTAL DHAN", "2 QUENTEL DHAN", 
-                 "2 QUENTAL 25 KG DHAN MATRA DIYAKO KHARCHA K HI DINA NAPARNE", 
-                 "9000") ~ "9000",
-    v907a %in% c("MAKAI 4MURI", "DHAN 4 MAN GEHU 2MAN", "DHAN 4  MAN GEHU 2MAN") ~ "9600",
-    v907a %in% c("OVERALL 1.5 QUINTAL VEGETABLE", "MAKAI", "10000") ~ "10000",
-    v907a == "DHAN 2 MASURI 20 KG" ~ "10400",
-    v907a == "3 QUENTAL DHAN" ~ "10884",
-    v907a == "11000" ~ "11000",
-    v907a == "11700" ~ "11700",
-    v907a %in% c("12000(DHAN)", "12000DHAN", "8 MAN DHAN", "12000", "3 QUINTAL DHAN") ~ "12000",
-    v907a == "12500" ~ "12500",
-    v907a == "12600" ~ "12600",
-    v907a %in% c("DHAN4 MURI", "12800") ~ "12800",
-    v907a == "13000" ~ "13000",
-    v907a == "13333" ~ "13333",
-    v907a == "13500" ~ "13500",
-    v907a %in% c("14000 KO DHAN", "14000") ~ "14000",
-    v907a == "14400" ~ "14400",
-    v907a %in% c("15000 KO DHAN", "15000(KODO)(MILLET)", "DHAN,GAHU", 
-                 "RS.15000 PAID FOR LAND LEASE", "15000", "DHAN 40 GEHU 20  MAN  MASULI 2MAN") ~ "15000",
-    v907a == "1 QUINTAL GAHU 10KG TORI 2 QUINTAL DHAN" ~ "15500",
-    v907a == "15600" ~ "15600",
-    v907a %in% c("4 QUINTLE", "DHAN 4QUENTAL", "DHAN 5 MURI", "5 MURI DHAN", "10 MAN", "16000") ~ "16000",
-    v907a == "17000" ~ "17000",
-    v907a == "17500" ~ "17500",
-    v907a == "18200" ~ "18200",
-    v907a == "18600" ~ "18600",
-    v907a %in% c("6 MURI", "6 MURI DHAN", "19000") ~ "19000",
-    v907a == "19200" ~ "19200",
-    v907a %in% c("18 MAN DHAN", "20000(DHAN)", "5 QUENTAL DHAN", "5 QUENTEL", 
-                 "500KG KHADHYAN", "6 QUENTEL", "DHAN", "DHAN 5 QUENTAL", 
-                 "DHAN 5 QUENTEL", "DHAN 500KG", "DHAN 5QU", 
-                 "5 KUNTAL DHAN", "5 QUINTAL DHAN", "20000", "2") ~ "20000",
-    v907a == "DHAN 10MAN GAHU3MAN" ~ "20800",
-    v907a %in% c("21000 DHAN", "21000") ~ "21000",
-    v907a == "21600" ~ "21600",
-    v907a %in% c("22000 TIRAYKO", "7 MURI DHAN PAYAKO", "7 MURI DHAN", "7  MURI DHAN PAYAKO",
-                 "DHAN 6 QUENTAL", "DHAN 6 QUENTEL", "22000 DAM KO ANNA BALI", 
-                 "22000") ~ "22000",
-    v907a == "22150" ~ "22150",
-    v907a == "7MURI" ~ "22400",
-    v907a == "22500" ~ "22500",
-    v907a %in% c("20 MAN DHAN DINU PAR XA", "23000", "20  MAN DHAN", "20  MAN DHAN DIYEKO") ~ "23000",
-    v907a == "23100" ~ "23100",
-    v907a %in% c("15 MAN", "6 KUNTAL DHAN", "7.5 MURI", "7.5MURI DHAN", 
-                 "15 MAN DIYAKO", "6 QUINTLE", "DHAN 10 MN GEHU 5 MN", "24000") ~ "24000",
-    v907a == "24500" ~ "24500",
-    v907a %in% c("20 MAN DHAN", "20 MAN DHAN DIYEKO", "25000(DHAN)", 
-                 "RICE", "25000") ~ "25000",
-    v907a %in% c("8 MURI", "8 MURI DHAN", "25600") ~ "25600",
-    v907a == "26000" ~ "26000",
-    v907a == "26250" ~ "26250",
-    v907a == "27000" ~ "27000",
-    v907a == "DHAN 10 MAN GEHU 5 MAN DAL 30 KG" ~ "27600",
-    v907a == "15 MURI DHAN 27750" ~ "27750",
-    v907a %in% c("12 MURI", "7 QUINTEL GAHU PAYEKO", "28000") ~ "28000",
-    v907a %in% c("9 MURI", "28800") ~ "28800",
-    v907a == "29500" ~ "29500",
-    v907a %in% c("30000 DHAN", "AALU", "AALU ", "DHAN ", "DHAN 8", "30000", 
-                 "30000 YO GOVERNMENT KO JAGGA HO TEI NI ARULAU THEKKA MAA DINU BHAKO CHA") ~ "30000",
-    v907a == "31500" ~ "31500",
-    v907a == "31800" ~ "31800",
-    v907a %in% c("10 MURI", "20MAN DHAN", "8 KUNTAL", "8QU", "DHAN 20", "32000") ~ "32000",
-    v907a == "33000" ~ "33000",
-    v907a == "34000" ~ "34000",
-    v907a == "34400" ~ "34400",
-    v907a == "34900" ~ "34900",
-    v907a %in% c("10 QUINTAL DHAN", "35000 (DHAN)", "35000") ~ "35000",
-    v907a %in% c("9 QUINTLE", "9 QUINTLE", "9  QUINTLE", "36000") ~ "36000",
-    v907a == "36450" ~ "36450",
-    v907a == "37000" ~ "37000",
-    v907a %in% c("12MURI DHAN", "38000") ~ "38000",
-    v907a %in% c("DHAN 12 MURI", "38400") ~ "38400",
-    v907a == "38500" ~ "38500",
-    v907a %in% c("39000 DHAN KO", "39000") ~ "39000",
-    v907a == "39200" ~ "39200",
-    v907a %in% c("100000 DHAN", "DHAN 10 KUNTAL GHEHU 4 KUNTAL", "DHAN 10 QUINTAL", 
-                 "DANN 10QUENTEL", "25 MAN", "10QU", "DHAN10 KUNTAL", 
-                 "GAHU 10 QUENTEL", "40000", 
-                 "5 BARSA KO LAGI 2 LAKH LIYARA BANDHAKI RAKHEKO RA TYO KHET KO UBJANI. SABAI UNIHARU LE NAI KHANE GARERA DIYAKO JAHILE 2LAKH TIRINX TYO JAGGA FIRTA HUNE GARI") ~ "40000",
-    v907a %in% c("41600", "DHAN 13 MURI PAYAKO") ~ "41600",
-    v907a %in% c("12 QUENTAL DHAN KHET GARNE LE NAI SABAI KHARCH BEHORX", "42000") ~ "42000",
-    v907a == "42300" ~ "42300",
-    v907a %in% c("1.5 QUINTLE MUSTARD RECEIVED.THE LAND WAS GIVEN TO OTHERS IN THE CHAPTER", "42900") ~ "42900",
-    v907a == "43900" ~ "43900",
-    v907a == "44000" ~ "44000",
-    v907a %in% c("45000(DHAN)", "45000") ~ "45000",
-    v907a == "45600" ~ "45600",
-    v907a == "46000" ~ "46000",
-    v907a == "47250" ~ "47250",
-    v907a %in% c("17 QUENTEL DHAN", "48000(DHAN)", "DHAN 12 QUENTAL ", "DHAN 15MURI", 
-                 "DHAN12", "12 QUINTLE", "DHAN 15 MURI", "48000", "DHAN 12 QUENTAL") ~ "48000",
-    v907a %in% c("20 MURI DHAN", "50(MAN DHAN RA MAIZE)(RS 50000)", "DHAN DAAL(RS50000 NEAR KO)", 
-                 "DHAN GAHU DAAL (50000)", "25 BORA", "12.5 DHAN QUINTAL", "50000", "20 MURI") ~ "50000",
-    v907a %in% c("13 QUENTEL", "13QUENTAL DHAN") ~ "52000",
-    v907a %in% c("DHAN 55000", "CHAMAL") ~ "55000",
-    v907a == "56000" ~ "56000",
-    v907a == "58800" ~ "58800",
-    v907a %in% c("40 MAN DHAN", "40MAN DHAN", "10 KUNTAL DHAN GAHU 5 KUNTAL GHEHU", 
-                 "15 DHAN 3MURI DAL", "60000") ~ "60000",
-    v907a == "61000" ~ "61000",
-    v907a == "61400" ~ "61400",
-    v907a == "61500" ~ "61500",
-    v907a == "62500(DHAN)" ~ "62500",
-    v907a %in% c("20MURI", "45 MAN", "DHAN25 MAN GEHU 15 MAN", "64000", "DHAN20MURI") ~ "64000",
-    v907a == "65000" ~ "65000",
-    v907a == "DHAN 12GAHU5(QUENTEL)" ~ "68000",
-    v907a %in% c("DHAN 25MURI", "2 QUINTAL TORI", "70000") ~ "70000",
-    v907a == "71100" ~ "71100",
-    v907a %in% c("72000 (DHAN)", "72000") ~ "72000",
-    v907a %in% c("DHAN 40 GEHU 5 MAN 2 MASURI MAN", "DHAN 8 GHEHU 4 MAN") ~ "73600",
-    v907a == "75000" ~ "75000",
-    v907a == "77000 DHAN" ~ "77000",
-    v907a == "79500" ~ "79500",
-    v907a %in% c("60 MAN DHAN DIYEKO", "DHAN 20 QU", "80000") ~ "80000",
-    v907a == "83600" ~ "83600",
-    v907a == "84000" ~ "84000",
-    v907a == "53 MAN DHAN" ~ "84800",
-    v907a == "85000" ~ "85000",
-    v907a == "18DHAN 1.5 MURI DAL" ~ "86400",
-    v907a %in% c("80 MAN DHAN DIYEKO", "90000") ~ "90000",
-    v907a == "95000" ~ "95000",
-    v907a %in% c("30 MURI DHAN DIYEKO", "DHAN 40 GEHU 20", "96000") ~ "96000",
-    v907a %in% c("DHAN GAHU 45 QUENTAL", "100000") ~ "100000",
-    v907a == "100500" ~ "100500",
-    v907a == "104000" ~ "104000",
-    v907a %in% c("105000 DHAN KO", "105000") ~ "105000",
-    v907a == "DHAN 40 GEHU 20 MAN MASULI 2MAN" ~ "105600",
-    v907a == "27QU" ~ "108000",
-    v907a %in% c("DHAN 35 GEHU 21MAN", "110000") ~ "110000",
-    v907a == "DHAN 40MAN GEHU 30MAN" ~ "112000",
-    v907a == "114000" ~ "114000",
-    v907a == "115000" ~ "115000",
-    v907a == "120000" ~ "120000",
-    v907a %in% c("4500 KG", "125000") ~ "125000",
-    v907a == "130000" ~ "130000",
-    v907a == "140000" ~ "140000",
-    v907a == "144000" ~ "144000",
-    v907a == "145000" ~ "145000",
-    v907a == "148225" ~ "148225",
-    v907a == "150000" ~ "150000",
-    v907a == "40 DHAN MAN GEHU 20 MAN TORI 5 MAN" ~ "166000",
-    v907a == "167500" ~ "167500",
-    v907a == "170000" ~ "170000",
-    v907a == "175000" ~ "175000",
-    v907a == "180000" ~ "180000",
-    v907a == "190000" ~ "190000",
-    v907a == "192000" ~ "192000",
-    v907a %in% c("200000 PAISA DINU BHAKO CHA TYO RETURN NAGARNE SAMMA KHETI GARI KHANA PAUNU HUNCHA", 
-                 "200000  PAISA DINU BHAKO CHA TYO RETURN NAGARNE SAMMA KHETI GARI KHANA PAUNU HUNCHA", 
-                 "200000 ( 5YEARS KO LAGI LIYEKO RA PAILAI TIREKO )", "50 QUINTLE", 
-                 "5 BARSA KO LAGI 2 LAKH LIYARA BANDHAKI RAKHEKO RA TYO KHET KO UBJANI. SABAI UNIHARU LE NAI KHANE GARERA DIYAKO  JAHILE 2LAKH TIRINX TYO JAGGA FIRTA HUNE GARI",
-                 "200000") ~ "200000",
-    v907a == "215000" ~ "215000",
-    v907a == "216000" ~ "216000",
-    v907a == "220000" ~ "220000",
-    v907a == "225000" ~ "225000",
-    v907a == "240000" ~ "240000",
-    v907a == "250000" ~ "250000",
-    v907a == "260000" ~ "260000",
-    v907a == "275000" ~ "275000",
-    v907a == "300000" ~ "300000",
-    v907a == "315000" ~ "315000",
-    v907a == "350000" ~ "350000",
-    v907a == "400000" ~ "400000",
-    v907a == "480000" ~ "480000",
-    v907a == "500000" ~ "500000",
-    v907a == "800000" ~ "800000",
-    v907a == "2000000" ~ "2000000",
-    v907a == "5000000" ~ "5000000",
-    v907a == "105000  DHAN KO " ~ "105000",
-
-    TRUE ~ (trimws(v907a)) 
-
-    )
+    !(v902b == "" & is.na(v901) & is.na(v902a) & v905 == "")
   ) %>%
   filter(
     !(v902b == "" & is.na(v903) & is.na(v904a))
@@ -4211,35 +4397,67 @@ section9a <- section9a %>%
       is.na(v903) & (!is.na(v907a) | !is.na(v907b)) ~ 2, 
       TRUE ~ v903
     )
+  ) %>%
+  filter(v902b != "") %>%
+  mutate(
+    v901 = 1
+  ) %>%
+  group_by(id) %>%
+  mutate(
+    v902a = row_number()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    v904a = case_when(
+      v904b > 0 & is.na(v904a) ~ 1, 
+      v904c > 0 & is.na(v904a) & v904b == 0 ~ 2,
+      TRUE ~ v904a
+    ),
+    v905 = if_else(
+      v905 == "" | is.na(v905),
+      toupper(as.character(haven::as_factor(district))),
+      toupper(as.character(v905))
+    ),
+    v907a = if_else(
+      v907a > 1000000,
+      v907a / 10,
+      v907a
+    )
   )
-
-for (i in setdiff(1:ncol(section9a), c(2, 7, 8, 13, 20))) { 
-  section9a[[i]] <- as.numeric(gsub("[^0-9]", "", section9a[[i]]))
-}
 
 #SECTION9B
 
-for (i in setdiff(1:ncol(section9b), c(2, 7, 8))) { 
-  section9b[[i]] <- as.numeric(gsub("[^0-9]", "", section9b[[i]]))
-}
-
 section9b <- section9b %>%
   mutate(
+    across(
+      c(v909:v910),
+      ~ if_else(is.na(v910) | v910 == 0, NA, .x)
+    ),
     v908 = case_when(
-      (v909a > 0 | v909b > 0 | v909c > 0) ~ 1, 
+      !is.na(v910) ~ 1, 
       TRUE ~ 2
-    ), 
+    ),
+    v909a = case_when(
+      v908 == 1 & is.na(v909a) & (v909b > 0) ~ 1, 
+      v908 == 1 & is.na(v909a) & (v909c > 0) ~ 2, 
+      TRUE ~ v909a
+    ),
+    across(
+      c(v912a:v913),
+      ~ if_else(is.na(v913) | v913 == 0, NA, .x)
+    ),
     v911 = case_when(
-      (v912a > 0 | v912b > 0 | v912c > 0) ~ 1, 
+      !is.na(v913) ~ 1,
       TRUE ~ 2
+    ),
+    v912a = case_when(
+      v911 == 1 & is.na(v912a) & (v912b > 0) ~ 1, 
+      v911 == 1 & is.na(v912a) & (v912c > 0) ~ 2, 
+      TRUE ~ v912a
     )
   )
 
 #SECTION9C
-
-for (i in setdiff(1:ncol(section9c), c(2, 7, 8, 11))) { 
-  section9c[[i]] <- as.numeric(gsub("[^0-9]", "", section9c[[i]]))
-}
 
 section9c <- section9c %>%
   filter(!is.na(v914b)) %>%
@@ -4305,12 +4523,108 @@ section9c <- section9c %>%
     v916 = case_when(
       v917d > 0 ~ 1,
       TRUE ~ 2
+    ),
+    across(
+      v917a:v918d,
+      ~ na_if(.x, 0)
+    ), 
+    v915 = case_when(
+      !is.na(v917d) & !is.na(v918d) ~ 2, 
+      TRUE ~ 1
+    ),
+    across(
+      v917d:v918d,
+      ~ if_else(v915 == 1, NA, .x)
     )
   ) 
 
 section9c <- section9c %>%
   filter(!is.na(v915)) %>%
   filter(v914a != 96) 
+
+section9c <- section9c %>%
+  mutate(
+    kg_equiv = case_when(
+      v918a == 1 ~ v918b,           
+      v918a == 2 ~ v918b * 40,     
+      v918a == 3 ~ v918b * 20,     
+      v918a == 4 ~ v918b * 100,     
+      TRUE ~ NA_real_
+    ),
+    
+    price_per_kg = case_when(
+      v918a == 1 ~ v918c,
+      v918a == 2 ~ v918c / 40,
+      v918a == 3 ~ v918c / 20,
+      v918a == 4 ~ v918c / 100,
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  
+  mutate(
+    min_price = case_when(
+      v914a == 1 ~ 20,   
+      v914a == 2 ~ 60,    
+      v914a == 3 ~ 15,    
+      v914a == 4 ~ 80,    
+      v914a == 5 ~ 100,   
+      v914a == 6 ~ 200,  
+      v914a == 7 ~ 10,    
+      v914a == 8 ~ 30,   
+      v914a == 9 ~ 40    
+    ),
+    
+    max_price = case_when(
+      v914a == 1 ~ 80,
+      v914a == 2 ~ 200,
+      v914a == 3 ~ 80,
+      v914a == 4 ~ 250,
+      v914a == 5 ~ 1500,
+      v914a == 6 ~ 3000,
+      v914a == 7 ~ 150,
+      v914a == 8 ~ 250,
+      v914a == 9 ~ 400
+    )
+  ) %>%
+  
+
+  mutate(
+    flag_price = !is.na(price_per_kg) &
+      (price_per_kg < min_price | price_per_kg > max_price),
+    
+    flag_qty = case_when(
+      v918a != 5 & kg_equiv > 10000 ~ TRUE, 
+      v918a == 5 & v918b > 20000 ~ TRUE,    
+      v918b <= 0 ~ TRUE,
+      TRUE ~ FALSE
+    )
+  ) %>%
+  
+  group_by(v914a, v918a) %>%
+  mutate(
+    median_price = median(v918c[!flag_price & !is.na(v918c)], na.rm = TRUE),
+    v918c = if_else(flag_price, median_price, v918c)
+  ) %>%
+  ungroup() %>%
+  
+  group_by(v914a, v918a) %>%
+  mutate(
+    median_qty = median(v918b[!flag_qty & !is.na(v918b)], na.rm = TRUE),
+    v918b = if_else(flag_qty, median_qty, v918b)
+  ) %>%
+  ungroup() %>%
+  
+  mutate(
+    v918d = v918b * v918c
+  ) %>%
+  
+  select(-kg_equiv, -price_per_kg, -min_price, -max_price, -flag_price, -flag_qty, -median_price, -median_qty)
+
+section9c <- section9c %>%
+  mutate(
+    v918c = if_else(v918d > 600000, v918c / 10, v918c),
+    v918d = v918c * v918b
+  )
   
 #SECTION9D
 
