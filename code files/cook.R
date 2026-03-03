@@ -2380,3 +2380,111 @@ nonssf_incorrect_name <- nonssf_incorrect_name %>%
   select(id, respondent)
 
 rm(nonssf_incorrect_name, ssf_incorrect_name, ssf, nonssf)
+
+##########################################################################################################################
+
+s8_nlss <- read_dta("/home/sobaakun/Miscellaneous/Microdata/Nepal Living Standard Surveys I-III-20240228T132127Z-001/NLSS IV 2022_23/NLSSIV_microdata/data/stata format/S08.dta")
+
+acute_nlss <- s8_nlss %>%
+  filter(q08_10 == 1) %>%
+  select(q08_10:q08_15) %>%
+  filter(!is.na(q08_14_i))
+
+rm(s8_nlss)
+
+acute_nlss <- acute_nlss %>%
+  mutate(
+    across(
+      c(q08_14_a:q08_14_i),
+      ~ na_if(.x, 0)
+    )
+  )
+
+set.seed(123)
+
+adding_missing <- read.xlsx("acute_missing_to-add.xlsx")
+
+dist <- table(section6c1$v630)
+dist <- dist[names(dist) %in% as.character(1:44)]
+prob <- dist / sum(dist)
+
+start_min <- as.Date("2025-08-10")
+end_max   <- as.Date("2025-10-10")
+
+for (i in setdiff(1:ncol(adding_missing), 
+                  c(11, 20))) {
+  adding_missing[[i]] <- as.numeric(
+    gsub("[^0-9]", "", adding_missing[[i]])
+  )
+}
+
+adding_missing <- adding_missing %>%
+  mutate(
+    v629 = 1,
+
+    v630 = sample(
+      x = as.numeric(names(prob)),
+      size = n(),
+      replace = TRUE,
+      prob = prob
+    ),
+
+    v631a = sample(
+      seq(start_min, end_max - 1, by = "day"),
+      n(),
+      replace = TRUE
+    ),
+
+    max_duration = as.numeric(end_max - v631a),
+    duration     = floor(runif(n(), 1, max_duration + 1)),
+    v631b        = v631a + duration
+  ) %>%
+  select(-max_duration, -duration)
+
+donor_pool <- section6c1 %>%
+  select(v630, enrollment, v632:v6416) %>%
+  filter(!is.na(v630), !is.na(enrollment)) %>%
+  group_by(v630, enrollment) %>%
+  mutate(donor_id = row_number()) %>%
+  ungroup()
+
+donor_counts <- donor_pool %>%
+  count(v630, enrollment, name = "n_donors")
+
+adding_missing <- adding_missing %>%
+  left_join(donor_counts, by = c("v630", "enrollment")) %>%
+  
+  mutate(
+    valid_stratum = !is.na(n_donors) & n_donors > 0,
+    v630 = ifelse(valid_stratum, v630, NA)
+  ) %>%
+  
+  group_by(v630, enrollment) %>%
+  mutate(
+    donor_id = if (all(!valid_stratum)) {
+      NA_integer_
+    } else {
+      sample.int(first(n_donors), n(), replace = TRUE)
+    }
+  ) %>%
+  ungroup() %>%
+  
+  left_join(
+    donor_pool,
+    by = c("v630", "enrollment", "donor_id")
+  ) %>%
+  
+  select(-n_donors, -donor_id, -valid_stratum)
+
+adding_missing <- adding_missing %>%
+  mutate(
+    v629 = if_else(is.na(v630), 2, 1),
+    
+    across(
+      v630:v6416,
+      ~ if_else(v629 == 2, NA, .x)
+    )
+  )
+
+
+write.xlsx(adding_missing, "section6c1_add_missing.xlsx")

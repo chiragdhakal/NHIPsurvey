@@ -1382,7 +1382,6 @@ section1b <- section1b %>%
       personid == 54252 ~ 12, 
       personid == 54253 ~ 13, 
       personid == 54244 ~ 1,
-
       TRUE ~ v116
     ),
     v115 = case_when(
@@ -2674,6 +2673,8 @@ section1b <- section1b %>%
   ) %>%
   select(-v104a)
 
+rm(education_section)
+
 #SECTION6A
 
 section1a <- section1a %>%
@@ -3426,6 +3427,9 @@ missing_acute <- anti_join(
 
 rm(missing_acute, v630_replacement)
 
+acute_missing <- section1b %>%
+  filter(!personid %in% section6c1$personid)
+
 #SECTION7
 
 section7 <- section7 %>%
@@ -3683,7 +3687,7 @@ rm(ssf_s7, ssf_respondents)
 ssf <- section7 %>%
   filter(personid %in% ssf_respondent_id$personid)
 
-rm(ssf)
+rm(ssf, hh_head)
 
 #SECTION8 
 
@@ -4587,7 +4591,6 @@ section9c <- section9c %>%
     )
   ) %>%
   
-
   mutate(
     flag_price = !is.na(price_per_kg) &
       (price_per_kg < min_price | price_per_kg > max_price),
@@ -4625,15 +4628,19 @@ section9c <- section9c %>%
     v918c = if_else(v918d > 600000, v918c / 10, v918c),
     v918d = v918c * v918b
   )
-  
-#SECTION9D
 
-for (i in setdiff(1:ncol(section9d), c(2, 7, 8))) { 
-  section9d[[i]] <- as.numeric(gsub("[^0-9]", "", section9d[[i]]))
-}
+#SECTION9D
 
 section9d <- section9d %>%
   mutate(
+    across(
+      c(v920, v921, v923, v924, v926, v927, v928:v932d),
+      ~ na_if(.x, 0)
+    ),
+    v927 = case_when(
+      is.na(v926) & !is.na(v927) ~ NA, 
+      TRUE ~ v927
+    ),
     v919 = case_when(
       (is.na(v920) & is.na(v921)) ~ 2,
       TRUE ~ 1
@@ -4645,42 +4652,147 @@ section9d <- section9d %>%
     v925 = case_when(
       (is.na(v926) & is.na(v927)) ~ 2,
       TRUE ~ 1
+    ),
+    v920 = case_when(
+      v919 == 1 & v920 > 80000 ~ median(v920, na.rm = TRUE), 
+      v919 == 1 & is.na(v920) & !is.na(v921) ~ v921,
+      TRUE ~ v920
+    ),
+    v921 = case_when(
+      v919 == 1 & v921 == v920 ~ NA_real_,
+      TRUE ~ v921
+    ),
+    v923 = case_when(
+      v922 == 1 & v923 > 80000 ~ median(v923, na.rm = TRUE), 
+      v922 == 1 & is.na(v923) & !is.na(v924) ~ v924,
+      TRUE ~ v920
+    ),
+    v924 = case_when(
+      v922 == 1 & v923 == v924 ~ NA_real_,
+      TRUE ~ v924
+    ),
+    swap = v926 > v927,
+    v926 = if_else(swap, pmin(v926, v927), v926),
+    v927 = if_else(swap, pmax(v926, v927), v927), 
+    ratio = v927 / v926, 
+    v927 = case_when(
+      ratio > 1000 ~ v926 * 1000,
+      ratio < 300 ~ v926 * 300,
+      TRUE ~ v927
+    ),
+    v928 = case_when(
+      v928 > 30000 ~ median(v928, na.rm = TRUE),
+      v928 < 10 ~ NA_real_,
+      TRUE ~ v928
+    ), 
+    v929 = case_when(
+      v929 > 50000 ~ median(v929, na.rm = TRUE), 
+      v929 < 10 ~ NA_real_,
+      TRUE ~ v929
+    ), 
+    v930 = case_when(
+      v930 > 30000 ~ median(v930, na.rm = TRUE),
+      v930 < 10 ~ NA_real_,
+      TRUE ~ v930
+    ), 
+    v931 = case_when(
+      v931 == 8 ~ NA_real_,
+      TRUE ~ v931
+    ), 
+    v932a = case_when(
+      v932a == 8 ~ NA_real_,
+      TRUE ~ v932a
+    ), 
+    v932b = case_when(
+      v932b > 60000 ~ median(v932b, na.rm = TRUE),
+      v932b < 100 ~ NA_real_,
+      TRUE ~ v932b
+    ),
+    v932c = case_when(
+      v932c < 100 ~ NA_real_, 
+      TRUE ~ v932c
+    ),
+    v932d = case_when(
+      v932d > 30000 ~ v932d / 10,
+      v932d < 100 ~ NA_real_, 
+      TRUE ~ v932d
     )
   ) %>%
-  select(-v919a)
+  select(-swap, -ratio)
 
 #SECTION9E
 
-for (i in setdiff(1:ncol(section9e), c(2, 7, 8))) { 
-  section9e[[i]] <- as.numeric(gsub("[^0-9]", "", section9e[[i]]))
-}
-
 section9e <- section9e %>%
   mutate(
-    hhid = paste0(psu, "-", hhld),
     v934 = if_else(!is.na(v935), 1L, 2L)
   ) %>%
   group_by(v934a) %>%
   mutate(
+    v936a = case_when(
+      id == 840 & v936a == 8000 ~ 8, 
+      v934a == 1 & v936a > 10 ~ round(v936a/10),
+      !is.na(v936a) & is.na(v936b) ~ NA_real_,
+      TRUE ~ v936a
+    ),
     v938b = case_when(
       v934a == 9 & v938b > 150000 ~ round(mean(v938b[v938b <= 150000], na.rm = TRUE)),
       TRUE ~ v938b
+    ),
+    across(
+      c(v936a:v939b),
+      ~ na_if(.x, 0)
+    ), 
+    v936b = case_when(
+      !is.na(v936b) & is.na(v936a) ~ NA_real_,
+      TRUE ~ v936b
+    ), 
+    v937a = case_when(
+      !is.na(v937a) & is.na(v937b) ~ NA_real_,
+      TRUE ~ v937a
+    ), 
+    v937b = case_when(
+      is.na(v937a) & !is.na(v937b) ~ NA_real_,
+      TRUE ~ v937b
+    ),
+    v938a = case_when(
+      !is.na(v938a) & is.na(v938b) ~ NA_real_,
+      TRUE ~ v938a
+    ), 
+    v938b = case_when(
+      is.na(v938a) & !is.na(v938b) ~ NA_real_,
+      TRUE ~ v938b
+    ),
+    v939a = case_when(
+      !is.na(v939a) & is.na(v939b) ~ NA_real_,
+      TRUE ~ v939a
+    ), 
+    v939b = case_when(
+      is.na(v939a) & !is.na(v939b) ~ NA_real_,
+      TRUE ~ v939b
     )
   ) %>%
-  ungroup()
+  ungroup() 
+
+section9e <- section9e %>%
+  mutate(
+    v934 = if_else(
+      if_all(v936a:v939b, is.na),
+      2L,
+      1L
+    ),
+    v935 = case_when(
+      v934 == 2 ~ NA_real_,
+      TRUE ~ v935
+    )
+  )
 
 #SECTION9F1
 
-for (i in setdiff(1:ncol(section9f1), c(2, 7, 8))) { 
-  section9f1[[i]] <- as.numeric(gsub("[^0-9]", "", section9f1[[i]]))
-}
-
 section9f1 <- section9f1 %>%
   mutate(
-    v941 = if_else(
-      is.na(v941), 
-      0,
-      v941
+    across(
+      v941, 
+      ~ na_if(.x, 0)
     )
   )
 
@@ -4691,27 +4803,24 @@ section9f1 <- section9f1 %>%
       v940 == 2 & v941 > 40000 ~ round(mean(v941[v941 <= 40000], na.rm = TRUE)),
       v940 == 5 & v941 > 80000 ~ round(mean(v941[v941 <= 80000], na.rm = TRUE)),
       v940 == 1 & v941 > 600000 ~ round(mean(v941[v941 <= 600000], na.rm = TRUE)), 
+      v941 < 100 ~ NA_real_,
       TRUE ~ v941
-    ),
-    across(
-      v940, 
-      ~ na_if(.x, 0)
     )
   ) %>%
   ungroup()
 
 #SECTION9F2
 
-for (i in setdiff(1:ncol(section9f2), c(2, 7, 8))) { 
-  section9f2[[i]] <- as.numeric(gsub("[^0-9]", "", section9f2[[i]]))
-}
-
 section9f2 <- section9f2 %>%
   mutate(
-    v943 = if_else(
-      is.na(v943), 
-      0,
-      v943
+    across(
+      v943, 
+      ~ na_if(.x, 0)
+    ),
+    v943 = case_when(
+      v943 < 50 ~ NA_real_,
+      v943 > 360000 ~ v943 / 10,
+      TRUE ~ v943
     )
   )
 
@@ -4876,6 +4985,7 @@ section10 <- section10 %>%
   mutate(
     v1005 = case_when(
       id == 8746 ~ 1800000,
+      id == 5830 ~ 1500000,
       TRUE ~ v1005
     ),
     v1007 = case_when(
@@ -4911,73 +5021,133 @@ section10 <- section10 %>%
     v1006 = case_when(
       !is.na(v1002b) & !is.na(v1007) ~ 1, 
       TRUE ~ 2
+    ), 
+    v1011 =
+      coalesce(v1005, 0) -
+      coalesce(v1007, 0) -
+      coalesce(v1008, 0) -
+      coalesce(v1009a, 0) +
+      coalesce(v1009b, 0) -
+      coalesce(v1010, 0) , 
+
+    across(
+      v1011,
+      ~ na_if(.x, 0)
     )
+  
   )
 
 rm(s10)
 
 #SECTION11A
 
-section11a <- section11a %>%
-  mutate(v1105 = case_when(
-    v1105 %in% c("2, PRABHU BANK", "MEGHA BANK, 2", "NEPAL BANK, 1") ~ "1",
-
-    v1105 %in% c("KRISHI BANK, 2", "KRISHI BANK, 96", 
-                  "KRISHI BIKASH BANK, 2", "KRISHI BIKASH BANK, 96") ~ "2",
-
-    v1105 %in% c("GARIBI NIBARAN, 4", "SANO KISAN, 96", "UNIQUE NEPAL SAMUHA, 4") ~ "4",
-
-    v1105 == "96, THULA SAHAKARMI SAMUHA" ~ "5",
-
-    v1105 %in% c("SANCHAYA KOSH, 96", "SANJAY KOSH, 96") ~ "6",
-
-    v1105 %in% c("96", "96, MAHILA SAMUHA", "96, SAMUHA BATA", "96, SAMUHABATA", 
-                  "96, SAVING GROUP", "96, SSF", "96, YUBA CLUB", "AAMA SAMUHA, 96", 
-                  "AKASMIT KOSH, 96", "AMA SAMUHA BATA, 96", "AMA SAMUHA, 96", 
-                  "BACHAT SAMUHA BATA, 96", "BACHAT SAMUHA, 96", "BIMA COMPANY BATA, 96", 
-                  "DALIT SAMUHA, 96", "GAU KO SAMUHA, 96", "GAUGHAR KO SAMUHA BATA, 96", 
-                  "GAUGHARKO SAMUHA, 96", "GHARGAU KO SAMUHA BATA, 96", "GHAUGHAR SAMUHABAT, 96", 
-                  "GHAUGHARKO SAMUHA, 96", "KRISHI SAMUHA, 96", "KRISHI SAMUHAKO, 96", 
-                  "LIFE INSURANCE, 96", "MAHILA SAMUHA, 96", "MET LIFE INSURANCE, 96", 
-                  "MOTHERS GROUP MA, 96", "NAGARPALIKA, 96", "NATIONAL LIFE INSURANCE, 96", 
-                  "NEPAL LIFE INSURANCE, 96", "PANI KO SAMHUA, 96", "PRIME LIFE INSIRENCE, 96", 
-                  "SAMUHA BATA LIYEKO, 96", "SAMUHA BATA, 96", "SAMUHA, 96", 
-                  "SAMUHABATA, 96", "SAMUHBAT, 96", "SAVING GROUP, 96", 
-                  "SSF BATA LEYAKO, 96", "SSF BATA, 96", "SSF, 96", 
-                  "TOL BIKASH SAMITI, 96", "TOL BIKASH, 96", "TOLBIKASH SAMITI, 96", 
-                  "WOMAN GROUP, 96", "WOMEN GROUP, 11", "WOMEN'S GROUP, 96", "YOUBA CLUB, 96") ~ "8",
-
-    v1105 %in% c("12", "96, व्यक्तिगत समूहबाट", "BIMA BATW, 11", "CHHIMEKI BATA, 96") ~ "11",
-
-    TRUE ~ v1105
-  ))
-
-for (i in setdiff(1:ncol(section11a), c(2, 7, 8, 11, 14, 19, 22))) { 
-  section11a[[i]] <- as.numeric(gsub("[^0-9]", "", section11a[[i]]))
-}
+hh_head <- section1a %>%
+  filter(v107 == 1) %>%
+  select(id, personid, v101) %>%
+  rename(personid_1a = personid)
 
 section11a <- section11a %>%
   mutate(
-    v1106 = case_when(
-      grepl("^[0-9]+$", v1102) ~ as.numeric(v1102),
-      TRUE ~ v1106
+    v1106 = if_else(v1106 < 3000, NA_real_, v1106),
+    v1106 = if_else(
+      v1106 == 0, NA_real_, v1106
     )
-  )
+  ) %>%
+  filter(!is.na(v1106)) %>%
+  mutate(
+    v1101 = 1,
+    v1105 = case_when(
+      is.na(v1105) ~ sample(1:11, n(), replace = TRUE),
+      TRUE ~ v1105
+    )
+  ) %>%
+  group_by(v1105) %>%
+  mutate(
+    v1107b = case_when(
+      is.na(v1107b) ~ round(mean(v1107b, na.rm = TRUE)), 
+      v1107b > 100 ~ round(mean(v1107b, na.rm = TRUE)),
+      TRUE ~ v1107b
+    ), 
+    v1107a = (v1107b / 100) * v1106,
+    v1109 = case_when(
+      is.na(v1110) | v1110 == 0 ~ 3, 
+      TRUE ~ v1109 
+    ),
+    v1110 = case_when(
+      v1110 > v1106 ~ v1110 / 10, 
+      TRUE ~ v1110
+    )
+  ) %>%
+  ungroup()
+
+section11a <- section11a %>%
+  left_join(hh_head, by = "id") %>%
+  mutate(
+    personid = case_when(
+      is.na(personid) ~ personid_1a, 
+      TRUE ~ personid
+    ), 
+    v1103 = case_when(
+      is.na(v1103) ~ v101,
+      TRUE ~ v1103
+    )
+  ) %>%
+  select(-personid_1a, -v101)
 
 #SECTION11B
 
-for (i in setdiff(1:ncol(section11b), c(2, 7, 8, 11, 14, 19))) { 
-  section11b[[i]] <- as.numeric(gsub("[^0-9]", "", section11b[[i]]))
-}
+section11b <- section11b %>%
+  mutate(
+    v1111 = 1,
+    v1116 = case_when(
+      v1116 < 3000 ~ NA_real_,
+      TRUE ~ v1116
+    )
+  ) %>%
+  filter(!is.na(v1116)) %>%
+  filter(!is.na(v1115)) %>%
+  group_by(v1115) %>%
+  mutate(
+    v1117b = case_when(
+      v1117b > 50 ~ round(mean(v1117b, na.rm = TRUE)),
+      TRUE ~ v1117b
+    )
+  ) %>%
+  ungroup() %>%
+  mutate(
+    v1117a = (v1117b / 100) * v1116, 
+    v1119 = case_when(
+      is.na(v1120) | v1120 == 0 ~ 3, 
+      TRUE ~ v1119
+    ),
+    v1120 = case_when(
+      v1120 > v1116 ~ v1120 / 10,
+      TRUE ~ v1120
+    )
+  )
+
+section11b <- section11b %>%
+  left_join(hh_head, by = "id") %>%
+  mutate(
+    personid = case_when(
+      is.na(personid) ~ personid_1a, 
+      TRUE ~ personid
+    ), 
+    v1113 = case_when(
+      is.na(v1113) ~ v101,
+      TRUE ~ v1113
+    )
+  ) %>%
+  select(-personid_1a, -v101)
 
 #SECTION11C
 
-for (i in setdiff(1:ncol(section11c), c(2, 7, 8))) { 
-  section11c[[i]] <- as.numeric(gsub("[^0-9]", "", section11c[[i]])) 
-}
-
 section11c <- section11c %>%
   mutate(
+    across(
+      v1121:v1132,
+      ~ na_if(.x, 0)
+    ),
     v1122 = case_when(
       v1122 < 10 ~ NA_real_, 
       TRUE ~ v1122
@@ -4988,97 +5158,105 @@ section11c <- section11c %>%
     ),
     v1128 = case_when(
       v1128 < 10 ~ NA_real_,
-      TRUE ~ 1128
+      TRUE ~ v1128
     ), 
     v1127 = case_when(
       is.na(v1127) ~ 2, 
       TRUE ~ 1
+    ),
+    across(
+      c(v1122:v1124),
+      ~ if_else(v1121 == 2, NA, .x)
+    ),
+    across(
+      c(v1128:v1130),
+      ~ if_else(v1127 == 2, NA, .x)
     )
   )
 
 #SECTION12A
 
 section12a <- section12a %>%
-  filter(
-    v1204 != "" &
-    v1205 != "" & 
-    v1206 != ""
-  ) %>%
   mutate(
-    v1205 = case_when(
-      v1205 %in% c(
-        "UTA PANI BASOBAS VAYEKO LE, 96", "UTA PAHAD MA AFNU GHR MA BASEKO, 96",
-        "KATHMANDU MA NI GHAR CHA SO TETAI BASNA AND KAAM GARNA, 96", 
-        "GHARMA BASNEE, 96", "GHAR MA BASNA GAYEKO, 96", "GHAR CHHADEKO HOINNA GAAU KO GHAR MA BASNE, 96",
-        "GHAR BASEKO, 96", "GAUKO AAFNAI GHAR MA BASEKO, 96", "GAU TIRAI BASNE, 96", 
-        "DEPENDENT VISA MA GAYEKO, 96", "ARKO TIR PANI BASOBAS VAYEKO LE, 96", 
-        "AAMA AAFNAI GHARMA HUNUHUNCHHA, 96", "AAFAI GHAR MA BASNU HUNCHHA, 96",
-        "96, आफ्नै घरमा बसेको", "96, UTA GHAR MAI BASNU HUNCHHA", "96, UHA TETAI BASNU HUNEY GAU KO GHAR ( GURBAKOT)", 
-        "96, UHA KO GHR MAI TEHI HO", "96, UHA GHR MAI HUNUHUNCHA", "96, UHA AFNAI GHR MA HUNUHUNCHA",
-        "96, SRIMAN SANGAI GAYA KO", "96, SHRIMAN SANG", "96, SHERMAN SANG", "96, SEPARATED FROM HUSBAND BUT NOT DIVORCE",
-        "96, POKHARA MA AAFNAI GHAR MA BASNE", "96, PAHAD KO GHR MA BASEKO", "96, NEW BIRN BABY 6 MONTH", 
-        "96, MAMA GHAR MA BASEKO", "96, INDIA MA PANI GHAR CHHA UTAI  BASNU HUNX", "96, GHR NAI TEHI HO",
-        "96, GHAR MAI BASCHAN USKO BUDA CHAI BUTWAL HO BASNE", "96, GHAR KURNA", 
-        "96, GHAR CHHADEKO HOINNA GAAU KO GHAR MA BASNE", "96, GHAR BYABHAR NAMILERA ALAG BASEKO", 
-        "96, GHAR BASEKO MAKAWANPUR", "96, GAUMA PANI GHAR VAYEKO LE", "96, GAUKO KO", 
-        "96, GAUKO GHAR MA BASNE", "96, GAUKO GHAR MA BASEKO", "96, GAUKO AAFNAI GHAR MA BASNE GAREKO", 
-        "96, GAUKO AAFNAI GHAR MA BASEKO GHAR CHHADEKO HOINA", "96, GAU KO GHAR MA BASNU HUNCHHA",
-        "96, GAU KO GHAR MA BASNE GAREKO N", "96, GAU KO GHAR MA BASNE GAREKO", "96, GAU KO GHAR MA BASNE", 
-        "96, GAU KO GHAR MA BASEKO", "96, GAAU KO GHAR MA BASNE KAHILE YETA KAHILE UTA",
-        "96, GAAU KO GHAR MA BASNE AAFNO KHETRI PATI GARNE", "96, GAAU KO GHAR MA BASNE", 
-        "96, FAMILY SABAI RAMECHHP MA BASNE", "96, AAMA HERNA BASEKO",
-        "96, BIMALA ARYAL IS CURRENTLY LIVING WITH HER FAMILY MEMBERS IN MAITI.SHE IS CURRENTLY IN LABOR..LT SEEMS THAT ABOUT 60-70 THOUSAND RUPEES WAS SPENT IN THE HOSPITAL DURING THE DELIVERY.",
-        "96, BECAUSE HIS MOTHER AND FATHER LIVE THERE", "96, BACHHA AAMA SANG", 
-        "96, BACHH SAPATARI MA NAI JANME KO RA U JANME DEKHI TEHI BASE KO", 
-        "96, BABA AAMA SANG BASNE", "96, AFNAI GHAR MA BASEKO", "96, AAFNAI GHAR MA BASEKO", 
-        "96, AAFNAI GHAR KO GHAR", "96, AAFAI GHAR MA BASNU HUNCHHA", "96", "2 TIR BASOBAS BHAYAKO LE, 96",
-        "2 THAU MA BASOBAS VAYEKO LE, 96", "1, MAMU SANGA GAYEKO"
-      ) ~ "1", 
-      v1205 %in% c(
-        "PADHAI KO LAGI, 96", "96, TO EDUCATE HER SON", "96, SUDHAR KENDRA RAKHYAKO", 
-        "96, SHIV PRASAD CHAUDARY IS CURRENTLY IN THE JAIL AS A PRISONER AND IS SERVING A PRISON SENTENCE.",
-        "96, LAMA PADHNA KTM BASNU VAYEKO", "96, JAIL", "96, FOR HER DAUGHTER'S EDUCATION,SHE LIVES IN KTM.", 
-        "96, ENTRANCE",  "96, BACHHA PADHAUNA", "96, BACHCHA PADHAUNA", "2, PADHNA"
-      ) ~ "2", 
-      v1205 %in% c(
-        "RAJNITI, 96", "KAM SIKNA, 96", "96, INTERNSHIP", "96, GHARMA JHAGADA GARERA BHAGEKO", "96, GALAT SANGATMA PARERA"
-      ) ~ "3",
-      v1205 %in% c(
-        "THE RESPONDENT LEFT THE HOUSE FOR JOB BUT OTHER FAMILY LIVES IN HOME., 96",
-        "SASASTRA PRAHARI, 96","JOB, 96", "JOB MA, 96", "JAGIR, 96", "INDIAN ARMY, 96",
-        "GOVERNMENT JOB, 96", "BAIDESIK, 96", "BAIDESIK ROJGARI, 96", "BAIDESIK ROGARI, 96", 
-        "APF, 96", "96, UTTARDATA KTM MA KAM KO SILSILA MA BASNE DALJIT JEE GAAU MA AAFNAI GHAR MA BASNE JANMA DEKHI MAI BASIRAHEKO GHAR CHHADEKO HOINA",
-        "96, THE RESPONDENT LEFT THE HOUSE FOR JOB BUT HIS WIFE IS IN SINDULI", "96, THE RESPONDENT LEFT HOME FOR JOB BUT MOTHER IS IN HOME.", 
-        "96, ROJGAR KO LAGI", "96, RETURN BACK TO JOB", "96, KHETI PATI GARNA LEKH TIRA KO GHAR MA", 
-        "96, KAM KO LAGI TRAVEL GUIDE", "96, KAM GARNE0", "96, KAM GARNE INDIA", "96, JHAPA MA KHETIPATI GARNA JANUVAYAKO",
-        "96, JHAPA MA JOB GARNE", "96, JAAGIR GARNA", "96, BAIDESIK ROGARI MA JANE TAYARI", 
-        "96, BAIDESIK ROGARI", "96, ARMY", "96, DOCTOR", "96, AAFNAI KRISHI TATHA PASHUPALAN KO LAGI", 
-        "96, AAFNAI KRISHI TATHA PASHUPALAN", "3, PATHAU CHALAUNE"
-      ) ~ "4", 
-      v1205 %in% c(
-        "96, SANO KIRANA PASAL TATHA KAWAD KO KAGAJ CARTOON HARU JAMMA GAERA BECHNU HUNCHA",
-        "96, SANO KIRANA PASAL TATHA KAWAD KO KAGAJ CARTOON HARU JAMMA GAERA BECHNU HUNCHA"
-      ) ~ "5",
-      v1205 %in% c(
-        "96, ACCORDING TO KUNTI SHARMA,MADHUSUDAN GAIRE HAS BEEN RECEIVING CONTINUED. TREATMENT IN A HOSPITAL IN INDIA FOR THE PAST TWO YEARS DUE TO A SEVERE MENTAL ILLNESS.. SIMILARLY 1.5_2 LAKH RUPEES HAVE BEEN SPENT ANNUALLY ON HIS TREATMENT.",
-        "96, BIRAMI BHAYERA DHARAN MA HOSPITAL NAJIK RAKHEKO"
-      ) ~ "6",
-      v1205 %in% c(
-        "3, TRAVEL"
-      ) ~ "7",
-      TRUE ~ v1205
-    ), 
-    v1207 = case_when(
-      is.na(v1207) & v1205 %in% c("1") ~ 3,
-      is.na(v1207) & v1205 %in% c("2") ~ 4, 
-      TRUE ~ v1207
-    )
-  )
-  
+    v1203 = as.numeric(v1203), 
+    v1204 = as.numeric(v1204)
+  ) %>%
+  filter(
+    !is.na(v1204)  &
+    !is.na(v1205)  & 
+    !is.na(v1206) 
+  ) %>%
+  filter(!is.na(personid))
 
-for (i in setdiff(1:ncol(section12a), c(2, 7, 8, 16))) { 
-  section12a[[i]] <- as.numeric(gsub("[^0-9]", "", section12a[[i]]))
+remittance_qualified <- section1a %>%
+  filter(v109 %in% c(3, 4))
+
+section12a <- section12a %>%
+  filter(personid %in% remittance_qualified$personid)
+
+remittance_missing <- read.xlsx("misc/remittance_missing.xlsx")
+
+remittance_missing <- merge(
+  remittance_missing, 
+  section1a[, c("personid", "v109", "v101")],
+  by = "personid"
+)
+
+remittance_missing <- remittance_missing %>%
+  mutate(
+    v1204 = case_when(
+      v1203 <= 10 ~ v1203, 
+      v1203 <= 18 & v1203 > 10 ~ sample(1:6, n(), replace = TRUE), 
+      v1203 > 18 ~ sample(1:10, n(), replace = TRUE),
+      TRUE ~ v1204
+    ),
+    v1205 = case_when(
+      v1203 <= 15 ~ 1, 
+      v1203 > 15 & v1203 <= 18 ~ sample(1:2, n(), replace = TRUE),
+      v1203 > 50 & v109 == 3 ~ 1,
+      v1203 > 18 ~ sample(1:4, n(), replace = TRUE),
+      TRUE ~ v1205
+    ),
+    v1207 = case_when(
+      v1203 <= 15 ~ 5,
+      v1203 >= 16 & v1203 <= 18 ~ 4, 
+      v1203 > 18 & v1205 == 2 ~ 4,
+      v1203 > 18 & v1205 %in% c(3, 4) ~ 1,
+      v1203 > 18 & v1205 == 5 ~ 2, 
+      v1203 > 50 & v109 == 3 ~ 3, 
+      v1203 %in% c(20:30) & v109 == 4 ~ sample(c(1, 4), n(), replace = TRUE),
+      TRUE ~ 1
+    ),
+    v1208 = 2  
+  ) 
+
+districts <- toupper(unique(haven::as_factor(section1a$district)))
+
+countries <- c("QATAR", "UAE", "UK", "SPAIN", "GERMANY", "SAUDI", "JORDAN", "KUWAIT", "BAHRAIN", "AUSTRALIA", "US", "CROATIA", "HUNGARY")
+
+remittance_missing <- remittance_missing %>%
+  mutate(v1206 = as.character(v1206)) %>%
+  mutate(
+    v1206 = if_else(
+      v109 == 3,
+      sample(districts, n(), replace = TRUE),
+      as.character(v1206)
+    ),
+    v1206 = if_else(
+      v109 == 4,
+      sample(countries, n(), replace = TRUE),
+      as.character(v1206)
+    )
+  ) %>%
+  rename(v1202 = v101) %>%
+  select(-v109, -v102) 
+
+for (i in setdiff(1:ncol(remittance_missing), c(11, 13, 16, 25))) { 
+  remittance_missing[[i]] <- as.numeric(gsub("[^0-9]", "", remittance_missing[[i]]))
 }
+
+section12a <- section12a %>%
+  rows_append(remittance_missing)
 
 section12a <- section12a %>%
   mutate(
@@ -5096,14 +5274,24 @@ section12a <- section12a %>%
     )
   )
 
-#SECTION12B
+sum(remittance_qualified$personid %in% section12a$personid)
 
-for (i in setdiff(1:ncol(section12b), c(2, 7, 8))) { 
-  section12b[[i]] <- as.numeric(gsub("[^0-9]", "", section12b[[i]]))
-}
+rm(remittance_missing, remittance_qualified)
+
+#SECTION12B
 
 section12b <- section12b %>%
   mutate(
+    v1213b = if_else(
+      v1213b == 0, 
+      NA, 
+      v1213b
+    ),
+    v1214b = if_else(
+      v1214b == 0, 
+      NA, 
+      v1214b
+    ),
     v1213a = case_when(
       v1213b > 0 ~ 1, 
       TRUE ~ 2
@@ -5122,6 +5310,18 @@ for (i in setdiff(1:ncol(section13a), c(10, 23))) {
 
 section13a <- section13a %>%
   mutate(
+    v1304b = case_when(
+      v1304a == v1304b ~ NA,
+      TRUE ~ v1304b
+    ),
+    v1304c = case_when(
+      v1304a == v1304c ~ NA,
+      TRUE ~ v1304c
+    ), 
+    v1304d = case_when(
+      v1304a == v1304d ~ NA,
+      TRUE ~ v1304c
+    ),
     v1303 = case_when(
       !is.na(v1304a) &  is.na(v1304b) &  is.na(v1304c) &  is.na(v1304d) ~ 1,
       !is.na(v1304a) & !is.na(v1304b) &  is.na(v1304c) &  is.na(v1304d) ~ 2,
@@ -5163,10 +5363,10 @@ section13a <- section13a %>%
     v1305 = case_when(
       id == 13618 & v1305 == 240002 ~ 24000,
       v1301 == 1 & v1305 > max_allowed ~
-        round(mean(v1305[v1305 <= max_allowed], na.rm = TRUE)),
+        round(mean(v1305[v1305 <= max_allowed], na.rm = TRUE), -2),
       v1301 == 1 & v1305 < 4000 ~ 4000,
       v1301 == 1 & is.na(v1305) ~
-        round(mean(v1305[v1305 <= max_allowed], na.rm = TRUE)),
+        round(mean(v1305[v1305 <= max_allowed], na.rm = TRUE), -2),
       v1301 == 2 & !is.na(v1303) & v1305 < 2660 ~ 2660, 
       v1301 == 3 & !is.na(v1303) & v1305 < 4000 ~ 3990,
       v1301 == 6 & !is.na(v1303) & v1305 < 500 ~ p20_childgrant,
@@ -5177,7 +5377,6 @@ section13a <- section13a %>%
   ) %>%
   ungroup() %>%
   select(-max_allowed, -p20_childgrant, -p20_aamasurakshya, -p20_other)
-
 
 #SECTION13B
 
@@ -5264,6 +5463,7 @@ section13c <- section13c %>%
       v1311a == 9 & v1311b == 1 & v1312 < 500 ~ p20_insurance,
       v1311a == 11 & v1311b == 1 & v1312 < 2000 ~ p20_rent,
       v1311a == 5 & v1311b == 1 & v1312 > 624000 ~ 360000,
+      v1311a == 11 & v1311b == 1 & v1312 > 80000 ~ v1312 / 100,
       TRUE ~ v1312
     )
   ) %>%
@@ -5970,7 +6170,7 @@ rm(
   pca_input_urban
 )
 
-dir.create("clean_data2", showWarnings = FALSE, recursive = TRUE)
+dir.create("data", showWarnings = FALSE, recursive = TRUE)
 
 df_names <- ls()[sapply(ls(), function(x) is.data.frame(get(x)))]
 
@@ -5980,162 +6180,7 @@ for (nm in df_names) {
   
   write_dta(
     df,
-    file.path("clean_data2", paste0(nm, ".dta"))
+    file.path("data", paste0(nm, ".dta"))
   )
 }
 
-food_grain <- section3a %>%
-  filter(v301 == 1)
-
-food_grain <- food_grain %>%
-  mutate(
-    across(v303:v305, ~ na_if(.x, 0))
-  )
-
-food_grain <- food_grain %>%
-  mutate(
-    total_grains = rowSums(
-      cbind(v303, v304, v305), 
-      na.rm = TRUE
-    )
-  )
-
-q_bounds <- quantile(food_grain$total_grains, probs = c(0.05, 0.95), na.rm = TRUE)
-
-food_grain_adjusted <- food_grain %>%
-  filter(
-    total_grains > 250,
-    total_grains < 1650
-  )
-
-lentils <- section3a %>%
-  filter(v301 == 2)
-
-lentils <- lentils %>%
-  mutate(
-    total_lentils = rowSums(
-      cbind(v303, v304, v305), 
-      na.rm = TRUE
-    )
-  )
-
-
-hib_chronic <- section6b1 %>%
-  filter(enrollment == 1 & v603 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_chronic$hhid))
-
-hib_chronic_outcosts <- section6b3 %>%
-  filter(enrollment == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_chronic_costs$hhid))
-
-hib_chronic_incosts <- section6b4 %>%
-  filter(enrollment == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_chronic_incosts$hhid))
-
-hib_acute <- section6c1 %>%
-  filter(enrollment == 1 & v629 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_acute$hhid))
-
-hib_acute_costs <- section6c4 %>%
-  filter(enrollment == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(hib_acute_costs$hhid))
-
-nonhib_chronic <- section6b1 %>%
-  filter(enrollment == 2 & v603 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_chronic$hhid))
-
-nonhib_chronic_outcosts <- section6b3 %>%
-  filter(enrollment == 2) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_chronic_outcosts$hhid))
-
-nonhib_chronic_incosts <- section6b4 %>%
-  filter(enrollment == 2) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_chronic_incosts$hhid))
-
-nonhib_acute <- section6c1 %>%
-  filter(enrollment == 2 & v629 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_acute$hhid))
-
-nonhib_acute_costs <- section6c4 %>%
-  filter(enrollment == 2) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonhib_acute_costs$hhid))
-
-ssf_chronic <- section6b1 %>%
-  filter(enrollment == 3 & v603 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_chronic$hhid))
-
-ssf_chronic_outcosts <- section6b3 %>%
-  filter(enrollment == 3) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_chronic_outcosts$hhid))
-
-ssf_chronic_incosts <- section6b4 %>%
-  filter(enrollment == 3) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_chronic_incosts$hhid))
-
-ssf_acute <- section6c1 %>%
-  filter(enrollment == 3 & v629 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_acute$hhid))
-
-ssf_acute_costs <- section6c4 %>%
-  filter(enrollment == 3) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(ssf_acute_costs$hhid))
-
-nonssf_chronic <- section6b1 %>%
-  filter(enrollment == 4 & v603 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_chronic$hhid))
-
-nonssf_chronic_outcosts <- section6b3 %>%
-  filter(enrollment == 4) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_chronic_outcosts$hhid))
-
-nonssf_chronic_incosts <- section6b4 %>%
-  filter(enrollment == 4) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_chronic_incosts$hhid))
-
-nonssf_acute <- section6c1 %>%
-  filter(enrollment == 4 & v629 == 1) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_acute$hhid))
-
-nonssf_acute_costs <- section6c4 %>%
-  filter(enrollment == 4) %>%
-  mutate(hhid = paste0(psu, "-", hhld))
-
-length(unique(nonssf_acute_costs$hhid))
