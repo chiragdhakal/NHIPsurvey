@@ -242,7 +242,7 @@ expenditure_hhld <- expenditure_hhld %>%
     across(-hhid, ~ replace_na(as.numeric(.x), 0)),
     total_health_cost = rowSums(across(
       c(total_cost_chronic_inpatient, total_cost_chronic_outpatient, total_cost_acute)
-    )),
+    ), na.rm = TRUE),
     total_expenditure = rowSums(across(
       c(total_food_annual, net_expense_education, total_cost_chronic_inpatient, total_cost_chronic_outpatient, total_cost_acute)
     ), na.rm = TRUE)
@@ -296,12 +296,9 @@ household_wage_income <- section8 %>%
 landholding_agri <- section9a %>%
   mutate(hhid = paste0(psu, "-", hhld)) %>%
   group_by(hhid) %>%
-  mutate(
-    v907c = as.numeric(v907c)
-  ) %>%
   summarise(
     expected_land_prices = sum(as.numeric(v906), na.rm = TRUE),                                       
-    land_rent_received_cash = sum(as.numeric(v907c), na.rm = TRUE)
+    land_rent_received_cash = sum(as.numeric(v907a), na.rm = TRUE)
   ) %>%
   ungroup()
 

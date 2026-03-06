@@ -2488,3 +2488,928 @@ adding_missing <- adding_missing %>%
 
 
 write.xlsx(adding_missing, "section6c1_add_missing.xlsx")
+
+##############################################################################################################################
+
+section1b_hh <- section1b %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  ) %>%
+  group_by(id) %>%
+  mutate(hh_member = n()) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(enrollment, hhid, hh_member, id)
+
+expenditure_hhld <- merge(
+  expenditure_hhld, 
+  section1b_hh, 
+  by = "hhid"
+)
+
+expenditure_hhld_1 <- expenditure_hhld_1 %>%
+  filter(enrollment %in% c(1, 3))
+
+expenditure_hhld_hib <- expenditure_hhld_1 %>%
+  filter(enrollment == 1) %>%
+  mutate(
+    across(
+      c(total_expenditure, total_health_cost), 
+      ~ na_if(.x, 0)
+    ),
+    per_capita_expen = total_expenditure / hh_member,
+    per_capita_health = total_health_cost / hh_member
+  )
+
+summary(expenditure_hhld_hib)
+
+expenditure_hhld_ssf <- expenditure_hhld_1 %>%
+  filter(enrollment == 3) %>%
+  mutate(
+    across(
+      c(total_expenditure, total_health_cost), 
+      ~ na_if(.x, 0)
+    ),
+    per_capita_expen = total_expenditure / hh_member,
+    per_capita_health = total_health_cost / hh_member
+  )
+
+summary(expenditure_hhld_ssf)
+
+expenditure_hhld <- expenditure_hhld %>%
+  mutate(
+    across(
+      c(total_expenditure, total_health_cost), 
+      ~ na_if(.x, 0)
+    ),
+    per_capita_expen = total_expenditure / hh_member,
+    per_capita_health = total_health_cost / hh_member
+  )
+
+
+############################################################################################################################
+
+s6c1_add <- read.xlsx(
+  "misc/section6c1_add_missing.xlsx",
+  detectDates = TRUE
+)
+
+s6c1_add_keep <- s6c1_add %>%
+  group_by(personid) %>%
+  slice(1) %>%
+  ungroup()
+
+# Rows to SEND OUT (2nd, 3rd, etc.)
+s6c1_add_duplicates <- s6c1_add %>%
+  group_by(personid) %>%
+  slice(-1) %>%
+  ungroup()
+
+write.xlsx(s6c1_add_duplicates, "s6c1_updates.xlsx")
+
+set.seed(123)  # for reproducibility
+
+sample_1000 <- section6c1 %>%
+  filter(v629 == 2) %>%
+  slice_sample(n = 1000)
+
+write.xlsx(sample_1000, "updates.xlsx")
+
+write.xlsx(s6c1_add_keep, "s6c1_add.xlsx")
+
+s6c1_add <- read.xlsx("s6c1_add.xlsx", detectDates = TRUE)
+s6c1_append <- read.xlsx("s6c1_updates.xlsx", detectDates = TRUE)
+
+for (col in names(s6c1_add)) {
+  if (col %in% names(s6c1_append)) {
+    s6c1_append[[col]] <- as(
+      s6c1_append[[col]],
+      class(s6c1_add[[col]])
+    )
+  }
+}
+
+s6c1_add <- s6c1_add %>%
+  rows_append(s6c1_append)
+
+write.xlsx(s6c1_add, "s6c1_add.xlsx")
+
+###############################################################################################################
+
+donor_pool_6c2 <- section6c2 %>%
+  select(v630, enrollment, v642:v6468) %>%
+  filter(!is.na(v630), !is.na(enrollment)) %>%
+  group_by(v630, enrollment) %>%
+  mutate(donor_id = row_number()) %>%
+  ungroup()
+
+donor_counts_6c2 <- donor_pool_6c2 %>%
+  count(v630, enrollment, name = "n_donors")
+
+s6c2_missing <- s6c2_missing %>%
+  
+  left_join(donor_counts_6c2, by = c("v630", "enrollment")) %>%
+  mutate(
+    valid_stratum = !is.na(n_donors) & n_donors > 0
+  ) %>%
+  
+  group_by(v630, enrollment) %>%
+  mutate(
+    donor_id = if (all(!valid_stratum)) {
+      NA_integer_
+    } else {
+      sample.int(first(n_donors), n(), replace = TRUE)
+    }
+  ) %>%
+  ungroup() %>%
+  
+  left_join(
+    donor_pool_6c2,
+    by = c("v630", "enrollment", "donor_id")
+  ) %>%
+  
+  select(-n_donors, -donor_id, -valid_stratum)
+
+
+write.xlsx(s6c2_missing, "s6c2_missing.xlsx")
+
+########################################################################################################################
+
+donor_pool_6c2 <- section6c2 %>%
+  select(v630, enrollment, v642:v6468) %>%
+  filter(!is.na(v630), !is.na(enrollment)) %>%
+  group_by(v630, enrollment) %>%
+  mutate(donor_id = row_number()) %>%
+  ungroup()
+
+donor_counts_6c2 <- donor_pool_6c2 %>%
+  count(v630, enrollment, name = "n_donors")
+
+s6c2_missing <- s6c2_missing %>%
+  
+  left_join(donor_counts_6c2, by = c("v630", "enrollment")) %>%
+  mutate(
+    valid_stratum = !is.na(n_donors) & n_donors > 0
+  ) %>%
+  
+  group_by(v630, enrollment) %>%
+  mutate(
+    donor_id = if (all(!valid_stratum)) {
+      NA_integer_
+    } else {
+      sample.int(first(n_donors), n(), replace = TRUE)
+    }
+  ) %>%
+  ungroup() %>%
+  
+  left_join(
+    donor_pool_6c2,
+    by = c("v630", "enrollment", "donor_id")
+  ) %>%
+  
+  select(-n_donors, -donor_id, -valid_stratum)
+
+
+write.xlsx(s6c2_missing, "s6c2_missing.xlsx")
+
+
+######################################################################################################################################
+
+donor_pool_6c4 <- section6c4 %>%
+  select(v630, enrollment, v651a:v654) %>%
+  filter(!is.na(v630), !is.na(enrollment)) %>%
+  group_by(v630, enrollment) %>%
+  mutate(donor_id = row_number()) %>%
+  ungroup()
+
+donor_counts_6c4 <- donor_pool_6c4 %>%
+  count(v630, enrollment, name = "n_donors")
+
+s6c4_missing <- s6c4_missing %>%
+  
+  left_join(donor_counts_6c4, by = c("v630", "enrollment")) %>%
+  mutate(
+    valid_stratum = !is.na(n_donors) & n_donors > 0
+  ) %>%
+  
+  group_by(v630, enrollment) %>%
+  mutate(
+    donor_id = if (all(!valid_stratum)) {
+      NA_integer_
+    } else {
+      sample.int(first(n_donors), n(), replace = TRUE)
+    }
+  ) %>%
+  ungroup() %>%
+  
+  left_join(
+    donor_pool_6c4,
+    by = c("v630", "enrollment", "donor_id")
+  ) %>%
+  
+  select(-n_donors, -donor_id, -valid_stratum)
+
+write.xlsx(s6c4_missing, "s6c4_missing.xlsx")
+
+###############################################################################################################################
+
+#WEALTH INDEX 
+
+metro_codes <- c(11214, 20807, 30608, 30802, 31304, 40504)
+
+sub_metro_codes <- c(11301, 11306, 20315, 20703, 20708, 31206, 50802, 51002, 51003, 51106, 70813)
+
+municipality_codes <- c(10106, 10206, 10207, 10208, 10209, 10210, 10307, 10402, 
+  10504, 10505, 10601, 10604, 10701, 10702, 10704, 10804, 10805, 10904, 11003, 
+  11004, 11008, 11009, 11101, 11103, 11104, 11105, 11107, 11108, 11112, 11114, 
+  11202, 11204, 11205, 11207, 11208, 11209, 11210, 11211, 11302, 11305, 11307, 
+  11309, 11401, 11402, 11403, 11407, 20101, 20102, 20105, 20106, 20107, 20109, 
+  20110, 20113, 20116, 20201, 20202, 20203, 20204, 20205, 20206, 20210, 20217, 
+  20301, 20302, 20303, 20305, 20307, 20308, 20309, 20310, 20311, 20313, 20317, 
+  20401, 20402, 20404, 20405, 20406, 20407, 20408, 20410, 20414, 20415, 20501, 
+  20502, 20503, 20504, 20505, 20506, 20507, 20511, 20516, 20517, 20520, 20601, 
+  20602, 20603, 20604, 20605, 20606, 20607, 20608, 20609, 20610, 20611, 20612, 
+  20613, 20616, 20617, 20618, 20701, 20702, 20712, 20713, 20714, 20806, 20808, 
+  20809, 30105, 30109, 30205, 30207, 30209, 30406, 30413, 30504, 30508, 30601, 
+  30602, 30603, 30604, 30605, 30606, 30607, 30609, 30610, 30611, 30701, 30702, 
+  30703, 30704, 30801, 30803, 30903, 30904, 30905, 30906, 30908, 30909, 31004, 
+  31005, 31101, 31105, 31202, 31301, 31302, 31305, 31306, 31307, 40108, 40109, 
+  40406, 40604, 40605, 40606, 40607, 40701, 40702, 40704, 40705, 40801, 40805, 
+  40806, 40807, 40901, 40905, 40908, 40909, 40910, 41003, 41004, 41101, 41105, 
+  41108, 41110, 50207, 50304, 50305, 50404, 50409, 50503, 50504, 50506, 50601, 
+  50605, 50701, 50702, 50703, 50801, 50803, 50808, 50811, 50813, 50901, 50902, 
+  50903, 50905, 50906, 50907, 51007, 51102, 51201, 51202, 51203, 51205, 51206, 
+  51207, 60105, 60106, 60202, 60404, 60503, 60506, 60507, 60605, 60606, 60607, 
+  60608, 60704, 60706, 60707, 60801, 60804, 60806, 60903, 60905, 60907, 61003, 
+  61004, 61005, 61006, 61008, 70103, 70106, 70108, 70109, 70202, 70206, 70303, 
+  70307, 70403, 70405, 70408, 70409, 70502, 70505, 70604, 70605, 70701, 70704, 
+  70706, 70708, 70803, 70804, 70805, 70807, 70810, 70811, 70901, 70902, 70903, 
+  70904, 70905, 70907, 70908)
+
+rural_codes <- c(10101, 10102, 10103, 10104, 10105, 10107, 10108, 10109, 10201, 
+  10202, 10203, 10204, 10205, 10301, 10302, 10303, 10304, 10305, 10306, 10308, 
+  10401, 10403, 10404, 10405, 10406, 10407, 10408, 10501, 10502, 10503, 10506, 
+  10507, 10508, 10509, 10510, 10602, 10603, 10605, 10606, 10607, 10608, 10609, 
+  10703, 10705, 10706, 10707, 10801, 10802, 10803, 10806, 10901, 10902, 10903, 
+  10905, 10906, 10907, 10908, 11001, 11002, 11005, 11006, 11007, 11010, 11102, 
+  11106, 11109, 11110, 11111, 11113, 11115, 11201, 11203, 11206, 11212, 11213, 
+  11215, 11216, 11217, 11303, 11304, 11308, 11310, 11311, 11312, 11404, 11405, 
+  11406, 11408, 20103, 20104, 20108, 20111, 20112, 20114, 20115, 20117, 20118, 
+  20207, 20208, 20209, 20211, 20212, 20213, 20214, 20215, 20216, 20304, 20306, 
+  20312, 20314, 20316, 20318, 20403, 20409, 20411, 20412, 20413, 20508, 20509, 
+  20510, 20512, 20513, 20514, 20515, 20518, 20519, 20614, 20615, 20704, 20705, 
+  20706, 20707, 20709, 20710, 20711, 20715, 20716, 20801, 20802, 20803, 20804, 
+  20805, 20810, 20811, 20812, 20813, 20814, 30101, 30102, 30103, 30104, 30106, 
+  30107, 30108, 30201, 30202, 30203, 30204, 30206, 30208, 30210, 30211, 30212, 
+  30301, 30302, 30303, 30304, 30305, 30401, 30402, 30403, 30404, 30405, 30407, 
+  30408, 30409, 30410, 30411, 30412, 30501, 30502, 30503, 30505, 30506, 30507, 
+  30509, 30510, 30511, 30512, 30804, 30805, 30806, 30901, 30902, 30907, 30910, 
+  30911, 30912, 30913, 31001, 31002, 31003, 31006, 31007, 31008, 31102, 31103, 
+  31104, 31106, 31107, 31108, 31109, 31201, 31203, 31204, 31205, 31207, 31208, 
+  31209, 31210, 31303, 40101, 40102, 40103, 40104, 40105, 40106, 40107, 40110, 
+  40111, 40201, 40202, 40203, 40204, 40301, 40302, 40303, 40304, 40305, 40401, 
+  40402, 40403, 40404, 40405, 40501, 40502, 40503, 40505, 40601, 40602, 40603, 
+  40608, 40703, 40706, 40707, 40708, 40709, 40710, 40802, 40803, 40804, 40808, 
+  40902, 40903, 40904, 40906, 40907, 40911, 41001, 41002, 41005, 41006, 41007, 
+  41102, 41103, 41104, 41106, 41107, 41109, 50101, 50102, 50103, 50201, 50202, 
+  50203, 50204, 50205, 50206, 50208, 50209, 50210, 50301, 50302, 50303, 50306, 
+  50307, 50308, 50309, 50401, 50402, 50403, 50405, 50406, 50407, 50408, 50410, 
+  50411, 50412, 50501, 50502, 50505, 50602, 50603, 50604, 50606, 50607, 50608, 
+  50609, 50610, 50704, 50705, 50706, 50707, 50804, 50805, 50806, 50807, 50809, 
+  50810, 50812, 50814, 50815, 50816, 50904, 50908, 50909, 50910, 51001, 51004, 
+  51005, 51006, 51008, 51009, 51010, 51101, 51103, 51104, 51105, 51107, 51108, 
+  51204, 51208, 60101, 60102, 60103, 60104, 60107, 60108, 60201, 60203, 60204, 
+  60301, 60302, 60303, 60304, 60305, 60306, 60307, 60401, 60402, 60403, 60405, 
+  60406, 60407, 60408, 60501, 60502, 60504, 60505, 60508, 60509, 60601, 60602, 
+  60603, 60604, 60609, 60610, 60611, 60701, 60702, 60703, 60705, 60802, 60803, 
+  60805, 60901, 60902, 60904, 60906, 60908, 60909, 60910, 61001, 61002, 61007, 
+  61009, 70101, 70102, 70104, 70105, 70107, 70201, 70203, 70204, 70205, 70207, 
+  70208, 70209, 70210, 70211, 70212, 70301, 70302, 70304, 70305, 70306, 70308, 
+  70309, 70401, 70402, 70404, 70406, 70407, 70410, 70501, 70503, 70504, 70506, 
+  70507, 70601, 70602, 70603, 70606, 70607, 70608, 70609, 70702, 70703, 70705, 
+  70707, 70709, 70710, 70801, 70802, 70806, 70808, 70809, 70812, 70906, 70909)
+
+section0 <- section0 %>%
+  mutate(
+    palika_type = case_when(
+      palika %in% metro_codes ~ 1, 
+      palika %in% sub_metro_codes ~ 2, 
+      palika %in% municipality_codes ~ 3, 
+      palika %in% rural_codes ~ 4
+    ),
+    urban_rural = case_when(
+      palika_type %in% c(1, 2, 3) ~ 1, #urban
+      palika_type %in% c(4) ~ 2 #rural
+    )
+  )
+
+wealth_index <- section2a1 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  ) %>%
+  select(hhid, v202, v203, v204, v205, v206)
+
+wealth_index <- wealth_index %>%
+  mutate(
+    mud_bonded_foundation = case_when(
+      v203 == 1 ~ 1, 
+      TRUE ~ 0
+    ),
+    cement_bonded_foundation = case_when(
+      v203 == 2 ~ 1, 
+      TRUE ~ 0
+    ),
+    concrete_pillar_foundation = case_when(
+      v203 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    wooden_pillar_foundation = case_when(
+      v203 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    sheets_foundation = case_when(
+      v203 == 5 ~ 1, 
+      TRUE ~ 0
+    ),
+    mud_bonded_wall = case_when(
+      v204 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    cement_bonded_wall = case_when(
+      v204 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    wooden_wall = case_when(
+      v204 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    bamboo_wall = case_when(
+      v204 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    unbaked_brick_wall = case_when(
+      v204 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    sheets_wall = case_when(
+      v204 == 6 ~ 1, 
+      TRUE ~ 0
+    ), 
+    sheets_roof = case_when(
+      v205 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    rcc_roof = case_when(
+      v205 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    tile_roof = case_when(
+      v205 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    stone_roof = case_when(
+      v205 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    wood_roof = case_when(
+      v205 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    straw_roof = case_when(
+      v205 == 6 ~ 1, 
+      TRUE ~ 0
+    ), 
+    mud_floor = case_when(
+      v206 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    cement_floor = case_when(
+      v206 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    tile_floor = case_when(
+      v206 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    plank_floor = case_when(
+      v206 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    parquet_floor = case_when(
+      v206 == 5 ~ 1, 
+      TRUE ~ 0
+    )
+  ) %>%
+  select(-v203, -v204, -v205, -v206)
+
+section2a2 <- section2a2 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  )
+
+wealth_index <- merge(
+  wealth_index, 
+  section2a2[, c("hhid", "v208", "v213")],
+  by = "hhid"
+)
+
+wealth_index <- wealth_index %>%
+  mutate(
+    dwelling_ownership = case_when(
+      v208 == 1 ~ 1, 
+      TRUE ~ 0
+    ),
+    owner_occupancy = case_when(
+      v213 == 1 ~ 1, 
+      TRUE ~ 0
+    )
+  ) %>%
+  select(-v208, -v213)
+
+section2a3 <- section2a3 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  )
+
+wealth_index <- merge(
+  wealth_index, 
+  section2a3[, c("hhid", "v216", "v223", "v225", "v218", "v220", "v222a", "v222b", "v222c")], 
+  by = "hhid"
+)
+
+wealth_index <- wealth_index %>%
+  mutate(
+    piped_water_private = case_when(
+      v216 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    piped_water_shared = case_when(
+      v216 == 2 ~ 1, 
+      TRUE ~ 0,
+    ),
+    handpump = case_when(
+      v216 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    covered_well = case_when(
+      v216 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    uncovered_well = case_when(
+      v216 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    spout_water = case_when(
+      v216 == 6 ~ 1, 
+      TRUE ~ 0
+    ), 
+    river = case_when(
+      v216 == 7 ~ 1, 
+      TRUE ~ 0
+    ), 
+    jar = case_when(
+      v216 == 8 ~ 1, 
+      TRUE ~ 0
+    ), 
+    tanker = case_when(
+      v216 == 9 ~ 1, 
+      TRUE ~ 0
+    ), 
+    municipality = case_when(
+      v223 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    private_collector = case_when(
+      v223 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    dumping = case_when(
+      v223 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    burned = case_when(
+      v223 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    fertilizer = case_when(
+      v223 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    public_sewage = case_when(
+      v225 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    septic_tank = case_when(
+      v225 == 2 ~ 1, 
+      TRUE ~ 0 
+    ), 
+    ordinary_toilet = case_when(
+      v225 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    public_toilet = case_when(
+      v225 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    no_toilet = case_when(
+      v225 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    firewood = case_when(
+      v218 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    lp_gas = case_when(
+      v218 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    biogas_cooking = case_when(
+      v218 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    kerosene_cooking = case_when(
+      v218 == 4 ~ 1, 
+      TRUE ~ 0
+    ), 
+    dung_cake = case_when(
+      v218 == 5 ~ 1, 
+      TRUE ~ 0
+    ), 
+    electricity_cooking = case_when(
+      v218 == 6 ~ 1, 
+      TRUE ~ 0
+    ),
+    electricity_light = case_when(
+      v220 == 1 ~ 1, 
+      TRUE ~ 0
+    ), 
+    solar = case_when(
+      v220 == 2 ~ 1, 
+      TRUE ~ 0
+    ), 
+    kerosene_lighting = case_when(
+      v220 == 3 ~ 1, 
+      TRUE ~ 0
+    ), 
+    biogas_lighting = case_when(
+      v220 == 4 ~ 1, 
+      TRUE ~ 0
+    ),
+    internet = case_when(
+      v222c == 1 ~ 1, 
+      TRUE ~ 0
+    )
+  ) %>%
+  select(-v216, -v223, -v225, -v218, -v220, -v222a, -v222b, -v222c)
+
+assets <- section4c %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  filter(v408 %in% c(1:27)) %>%
+  mutate(
+    asset = recode(
+      v408,
+      `1` = "radio", 
+      `2` = "camera",
+      `3` = "bicycle",
+      `4` = "rickshaw",
+      `5` = "motorcycle",
+      `6` = "tractor", 
+      `7` = "car", 
+      `8` = "bus",
+      `9` = "refrigerator", 
+      `10` = "microwave", 
+      `11` = "geyser", 
+      `12` = "washing_machine", 
+      `13` = "fan",
+      `14` = "heater", 
+      `15` = "television", 
+      `16` = "air_conditioner", 
+      `17` = "vacuum_cleaner", 
+      `18` = "inverter", 
+      `19` = "solar_panel", 
+      `20` = "solar_heater", 
+      `21` = "electric_iron", 
+      `22` = "telephone", 
+      `23` = "sewing_machine", 
+      `24` = "computer", 
+      `25` = "wrist_watch", 
+      `26` = "furniture", 
+      `27` = "lpg_stove"
+    )
+  ) %>%
+  select(hhid, asset, v409) %>%
+  pivot_wider(
+    names_from = asset,
+    values_from = v409
+  )
+
+wealth_index <- wealth_index %>%
+  left_join(assets, by = "hhid")
+
+land_ownership <- section9a %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  ) %>%
+  group_by(hhid) %>%
+  slice(1) %>%
+  ungroup()
+
+wealth_index <- merge(
+  wealth_index, 
+  land_ownership[, c("hhid", "v901")],
+  by = "hhid", 
+  all = TRUE
+)
+
+livestock_ownership <- section9e %>%
+  filter(!is.na(v933)) %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  )
+
+wealth_index <- merge(
+  wealth_index, 
+  livestock_ownership[, c("hhid", "v934")],
+  by = "hhid", 
+  all = TRUE
+)
+
+section0 <- section0 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  )  
+
+wealth_index <- merge(
+  wealth_index, 
+  section0[, c("hhid", "hhld_member_t")], 
+  by = "hhid"
+)
+
+wealth_index <- wealth_index %>%
+  rename(
+    land_ownership = v901, 
+    livestock_ownership = v934
+  ) %>%
+  mutate(
+    hhld_member_t = as.numeric(hhld_member_t),
+    hhld_member_t = if_else(is.na(hhld_member_t), 11, hhld_member_t),
+    rooms_per_capita = v202 / hhld_member_t, 
+    rooms_per_capita = scale(rooms_per_capita),
+    radio = if_else(
+      radio == 2, 0, 1
+    ),
+    camera = if_else(
+      camera == 2, 0, 1
+    ),
+    bicycle = if_else(
+      bicycle == 2, 0, 1
+    ),
+    rickshaw = if_else(
+      rickshaw == 2, 0, 1
+    ),
+    motorcycle = if_else(
+      motorcycle == 2, 0, 1
+    ),
+    tractor = if_else(
+      tractor == 2, 0, 1
+    ),
+    car = if_else(
+      car == 2, 0, 1
+    ),
+    bus = if_else(
+      bus == 2, 0, 1
+    ),
+    refrigerator = if_else(
+      refrigerator == 2, 0, 1
+    ),
+    microwave = if_else(
+      microwave == 2, 0, 1
+    ),
+    geyser = if_else(
+      geyser == 2, 0, 1
+    ),
+    washing_machine = if_else(
+      washing_machine == 2, 0, 1
+    ),
+    fan = if_else(
+      fan == 2, 0, 1
+    ),
+    heater = if_else(
+      heater == 2, 0, 1
+    ),
+    television = if_else(
+      television == 2, 0, 1
+    ),
+    air_conditioner = if_else(
+      air_conditioner == 2, 0, 1
+    ),
+    vacuum_cleaner = if_else(
+      vacuum_cleaner == 2, 0, 1
+    ),
+    inverter = if_else(
+      inverter == 2, 0, 1
+    ),
+    solar_panel = if_else(
+      solar_panel == 2, 0, 1
+    ),
+    solar_heater = if_else(
+      solar_heater == 2, 0, 1
+    ),
+    electric_iron = if_else(
+      electric_iron == 2, 0, 1
+    ),
+    telephone = if_else(
+      telephone == 2, 0, 1
+    ),
+    sewing_machine = if_else(
+      sewing_machine == 2, 0, 1
+    ), 
+    computer = if_else(
+      computer == 2, 0, 1
+    ),
+    wrist_watch = if_else(
+      wrist_watch == 2, 0, 1
+    ),
+    furniture = if_else(
+      furniture == 2, 0, 1
+    ),
+    lpg_stove = if_else(
+      lpg_stove == 2, 0, 1
+    ),
+    land_ownership = case_when(
+      land_ownership == 2 | is.na(land_ownership) ~ 0,
+      TRUE ~ 1
+    ),
+    livestock_ownership = case_when(
+      livestock_ownership == 2 | is.na(livestock_ownership) ~ 0,
+      TRUE ~ 1
+    )
+  ) %>%
+  select(-v202, -hhld_member_t)
+
+wealth_index <- wealth_index %>%
+  left_join(
+    section0 %>% select(hhid, urban_rural),
+    by = "hhid"
+  )
+
+wealth_urban <- wealth_index %>%
+  filter(urban_rural == 1)
+
+wealth_rural <- wealth_index %>%
+  filter(urban_rural == 2)
+
+pca_common <- rbind(
+  wealth_urban,
+  wealth_rural
+)
+
+pca_common <- pca_common %>%
+  select(-hhid, -urban_rural)
+
+pca_input_urban <- wealth_urban %>%
+  select(-hhid, -urban_rural) 
+
+pca_input_rural <- wealth_rural %>%
+  select(-hhid, -urban_rural) 
+
+zero_var_common <- sapply(pca_common, function(x) sd(x, na.rm = TRUE) == 0)
+zero_var_urban <- sapply(pca_input_urban, function(x) sd(x, na.rm = TRUE) == 0)
+zero_var_rural <- sapply(pca_input_rural, function(x) sd(x, na.rm = TRUE) == 0)
+
+pca_common <- pca_common[, !zero_var_common]
+pca_input_urban <- pca_input_urban[, !zero_var_urban]
+pca_input_rural <- pca_input_rural[, !zero_var_rural]
+
+pca_common <- prcomp(pca_common, scale. = TRUE, center = TRUE)
+pca_urban <- prcomp(pca_input_urban, scale. = TRUE, center = TRUE)
+pca_rural <- prcomp(pca_input_rural, scale. = TRUE, center = TRUE)
+
+summary(pca_urban)
+summary(pca_rural)
+summary(pca_common)
+
+wealth_index$score_common <- pca_common$x[, 1]
+
+wealth_urban$score_urban <- pca_urban$x[, 1]
+wealth_rural$score_rural <- pca_rural$x[, 1]
+
+wealth_urban <- wealth_urban %>%
+  left_join(wealth_index %>% select(hhid, score_common), by = "hhid")
+
+wealth_rural <- wealth_rural %>%
+  left_join(wealth_index %>% select(hhid, score_common), by = "hhid")
+
+model_urb <- lm(score_common ~ score_urban, data = wealth_urban)
+model_rur <- lm(score_common ~ score_rural, data = wealth_rural)
+
+urb_alpha <- coef(model_urb)[1] 
+urb_beta  <- coef(model_urb)[2] 
+
+rur_alpha <- coef(model_rur)[1] 
+rur_beta  <- coef(model_rur)[2] 
+
+wealth_urban <- wealth_urban %>%
+  mutate(final_wealth_score = urb_alpha + (urb_beta * score_urban))
+
+wealth_rural <- wealth_rural %>%
+  mutate(final_wealth_score = rur_alpha + (rur_beta * score_rural))
+
+final_wealth_dataset <- bind_rows(
+  wealth_urban %>% select(hhid, urban_rural, final_wealth_score),
+  wealth_rural %>% select(hhid, urban_rural, final_wealth_score)
+)
+
+final_wealth_dataset <- final_wealth_dataset %>%
+  mutate(
+    quintile = ntile(final_wealth_score, 5)
+  )
+
+head(final_wealth_dataset)
+
+final_wealth_dataset <- final_wealth_dataset %>%
+  mutate(
+    wealth_quintile = ntile(final_wealth_score, 5),
+    wealth_quintile = factor(
+      wealth_quintile,
+      levels = 1:5,
+      labels = c("Poorest", "Poorer", "Middle", "Richer", "Richest")
+    )
+  )
+
+wealth_rural <- wealth_rural %>%
+  mutate(
+    wealth_score = pca_rural$x[, 1],
+    wealth_quintile = ntile(wealth_score, 5),
+    wealth_quintile = factor(
+      wealth_quintile,
+      levels = 1:5,
+      labels = c("Rural Poorest", "Rural Poorer", "Rural Middle", "Rural Richer", "Rural Richest")
+    )
+  )
+
+wealth_index <- bind_rows(
+  wealth_urban,
+  wealth_rural
+)
+
+ggplot(wealth_index, aes(x = wealth_score)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, fill = "steelblue", color = "white", alpha = 0.7) +
+  geom_density(color = "red", linewidth = 1) +
+  labs(
+    title = "Distribution of Household Wealth Index Scores",
+    x = "Wealth Score",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+ggplot(wealth_index, aes(x = wealth_quintile, y = wealth_score, fill = wealth_quintile)) +
+  geom_boxplot() +
+  labs(
+    title = "Wealth Scores by Quintile",
+    x = "Wealth Quintile",
+    y = "Wealth Score"
+  ) +
+  theme_minimal() +
+  guides(fill = "none")
+
+section0 <- merge(
+  section0,
+  wealth_index[,c ("hhid", "wealth_score")],
+  by = "hhid"
+)
+
+section2a1 <- section2a1 %>%
+  mutate(
+    hhid = paste0(psu, "-", hhld)
+  )
+
+section2a1 <- merge(
+  section2a1,
+  wealth_index[,c ("hhid", "wealth_score")],
+  by = "hhid"
+)
+
+section2a2 <- merge(
+  section2a2,
+  wealth_index[,c ("hhid", "wealth_score")],
+  by = "hhid"
+)
+
+section2a3 <- merge(
+  section2a3,
+  wealth_index[,c ("hhid", "wealth_score")],
+  by = "hhid"
+)
+
+section2b <- merge(
+  section2b,
+  wealth_index[,c ("hhid", "wealth_score")],
+  by = "hhid"
+)
+
+rm(
+  wealth_index, wealth_rural, wealth_urban, assets, 
+  land_ownership, livestock_ownership, pca_input_rural,
+  pca_input_urban
+)
