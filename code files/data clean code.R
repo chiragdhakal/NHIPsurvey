@@ -2677,6 +2677,27 @@ rm(education_section)
 
 #SECTION6A
 
+section1b <- merge(
+  section1b, 
+  section1a[, c("personid", "v104a")], 
+  by = "personid"
+)
+
+s6a_qualified <- section1b %>%
+  filter(v104a >= 5)
+
+section6a <- section6a %>%
+  filter(personid %in% s6a_qualified$personid)
+
+s6a_missing <- s6a_qualified %>%
+  filter(!personid %in% section6a$personid)
+
+s6a_missing <- s6a_missing %>%
+  select(-v111:-v121, -v104a) 
+
+section6a <- section6a %>%
+  rows_append(s6a_missing)
+
 section1a <- section1a %>%
   mutate(
     age_group = case_when(
@@ -2690,19 +2711,14 @@ section1a <- section1a %>%
       v104a >= 80 & v104a < 90 ~ "80-90",
       v104a >= 90 & v104a < 100 ~ "90-100",
       TRUE ~ "0-10"
-    ),
-    uniq_id = paste0(psu, "-", hhld, "-", v101)
-  )
-
-section6a <- section6a %>%
-  mutate(
-    uniq_id = paste0(psu, "-", hhld, "-", v101)
+    )
   )
 
 section6a <- merge(
   section6a,
-  section1a[, c("uniq_id", "age_group")],
-  by = "uniq_id" 
+  section1a[, c("personid", "age_group")],
+  by = "personid",
+  all = FALSE 
 )
 
 section1a <- section1a %>%
@@ -3070,7 +3086,22 @@ section6b1 <- merge(
   by = "uid"
 )
 
-rm(section6b1_added_rows)
+section6b1 <- section6b1 %>%
+  filter(personid %in% section1b$personid)
+
+s6b1_missing <- section1b %>%
+  filter(!personid %in% section6b1$personid)
+
+s6b1_missing <- s6b1_missing %>%
+  select(-v111:-v121, -v104a) %>%
+  mutate(
+    v603 = 2
+  )
+
+section6b1 <- section6b1 %>%
+  rows_append(s6b1_missing)
+
+rm(section6b1_added_rows, s6a_qualified, s6b1_missing, s6a_missing)
 
 #SECTION6B3
 
@@ -3192,6 +3223,19 @@ missing_outpatients <- anti_join(
 
 rm(missing_outpatients)
 
+s6b3_update <- read.xlsx("chronic_outpatient_costs 14 Feb edited.xlsx")
+
+s6b3_update <- s6b3_update %>%
+  filter(!is.na(disease_id))
+
+section6b3 <- section6b3 %>%
+  mutate(disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)) %>%
+  rows_update(
+    s6b3_update,
+    unmatched = "ignore",
+    by = "disease_id"
+  )
+
 #SECTION6B4  
 
 section6b4 <- section6b4 %>%
@@ -3259,6 +3303,41 @@ missing_inpatients <- anti_join(
 )
 
 rm(missing_inpatients)
+
+s6b4_updates <- read.xlsx("chronic_inpatient_costs Chirag 10 Feb.xlsx")
+
+s6b4_updates <- s6b4_updates %>%
+  filter(!is.na(disease_id))
+
+section6b4$v618b2 <- NA_real_
+
+section6b4 <- section6b4 %>%
+  rows_update(
+    s6b4_updates,
+    by = "disease_id",
+    unmatched = "ignore"
+  ) %>%
+  select(-disease_id)
+
+#SECTION6B5
+
+section6b5 <- section6b5 %>%
+  mutate(
+    v622 = case_when(
+      v624 == "" ~ 2,
+      is.na(personid1) & is.na(v623) ~ 2,
+      TRUE ~ v622
+    ),
+    across(
+      c(v623:v6263),
+      ~ if_else(v622 == 2, NA, .x)
+    ),
+    v624 = case_when(
+      str_detect(v624, "96") ~ "3",
+      v624 %in% c("MUMMY KO HOSPITAL JADA, 3", "3, NIROGI", "3, , BIRAMI") ~ "3",
+      TRUE ~ v624
+    )
+  )
 
 #SECTION6C1
 
@@ -3729,12 +3808,6 @@ section7 <- section7 %>%
       TRUE ~ v101
     )
   )
-
-section1b <- merge(
-  section1b, 
-  section1a[, c("personid", "v104a")], 
-  by = "personid"
-)
 
 s7_qualified <- section1b %>%
   filter(v104a >= 10)
@@ -5709,7 +5782,7 @@ section13c <- section13c %>%
   ) %>%
   select(-p20_savings, -p20_fixed_deposit, -p20_stocks, -p20_cit, -p20_pension, -p20_insurance, -p20_rent)
 
-rm(s6c1_add, s6c2_add, s6c3_missing, s6c3_qualified, s6c4_missing, ssf_respondent_id)
+rm(s6c1_add, s6c2_add, s6c3_missing, s6c3_qualified, s6c4_missing, ssf_respondent_id, s6b3_update, s6b4_updates)
 
 dir.create("data", showWarnings = FALSE, recursive = TRUE)
 
