@@ -9,7 +9,7 @@ library(writexl)
 
 #IMPORTING DATASET
 
-in_dir <- "stata_data1"
+in_dir <- "data"
 
 files <- list.files(in_dir, pattern = "\\.dta$", full.names = TRUE)
 
@@ -488,98 +488,3 @@ income_expenditure_hhld <- income_expenditure_hhld %>%
   select(hhid, total_income, total_expenditure, income_expenditure_ratio)
 
 write.csv(income_expenditure_hhld, "hh_income_expenditure.csv")
-
-#OUTLIER DETECTION FOR HOUSEHOLD INCOME
-
-no_income_data <- income_expenditure_hhld[income_expenditure_hhld$total_income == 0,]
-
-write.csv(no_income_data, "no_income_data.csv")
-
-neg_income_data <- income_expenditure_hhld[income_expenditure_hhld$total_income < 0,]
-
-write.csv(neg_income_data, "negative_income_data.csv")
-
-income_clean_data <- income_expenditure_hhld[!is.na(income_expenditure_hhld$total_income) & income_expenditure_hhld$total_income > 0,]
-
-z_logx <- as.vector(scale(log1p(income_clean_data$total_income)))
-
-z_logx <- data.frame(hhid = income_clean_data$hhid, z_income = z_logx)
-
-outliers_income <- z_logx[z_logx$z_income < -3 | z_logx$z_income > 3,]
-
-#OUTLIER DETECTION FOR HOUSEHOLD EXPENDITURE
-
-expenditure_clean_data <- income_expenditure_hhld[!is.na(income_expenditure_hhld$total_expenditure) & income_expenditure_hhld$total_expenditure > 0,]
-
-z_logy <- as.vector(scale(log1p(expenditure_clean_data$total_expenditure)))
-
-z_logy <- data.frame(hhid = expenditure_clean_data$hhid, z_expenditure = z_logy)
-
-outliers_expenditure <- z_logy[z_logy$z_expenditure < -3 | z_logy$z_expenditure > 3,]
-
-hh_flagged <- income_expenditure_hhld %>%
-  filter(income_expenditure_ratio < 0.5 | income_expenditure_ratio > 1.5)
-
-#OUTLIER DETECTION FOR INCOME EXPENDITURE RATIO 
-
-income_expense_ratio_clean_data <- income_expenditure_hhld[!is.na(income_expenditure_hhld$income_expenditure_ratio) & income_expenditure_hhld$income_expenditure_ratio > 0,]
-
-zloga <- as.vector(scale(log1p(income_expense_ratio_clean_data$income_expenditure_ratio)))
-
-zloga <- data.frame(hhid = income_expense_ratio_clean_data$hhid, z_ratio = zloga)
-
-outliers_ratio <- zloga[zloga$z_ratio < - 3 | zloga$z_ratio > 3,]
-
-#SINGULAR INCOME DISCREPANCY
-
-income_expenditure_hhld <- income_expenditure_hhld %>%
-  mutate(
-    z_income = ifelse(
-      total_income > 0 & !is.na(total_income),
-      as.vector(scale(log1p(total_income))),
-      NA
-    ),
-    
-    income_flag = case_when(
-      is.na(total_income) ~ "missing_income",
-      total_income == 0 ~ "zero_income",
-      total_income < 0 ~ "negative_income",
-      z_income < -3 | z_income > 3 ~ "outlier_income",
-      TRUE ~ "normal_income"
-    )
-  )
-
-income_outliers_combined <- income_expenditure_hhld %>%
-  filter(income_flag != "normal_income") %>%
-  select(hhid, total_income, z_income, income_flag)
-
-income_outliers_combined <- merge(
-  income_outliers_combined, 
-  section0[, c("hhid", "Name.of.enumerator")],
-  by = "hhid", 
-  all.x = TRUE
-)
-
-outliers <- income_outliers_combined %>%
-  group_by(Name.of.enumerator, income_flag) %>%
-  summarise(count = n(), .groups = "drop") %>%
-  pivot_wider(
-    names_from = income_flag, 
-    values_from = count, 
-    values_fill = 0
-  )
-
-enumerator_wise <- merge.data.frame(enumerator_wise, outliers, by.x = "Name.of.enumerator", by.y = "Name.of.enumerator", all = TRUE)
-
-#WINSORIZE THE INCOME VALUES
-
-library(DescTools)
-
-x <- income_expenditure_hhld$total_income
-
-val <- quantile(x, probs = c(0.02, 0.98), na.rm = TRUE)
-
-income_expenditure_hhld$total_income <- Winsorize(x, val = val)
-
-summary(income_expenditure_hhld$total_income)
-

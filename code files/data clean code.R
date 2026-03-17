@@ -30,7 +30,7 @@ gc()
 
 set.seed(123)
 
-#SECTION0
+############################################ SECTION0 (TABLE 01) #############################################
 
 normalize_name <- function(x) {
   x %>%
@@ -406,7 +406,7 @@ section0 <- section0 %>%
   )
 )
 
-#SECTION1A
+############################################ SECTION 1.1 (TABLE 02) #############################################
 
 section1a <- section1a %>%
   select(-v106a) %>%
@@ -1104,7 +1104,7 @@ section1a <- section1a %>%
 
 rm(hh_majority)
 
-#SECTION1B
+############################################ SECTION 1.2 (TABLE 03) #############################################
 
 s1b <- read.xlsx("misc/rectify_sec1b_SA.xlsx")
 
@@ -1394,7 +1394,7 @@ section1b <- section1b %>%
   select(-uniq_id, -v104a, -edu_cap, -edu_implausible, -hhid) %>%
   select(enrollment:uid, personid, v101:v115, v116, everything())
 
-#SECTION2A1 
+############################################ SECTION 2.1.1 (TABLE 04) #############################################
 
 section2a1 <- section2a1 %>%
   group_by(psu) %>%
@@ -1620,7 +1620,7 @@ section2a1 <- section2a1 %>%
     )  
   )
 
-#SECTION2A2  
+############################################ SECTION 2.1.2 (TABLE 05) #############################################
 
 section2a2 <- section2a2 %>%
   mutate(
@@ -1724,7 +1724,7 @@ section2a2 <- section2a2 %>%
     )
   )
 
-#SECTION2A3 
+############################################ SECTION 2.1.3 (TABLE 06) #############################################
 
 section2a3 <- section2a3 %>%
   mutate(
@@ -1824,7 +1824,7 @@ section2a3 <- section2a3 %>%
     )
   )
 
-#SECTION2B
+############################################ SECTION 2.2 (TABLE 07) #############################################
 
 cols_232 <- paste0("v232", letters[1:10])   
 serial_vals_232 <- setNames(1:10, cols_232) 
@@ -1980,7 +1980,7 @@ section2b <- section2b %>%
     )
   )
 
-#SECTION2C
+############################################ SECTION 2.3 (TABLE 08) #############################################
 
 section2c <- section2c %>%
   filter(!is.na(v259)) %>%
@@ -2022,7 +2022,7 @@ section2c <- section2c %>%
     )
   )
 
-#SECTION3A
+############################################ SECTION 3.1 (TABLE 09) #############################################
 
 section3a <- section3a %>%
   mutate(
@@ -2161,7 +2161,7 @@ section3a <- section3a %>%
 
 rm(district_means)
 
-#SECTION3B
+############################################ SECTION 3.2 (TABLE 10) #############################################
 
 section3b <- section3b %>%
   mutate(
@@ -2223,7 +2223,7 @@ section3b <- section3b %>%
   ) %>%
   ungroup()
 
-#SECTION4A
+############################################ SECTION 4.1 (TABLE 11) #############################################
 
 section4a <- section4a %>%
   mutate(
@@ -2427,7 +2427,7 @@ section4a <- section4a %>%
     )
   )
 
-#SECTION4B
+############################################ SECTION 4.2 (TABLE 12) #############################################
 
 section4b <- section4b %>%
   mutate(
@@ -2456,7 +2456,7 @@ section4b <- section4b %>%
   ungroup()
 
 
-#SECTION 4C 
+############################################ SECTION 4.3 (TABLE 13) #############################################
 
 for (i in setdiff(1:ncol(section4c), c(10, 21))) {
   section4c[[i]] <- as.numeric(gsub("[^0-9]", "", section4c[[i]]))
@@ -2516,7 +2516,7 @@ section4c <- section4c %>%
   ) %>%
   ungroup()
 
-#SECTION4D
+############################################ SECTION 4.4 (TABLE 14) #############################################
 
 section4d <- section4d %>%
   group_by(psu, v414) %>%
@@ -2545,7 +2545,7 @@ section4d <- section4d %>%
     )
   )
 
-#SECTION5 
+############################################ SECTION 5 (TABLE 15) #############################################
 
 section5 <- section5 %>%
   filter(
@@ -2675,7 +2675,15 @@ section1b <- section1b %>%
 
 rm(education_section)
 
-#SECTION6A
+section5 <- section5 %>%
+  mutate(
+    v504 = case_when(
+      v504 > rowSums(across(v502a:v502g), na.rm = TRUE) ~ v504 / 10,
+      TRUE ~ v504
+    )
+  )
+
+############################################ SECTION 6.1 (TABLE 16) #############################################
 
 section1b <- merge(
   section1b, 
@@ -2761,7 +2769,7 @@ section6a <- section6a %>%
   ungroup() %>%
   select(-age_group)
 
-#SECTION6B1
+############################################ SECTION 6.2.1 (TABLE 17) #############################################
 
 section6b1 <- section6b1 %>%
   mutate(v610 = v610a) %>%
@@ -3103,7 +3111,7 @@ section6b1 <- section6b1 %>%
 
 rm(section6b1_added_rows, s6a_qualified, s6b1_missing, s6a_missing)
 
-#SECTION6B3
+############################################ SECTION 6.2.3 (TABLE 18) #############################################
 
 section6b3 <- section6b3 %>%
   mutate(
@@ -3236,7 +3244,12 @@ section6b3 <- section6b3 %>%
     by = "disease_id"
   )
 
-#SECTION6B4  
+section6b3 <- section6b3 %>%
+  mutate(
+    v614k = rowSums(across(v614a:v614j), na.rm = TRUE)
+  )
+
+############################################ SECTION 6.2.4 (TABLE 19) #############################################
 
 section6b4 <- section6b4 %>%
   mutate(
@@ -3319,7 +3332,12 @@ section6b4 <- section6b4 %>%
   ) %>%
   select(-disease_id)
 
-#SECTION6B5
+section6b4 <- section6b4 %>%
+  mutate(
+    v618k = rowSums(across(v618a:v618j), na.rm = TRUE)
+  )
+
+############################################ SECTION 6.2.5 (TABLE 20) #############################################
 
 section6b5 <- section6b5 %>%
   mutate(
@@ -3339,7 +3357,7 @@ section6b5 <- section6b5 %>%
     )
   )
 
-#SECTION6C1
+############################################ SECTION 6.3.1 (TABLE 21) #############################################
 
 cols_after_v629 <- names(section6c1)[(match("v629", names(section6c1)) + 1):ncol(section6c1)]
 
@@ -3425,7 +3443,7 @@ section6c1 <- section6c1 %>%
   ungroup() %>%
   select(-disease_id)
 
-#SECTIONC2
+############################################ SECTION 6.3.2 (TABLE 22) #############################################
 
 section6c1 <- section6c1 %>%
   group_by(personid) %>%
@@ -3472,7 +3490,7 @@ section6c2 <- section6c2 %>%
   ungroup() %>%
   select(-disease_id)
 
-#SECTION6C3
+############################################ SECTION 6.3.3 (TABLE 23) #############################################
 
 s6c3_qualified <- section6c1 %>%
   filter(!is.na(v630) & v629 == 1)
@@ -3558,7 +3576,7 @@ section6c3 <- section6c3 %>%
   rows_append(s6c3_missing) %>%
   filter(personid %in% section6c1$personid)
 
-#SECTION6C4
+############################################ SECTION 6.3.4 (TABLE 24) #############################################
 
 section6c4 <- section6c4 %>%
   mutate(
@@ -3704,7 +3722,12 @@ section6c4 <- section6c4 %>%
   ungroup() %>%
   select(-disease_id)
 
-#SECTION6C5
+section6c4 <- section6c4 %>%
+  mutate(
+    v651k = rowSums(across(v651a:v651j), na.rm = TRUE)
+  )
+
+############################################ SECTION 6.3.5 (TABLE 25) #############################################
 
 section6c5 <- section6c5 %>%
   mutate(
@@ -3746,7 +3769,7 @@ section6c5 <- section6c5 %>%
     )
   )
 
-#SECTION7
+############################################ SECTION 7 (TABLE 26) #############################################
 
 section7 <- section7 %>%
   mutate(
@@ -3999,7 +4022,7 @@ ssf <- section7 %>%
 
 rm(ssf)
 
-#SECTION8 
+############################################ SECTION 8 (TABLE 27) ############################################# 
 
 wages <- read.xlsx("misc/wages.xlsx")
 ssf_s8_missing <- read.xlsx("misc/ssf_s8_missing.xlsx")
@@ -4696,7 +4719,7 @@ section8 <- section8 %>%
     )
   )
 
-#SECTION9A1
+############################################ SECTION 9.1 (TABLE 28) #############################################
 
 section9a <- section9a %>%
   filter(
@@ -4739,7 +4762,7 @@ section9a <- section9a %>%
     )
   )
 
-#SECTION9B
+############################################ SECTION 9.2 (TABLE 29) #############################################
 
 section9b <- section9b %>%
   mutate(
@@ -4771,7 +4794,7 @@ section9b <- section9b %>%
     )
   )
 
-#SECTION9C
+############################################ SECTION 9.3 (TABLE 30) #############################################
 
 section9c <- section9c %>%
   filter(!is.na(v914b)) %>%
@@ -4939,7 +4962,7 @@ section9c <- section9c %>%
     v918d = v918c * v918b
   )
 
-#SECTION9D
+############################################ SECTION 9.4 (TABLE 31) #############################################
 
 section9d <- section9d %>%
   mutate(
@@ -5030,7 +5053,7 @@ section9d <- section9d %>%
   ) %>%
   select(-swap, -ratio)
 
-#SECTION9E
+############################################ SECTION 9.5 (TABLE 32) #############################################
 
 section9e <- section9e %>%
   mutate(
@@ -5096,7 +5119,7 @@ section9e <- section9e %>%
     )
   )
 
-#SECTION9F1
+############################################ SECTION 9.6.1 (TABLE 33) #############################################
 
 section9f1 <- section9f1 %>%
   mutate(
@@ -5119,7 +5142,7 @@ section9f1 <- section9f1 %>%
   ) %>%
   ungroup()
 
-#SECTION9F2
+############################################ SECTION 9.6.2 (TABLE 34) #############################################
 
 section9f2 <- section9f2 %>%
   mutate(
@@ -5134,7 +5157,7 @@ section9f2 <- section9f2 %>%
     )
   )
 
-#SECTION10
+############################################ SECTION 10 (TABLE 35) #############################################
 
 s10 <- read.xlsx("misc/clean data1/section10.xlsx")
 
@@ -5202,6 +5225,7 @@ section10 <- section10 %>%
       v1002c_1 %in% c("DHAN KUTAN PISANI, KIRANA PASAL") ~ 156000,
       v1002c_1 %in% c("KIRANA SAMAN BIKRI") ~ 3600000,
       v1002c_1 %in% c("PUJA KO SAMAN BECHNE, CAR CHALAUN SIKAUNE") ~ 1200000,
+      id == 12145 ~ 5400000,
       TRUE ~ v1005
     ),
     v1006 = case_when(
@@ -5343,13 +5367,12 @@ section10 <- section10 %>%
     across(
       v1011,
       ~ na_if(.x, 0)
-    )
-  
+    )  
   )
 
 rm(s10)
 
-#SECTION11A
+############################################ SECTION 11.1 (TABLE 36) #############################################
 
 hh_head <- section1a %>%
   filter(v107 == 1) %>%
@@ -5404,7 +5427,7 @@ section11a <- section11a %>%
   ) %>%
   select(-personid_1a, -v101)
 
-#SECTION11B
+############################################ SECTION 11.2 (TABLE 37) #############################################
 
 section11b <- section11b %>%
   mutate(
@@ -5450,7 +5473,7 @@ section11b <- section11b %>%
   ) %>%
   select(-personid_1a, -v101)
 
-#SECTION11C
+############################################ SECTION 11.3 (TABLE 38) #############################################
 
 section11c <- section11c %>%
   mutate(
@@ -5484,7 +5507,7 @@ section11c <- section11c %>%
     )
   )
 
-#SECTION12A
+############################################ SECTION 12.1 (TABLE 39) #############################################
 
 section12a <- section12a %>%
   mutate(
@@ -5591,7 +5614,7 @@ sum(remittance_qualified$personid %in% section12a$personid)
 
 rm(remittance_missing, remittance_qualified, hh_head)
 
-#SECTION12B
+############################################ SECTION 12.2 (TABLE 40) #############################################
 
 section12b <- section12b %>%
   mutate(
@@ -5615,7 +5638,7 @@ section12b <- section12b %>%
     )
   )
 
-#SECTION13A
+############################################ SECTION 13.1 (TABLE 41) #############################################
 
 for (i in setdiff(1:ncol(section13a), c(10, 23))) {
   section13a[[i]] <- as.numeric(gsub("[^0-9]", "", section13a[[i]]))
@@ -5691,7 +5714,7 @@ section13a <- section13a %>%
   ungroup() %>%
   select(-max_allowed, -p20_childgrant, -p20_aamasurakshya, -p20_other)
 
-#SECTION13B
+############################################ SECTION 13.2 (TABLE 42) #############################################
 
 section13b <- section13b %>%
   mutate(
@@ -5701,7 +5724,7 @@ section13b <- section13b %>%
     )
   )
 
-#SECTION13C
+############################################ SECTION 13.3 (TABLE 43) #############################################
 
 for (i in setdiff(1:ncol(section13c), c(10, 16))) { 
   section13c[[i]] <- as.numeric(gsub("[^0-9]", "", section13c[[i]]))
@@ -5798,3 +5821,4 @@ for (nm in df_names) {
   )
 }
 
+rm(df)
