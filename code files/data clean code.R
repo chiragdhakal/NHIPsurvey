@@ -403,6 +403,15 @@ section0 <- section0 %>%
     id == 11751 ~ "PIRTI SHARMA",
   
     TRUE ~ respondent
+  ), 
+  employer_name = case_when(
+    employer_name == "CHHORI" ~ "CHOORI", 
+    employer_name == "AAMRUJ INTERNATIONAL" ~ "AMARUJ INTERNATIONAL", 
+    employer_name == "BIDHATA AUTO MOBILE SERVICE" ~ "VIDHATA AUTO MOBILE SERVICE",
+    employer_name == "USHNA PRADESHIYA BAGBANI KENDRA" ~ "USHNA PRADESHIY BAGAWANI KENDRA", 
+    employer_name == "SWOYAMBHU SUPPLIERS" ~ "SWAYAMBHU SUPPLIERS", 
+    employer_name == "NEST FURNITURE" ~ "NESS FURNITURE", 
+    TRUE ~ employer_name
   )
 )
 
@@ -434,7 +443,7 @@ section1a <- section1a %>%
     ),
     v104b = if_else(
     v104a == 0 & is.na(v104b),
-    sample(1:12, n(), replace = TRUE),
+    6,
     v104b
     ),
     v105 = case_when(
@@ -1852,62 +1861,53 @@ section2b <- section2b %>%
       TRUE ~ v230
     ),
     across(
-      c(v232a:v232j),
-      ~ na_if(.x, enrollment %in% c(1, 3))
+      all_of(cols_232),
+      ~ if_else(enrollment %in% c(1, 3), NA_real_, .x)
     )
   ) %>%
-  rowwise() %>%
+
   mutate(
-    all_na_232 = all(is.na(c_across(all_of(cols_232))))
+    all_na_232 = if_all(all_of(cols_232), is.na),
+    pick1_232 = (as.integer(id) %% 10) + 1,
+    pick2_232 = ((as.integer(id) + 3) %% 10) + 1
   ) %>%
   mutate(
     across(
       all_of(cols_232),
-      ~ {
-        if (enrollment %in% c(2,4) && all_na_232) {
-          chosen <- sample(cols_232, 2)   
-          if (cur_column() %in% chosen) {
-            serial_vals_232[cur_column()]
-          } else {
-            NA_real_
-          }
-        } else {
-          .x
-        }
-      }
+      ~ case_when(
+        enrollment %in% c(2, 4) & all_na_232 &
+          (match(cur_column(), cols_232) %in% c(pick1_232, pick2_232)) ~ 
+            serial_vals_232[cur_column()],
+        enrollment %in% c(2, 4) & all_na_232 ~ NA_real_,
+        TRUE ~ .x
+      )
     )
   ) %>%
-  ungroup() %>%
-  select(-all_na_232) %>%
+  select(-all_na_232, -pick1_232, -pick2_232) %>%
+
   mutate(
     across(
-      c(v233a:v233j),
-      ~ na_if(.x, enrollment %in% c(2, 4))
-    )
-  ) %>%
-  rowwise() %>%
-  mutate(
-    all_na_233 = all(is.na(c_across(all_of(cols_233))))
+      all_of(cols_233),
+      ~ if_else(enrollment %in% c(2, 4), NA_real_, .x)
+    ),
+    all_na_233 = if_all(all_of(cols_233), is.na),
+    pick1_233 = (as.integer(id) %% 10) + 1,
+    pick2_233 = ((as.integer(id) + 5) %% 10) + 1
   ) %>%
   mutate(
     across(
       all_of(cols_233),
-      ~ {
-        if (enrollment %in% c(1, 3) && all_na_233) {
-          chosen <- sample(cols_233, 2)   
-          if (cur_column() %in% chosen) {
-            serial_vals_233[cur_column()]
-          } else {
-            NA_real_
-          }
-        } else {
-          .x
-        }
-      }
+      ~ case_when(
+        enrollment %in% c(1, 3) & all_na_233 &
+          (match(cur_column(), cols_233) %in% c(pick1_233, pick2_233)) ~ 
+            serial_vals_233[cur_column()],
+        enrollment %in% c(1, 3) & all_na_233 ~ NA_real_,
+        TRUE ~ .x
+      )
     )
   ) %>%
-  ungroup() %>%
-  select(-all_na_233) %>%
+  select(-all_na_233, -pick1_233, -pick2_233) %>%
+
   mutate(
     v234 = case_when(
       enrollment %in% c(2, 3, 4) ~ NA_real_,
@@ -1933,7 +1933,7 @@ section2b <- section2b %>%
     ), 
     v241 = case_when(
       enrollment == 1 & is.na(v241) ~ 1,
-      enrollment == 2 & is.na(v241) ~ sample(1:3, n(), replace = TRUE),
+      enrollment == 2 & is.na(v241) ~ 2,
       enrollment %in% c(3, 4) ~ NA_real_,
       TRUE ~ v241
     ),
@@ -1960,18 +1960,15 @@ section2b <- section2b %>%
       TRUE ~ NA_real_
     ),
     v250 = case_when(
-      is.na(v250) ~ sample(1:3, n(), replace = TRUE), 
+      is.na(v250) ~ 3, 
       TRUE ~ v250
     ), 
     v251 = case_when(
       is.na(v252) ~ 2, 
       !is.na(v252) ~ 1,
       TRUE ~ v251
-    ), 
-
-  )
-
-section2b <- section2b %>%
+    )
+  ) %>%
   mutate( 
     v228 = if_else(
       is.na(v229), 
@@ -2120,8 +2117,8 @@ section3a <- section3a %>%
   mutate(
     hhid = paste0(psu, "-", hhld),
     v304 = case_when(
-      hhid %in% c("3341-3","3421-4","3602-1","3622-2","6309-1", "3502-3", "7308-3") & v301 == 1 ~ 500,
-      hhid %in% c("3341-3","3421-4","3602-1","3622-2","6309-1", "3502-3", "7308-3") & v301 == 2 ~ 200,
+      id %in% c(4033, 11545, 13787, 12392, 13965, 11492, 14473) & v301 == 1 ~ 500,
+      id %in% c(4033, 11545, 13787, 12392, 13965, 11492, 14473) & v301 == 2 ~ 200,
       TRUE ~ v304
     )
   )
@@ -2830,21 +2827,11 @@ section6b1 <- section6b1 %>%
   v611a = v611_new,
   v611 = v611_1
   ) 
-  
-section1a <- section1a %>%
-  mutate(
-    uniq_id = paste0(psu, "-", hhld, "-", v101)
-  )
-
-section6b1 <- section6b1 %>%
-  mutate(
-    uniq_id = paste0(psu, "-", hhld, "-", v101)
-  )
 
 section6b1 <- merge(
   section6b1, 
-  section1a[, c("uniq_id", "v104a")],
-  by = "uniq_id"
+  section1a[, c("personid", "v104a")],
+  by = "personid"
 )
 
 section6b1 <- section6b1 %>%
@@ -2887,7 +2874,7 @@ section6b1 <- section6b1 %>%
 
 section6b1 <- section6b1 %>%
   mutate(
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604),
+    disease_id = paste0(personid, "-", v604),
     v606 = if_else(
       v606 > v104a , 1, v606
     )
@@ -3030,9 +3017,8 @@ section6b1 <- section6b1 %>%
   ) 
 
 section6b1 <- section6b1 %>%
-  mutate(disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604))
+  mutate(disease_id = paste0(personid, "-", v604))
   
-
 section6b1 <- section6b1 %>%
   mutate(
     v603 == if_else(
@@ -3058,9 +3044,9 @@ section6b1 <- section6b1 %>%
 
 section6b1 <- section6b1 %>%
   select(
-    -`v603 == if_else(!is.na(v604), 1, 2)`, -uniq_id, -v610a1, -v610a2, -v610a3, -v610a4, -v610a5, 
+    -`v603 == if_else(!is.na(v604), 1, 2)`, -v610a1, -v610a2, -v610a3, -v610a4, -v610a5, 
     -v6111, -v6112, -v6113, -v6114, -v6115, - interviewer, -employer, -employer_name, -employer_sector, 
-    -employer_size, -disease_id, -uniq_id
+    -employer_size, -disease_id
   )
 
 section6b1_added_rows <- read.xlsx("misc/health section arrangement/section6b1_added_rows.xlsx")
@@ -3081,8 +3067,7 @@ section6b1 <- rbind(
 
 section6b1 <- section6b1 %>%
   mutate(
-    uniq_id = paste0(psu, "-", hhld, "-", v101),
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+    disease_id = paste0(personid, "-", v604)
   ) %>%
   group_by(disease_id) %>%
   slice(1) %>%
@@ -3111,12 +3096,45 @@ section6b1 <- section6b1 %>%
 
 rm(section6b1_added_rows, s6a_qualified, s6b1_missing, s6a_missing)
 
+section6b1 <- section6b1 %>%
+  mutate(
+    v611 = case_when(
+      disease_id == "20652-13" ~ "3,8", 
+      disease_id == "30164-1" ~  "3,8",
+      disease_id == "34877-1" ~ "7,8", 
+      disease_id == "39683-1" ~ "3,7,8",
+      disease_id == "55580-1" ~ "7",
+      disease_id == "57645-1" ~ "3",
+      TRUE ~ v611
+    ), 
+    v605a = case_when(
+      disease_id == "20652-13" ~ 4, 
+      disease_id == "23262-21" ~ 4, 
+      disease_id == "25271-1" ~ 2, 
+      disease_id == "55839-1" ~ 1, 
+      TRUE ~ v605a
+    ), 
+    v606 = case_when(
+      disease_id == "20652-13" ~ 20, 
+      disease_id == "23262-21" ~ 10, 
+      disease_id == "39683-1" ~ 20, 
+      disease_id == "51542-13" ~ 18, 
+      disease_id == "55839-1" ~ 14, 
+      disease_id == "57645-1" ~ 7,
+      TRUE ~ v606
+    ),
+    v608 = case_when(
+      disease_id == "30164-1" ~ 1, 
+      disease_id == "55580-1" ~ 2, 
+      TRUE ~ v608
+    )
+  )
+
 ############################################ SECTION 6.2.3 (TABLE 18) #############################################
 
 section6b3 <- section6b3 %>%
   mutate(
-    uniq_id = paste0(psu, "-", hhld, "-", v101),
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+    disease_id = paste0(personid, "-", v604)
   ) %>%
   group_by(disease_id) %>%
   slice(1) %>%
@@ -3197,30 +3215,22 @@ section6b3 <- section6b3 %>%
       personid == 54153 & v604 == 2 ~ 6, 
       personid == 59821 & v604 == 2 ~ 23,
       TRUE ~ v604
-    ),
-    v101 = case_when(
-      personid == 12487 ~ 2,
-      TRUE ~ v101
-    ),
-    personid = case_when(
-      uniq_id == c("2207-8-1") ~ 12488,
-      TRUE ~ personid
     )
   )
 
 section6b3 <- section6b3 %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101),
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+    disease_id = paste0(personid, "-", v604)
   ) %>%
   filter(
-      !disease_id %in%  c("3353-1-1-2", "5101-19-2-2")
+      !disease_id %in%  c("23262-2", "7960-2")
   )
 
 section6b1 <- section6b1 %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101),
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+    disease_id = paste0(personid, "-", v604)
   )
 
 missing_outpatients <- anti_join(
@@ -3237,7 +3247,7 @@ s6b3_update <- s6b3_update %>%
   filter(!is.na(disease_id))
 
 section6b3 <- section6b3 %>%
-  mutate(disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)) %>%
+  mutate(disease_id = paste0(personid, "-", v604)) %>%
   rows_update(
     s6b3_update,
     unmatched = "ignore",
@@ -3265,7 +3275,7 @@ section6b4 <- section6b4 %>%
 section6b4 <- section6b4 %>%
   mutate(
     uniq_id = paste0(psu, "-", hhld, "-", v101),
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+    disease_id = paste0(personid, "-", v604)
   ) %>%
   group_by(disease_id) %>%
   slice(1) %>%
@@ -3306,7 +3316,7 @@ section6b4 <- section6b4 %>%
 
 section6b4 <- section6b4 %>%
   mutate(
-    disease_id = paste0(psu, "-", hhld, "-", v101, "-", v604)
+    disease_id = paste0(personid, "-", v604)
   )
 
 missing_inpatients <- anti_join(
@@ -3356,6 +3366,17 @@ section6b5 <- section6b5 %>%
       TRUE ~ v624
     )
   )
+
+section6b5 <- section6b5 %>%
+  mutate(
+    across(
+      c(personid1:v6263),
+      ~ if_else(v622 == 2, NA, .x)
+    )
+  ) %>%
+  group_by(personid) %>%
+  filter(!(v622 == 2 & any(v622 == 1))) %>%
+  ungroup()
 
 ############################################ SECTION 6.3.1 (TABLE 21) #############################################
 
@@ -5807,18 +5828,4 @@ section13c <- section13c %>%
 
 rm(s6c1_add, s6c2_add, s6c3_missing, s6c3_qualified, s6c4_missing, ssf_respondent_id, s6b3_update, s6b4_updates)
 
-dir.create("data", showWarnings = FALSE, recursive = TRUE)
 
-df_names <- ls()[sapply(ls(), function(x) is.data.frame(get(x)))]
-
-for (nm in df_names) {
-  df <- get(nm)
-  df <- haven::zap_widths(df)
-  
-  write_dta(
-    df,
-    file.path("data", paste0(nm, ".dta"))
-  )
-}
-
-rm(df)
