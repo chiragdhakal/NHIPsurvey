@@ -15,8 +15,6 @@ library(purrr)
 library(labelled)
 library(compareDF)
 
-set.seed(123)
-
 ############################################ tbl01 (TABLE 01) #################################################
 
 tbl01 <- read_dta("OOPS_Rawdata_2026_03_17/tbl01.dta")
@@ -3357,7 +3355,7 @@ tbl17_clean <- tbl17 %>%
   arrange(disease_id) 
 
 section6b1_clean <- section6b1 %>%
-  select(-hhld, -uniq_id) %>%
+  select(-hhld) %>%
   mutate(disease_id = paste0(personid, "-", v604)) %>%
   arrange(disease_id) 
 
@@ -4269,7 +4267,7 @@ tbl28 <- tbl28 %>%
     ),
     v710 = if_else(
       !is.na(v708) & is.na(v710),
-      sample(1:3, n(), replace = TRUE),
+      (as.integer(personid) %% 3) + 1,
       v710
     ),
     v711 = case_when(
@@ -4290,35 +4288,35 @@ tbl28 <- tbl28 %>%
       TRUE ~ v714
     ),
     v715 = case_when(
-      !is.na(v708) & is.na(v715) & is.na(employer) ~ sample(1:8, n(), replace = TRUE), 
+      !is.na(v708) & is.na(v715) & is.na(employer) ~ (as.integer(personid) %% 8) + 1, 
       TRUE ~ v715
     ),
     v716 = case_when(
-      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ sample(1:2, n(), replace = TRUE), 
+      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ v716
     ), 
     v717 = case_when(
-      v716 == 2 & !is.na(v708) & is.na(employer) ~ sample(1:2, n(), replace = TRUE), 
+      v716 == 2 & !is.na(v708) & is.na(employer) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ NA_real_
     ),
     v718 = case_when(
-      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ sample(1:2, n(), replace = TRUE), 
+      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ NA_real_ 
     ),
     v719 = case_when(
-      v718 == 2 & is.na(v719) ~ sample(1:2, n(), replace = TRUE),
+      v718 == 2 & is.na(v719) ~ (as.integer(personid) %% 2) + 1,
       TRUE ~ NA_real_
     ),
     v720 = case_when(
-      v718 == 1 & is.na(v720) ~ sample(1:11, n(), replace = TRUE), 
+      v718 == 1 & is.na(v720) ~ (as.integer(personid) %% 11) + 1, 
       TRUE ~ NA_real_
     ), 
     v721 = case_when(
-      v719 == 2 & is.na(v721) ~ sample(1:2, n(), replace = TRUE),
+      v719 == 2 & is.na(v721) ~ (as.integer(personid) %% 2) + 1,
       TRUE ~ NA_real_
     ), 
     v722 = case_when(
-      v721 == 1 & is.na(v722) ~ sample(1:3, n(), replace = TRUE), 
+      v721 == 1 & is.na(v722) ~ (as.integer(personid) %% 3) + 1, 
       TRUE ~ NA_real_
     )
   )
@@ -4329,20 +4327,6 @@ ssf <- tbl28 %>%
   filter(personid %in% ssf_respondent_id$personid)
 
 rm(ssf)
-
-tbl28_clean <- tbl28 %>%
-  arrange(personid) %>%
-  select(-hhld)
-
-section7_clean <- section7 %>%
-  arrange(personid) %>%
-  select(-hhld)
-
-tbl28_clean <- tbl28_clean[, names(section7_clean)]
-
-all.equal(section7_clean, tbl28_clean)
-
-rm(section7_clean, tbl28_clean)
 
 ############################################ SECTION 8 (TABLE 29) ############################################# 
 
@@ -4732,6 +4716,7 @@ jobs <- merge(
   by = "personid"
 )
 
+
 jobs <- jobs %>%
   mutate(
     v803 = as.numeric(v803),
@@ -4820,7 +4805,7 @@ jobs <- jobs %>%
     ),
     v710 = if_else(
       !is.na(v708) & is.na(v710),
-      sample(1:3, n(), replace = TRUE),
+      (as.integer(personid) %% 3) + 1,
       v710
     ),
     v711 = case_when(
@@ -4839,39 +4824,39 @@ jobs <- jobs %>%
     ),
     v714 = case_when(
       enrollment %in% c(3, 4) & !is.na(v708) ~ employer_sector,
-      is.na(v714) ~ sample(1:20, n(), replace = TRUE),
+      is.na(v714) ~ (as.integer(personid) %% 20) + 1,
       TRUE ~ v714
     ),
     v715 = case_when(
-      !is.na(v708) & is.na(v715) & is.na(employer) ~ sample(1:8, n(), replace = TRUE), 
+      !is.na(v708) & is.na(v715) & is.na(employer) ~ (as.integer(personid) %% 8) + 1, 
       TRUE ~ v715
     ),
     v716 = case_when(
-      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ sample(1:2, n(), replace = TRUE), 
+      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ v716
     ), 
     v717 = case_when(
-      v716 == 2 & !is.na(v708) & is.na(employer) ~ sample(1:2, n(), replace = TRUE), 
+      v716 == 2 & !is.na(v708) & is.na(employer) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ NA_real_
     ),
     v718 = case_when(
-      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ sample(1:2, n(), replace = TRUE), 
+      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ NA_real_ 
     ),
     v719 = case_when(
-      v718 == 2 & is.na(v719) ~ sample(1:2, n(), replace = TRUE),
+      v718 == 2 & is.na(v719) ~ (as.integer(personid) %% 2) + 1,
       TRUE ~ NA_real_
     ),
     v720 = case_when(
-      v718 == 1 & is.na(v720) ~ sample(1:11, n(), replace = TRUE), 
+      v718 == 1 & is.na(v720) ~ (as.integer(personid) %% 11) + 1, 
       TRUE ~ NA_real_
     ), 
     v721 = case_when(
-      v719 == 2 & is.na(v721) ~ sample(1:2, n(), replace = TRUE),
+      v719 == 2 & is.na(v721) ~ (as.integer(personid) %% 2) + 1,
       TRUE ~ NA_real_
     ), 
     v722 = case_when(
-      v721 == 1 & is.na(v722) ~ sample(1:3, n(), replace = TRUE), 
+      v721 == 1 & is.na(v722) ~ (as.integer(personid) %% 3) + 1, 
       TRUE ~ NA_real_
     )
   ) %>%
@@ -4947,7 +4932,7 @@ tbl28 <- tbl28 %>%
     ),
     v710 = if_else(
       !is.na(v708) & is.na(v710),
-      sample(1:3, n(), replace = TRUE),
+      (as.integer(personid) %% 3) + 1,
       v710
     ),
     v711 = case_when(
@@ -4968,35 +4953,35 @@ tbl28 <- tbl28 %>%
       TRUE ~ v714
     ),
     v715 = case_when(
-      !is.na(v708) & is.na(v715) & is.na(employer) ~ sample(1:8, n(), replace = TRUE), 
+      !is.na(v708) & is.na(v715) & is.na(employer) ~ (as.integer(personid) %% 8) + 1, 
       TRUE ~ v715
     ),
     v716 = case_when(
-      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ sample(1:2, n(), replace = TRUE), 
+      !is.na(v715) & !is.na(v708) & is.na(employer) & is.na(v716) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ v716
     ), 
     v717 = case_when(
-      v716 == 2 & !is.na(v708) & is.na(employer) ~ sample(1:2, n(), replace = TRUE), 
+      v716 == 2 & !is.na(v708) & is.na(employer) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ NA_real_
     ),
     v718 = case_when(
-      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ sample(1:2, n(), replace = TRUE), 
+      v702 == 2 & v703 == 2 & v704 == 2 & v705 == 2 & is.na(v718) ~ (as.integer(personid) %% 2) + 1, 
       TRUE ~ NA_real_ 
     ),
     v719 = case_when(
-      v718 == 2 & is.na(v719) ~ sample(1:2, n(), replace = TRUE),
+      v718 == 2 & is.na(v719) ~ (as.integer(personid) %% 2) + 1,
       TRUE ~ NA_real_
     ),
     v720 = case_when(
-      v718 == 1 & is.na(v720) ~ sample(1:11, n(), replace = TRUE), 
+      v718 == 1 & is.na(v720) ~ (as.integer(personid) %% 11) + 1, 
       TRUE ~ NA_real_
     ), 
     v721 = case_when(
-      v719 == 2 & is.na(v721) ~ sample(1:2, n(), replace = TRUE),
+      v719 == 2 & is.na(v721) ~ (as.integer(personid) %% 2) + 1,
       TRUE ~ NA_real_
     ), 
     v722 = case_when(
-      v721 == 1 & is.na(v722) ~ sample(1:3, n(), replace = TRUE), 
+      v721 == 1 & is.na(v722) ~ (as.integer(personid) %% 3) + 1, 
       TRUE ~ NA_real_
     )
   )
@@ -5042,6 +5027,20 @@ tbl29 <- tbl29 %>%
       TRUE ~ v808a
     )
   )
+
+tbl28_clean <- tbl28 %>%
+  arrange(personid) %>%
+  select(-hhld)
+
+section7_clean <- section7 %>%
+  arrange(personid) %>%
+  select(-hhld)
+
+tbl28_clean <- tbl28_clean[, names(section7_clean)]
+
+all.equal(section7_clean, tbl28_clean)
+
+rm(section7_clean, tbl28_clean)
 
 tbl29_clean <- tbl29 %>%
   arrange(personid) %>%
@@ -5168,7 +5167,7 @@ rm(section9b_clean, tbl31_clean)
 
 ############################################ SECTION 9.3 (TABLE 32) #############################################
 
-tbl32 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl32.dta")
+ tbl32 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl32.dta")
 
 tbl32 <- tbl32 %>%
   filter(!is.na(v914b)) %>%
@@ -5354,6 +5353,8 @@ rm(section9c_clean, tbl32_clean)
 
 ############################################ SECTION 9.4 (TABLE 33) #############################################
 
+tbl33 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl33.dta")
+
 tbl33 <- tbl33 %>%
   mutate(
     across(
@@ -5443,7 +5444,23 @@ tbl33 <- tbl33 %>%
   ) %>%
   select(-swap, -ratio)
 
+tbl33_clean <- tbl33 %>%
+  select(-hhld) %>%
+  arrange(id) 
+
+section9d_clean <- section9d %>%
+  select(-hhld) %>%
+  arrange(id)
+
+tbl33_clean <- tbl33_clean[, names(section9d_clean)]
+
+all.equal(section9d_clean, tbl33_clean)
+
+rm(section9d_clean, tbl33_clean)
+
 ############################################ SECTION 9.5 (TABLE 34) #############################################
+
+tbl34 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl34.dta")
 
 tbl34 <- tbl34 %>%
   mutate(
@@ -5509,7 +5526,23 @@ tbl34 <- tbl34 %>%
     )
   )
 
+tbl34_clean <- tbl34 %>%
+  select(-hhld) %>%
+  arrange(id, v934a) 
+
+section9e_clean <- section9e %>%
+  select(-hhld) %>%
+  arrange(id, v934a)
+
+tbl34_clean <- tbl34_clean[, names(section9e_clean)]
+
+all.equal(section9e_clean, tbl34_clean)
+
+rm(section9e_clean, tbl34_clean)
+
 ############################################ SECTION 9.6.1 (TABLE 35) #############################################
+
+tbl35 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl35.dta")
 
 tbl35 <- tbl35 %>%
   mutate(
@@ -5532,7 +5565,23 @@ tbl35 <- tbl35 %>%
   ) %>%
   ungroup()
 
+tbl35_clean <- tbl35 %>%
+  select(-hhld) %>%
+  arrange(id, v940)
+
+section9f1_clean <- section9f1 %>%
+  select(-hhld) %>%
+  arrange(id, v940)
+
+tbl35_clean <- tbl35_clean[, names(section9f1_clean)]
+
+all.equal(section9f1_clean, tbl35_clean)
+
+rm(section9f1_clean, tbl35_clean)
+
 ############################################ SECTION 9.6.2 (TABLE 36) #############################################
+
+tbl36 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl36.dta")
 
 tbl36 <- tbl36 %>%
   mutate(
@@ -5547,7 +5596,23 @@ tbl36 <- tbl36 %>%
     )
   )
 
+tbl36_clean <- tbl36 %>%
+  select(-hhld) %>%
+  arrange(id, v942)
+
+section9f2_clean <- section9f2 %>%
+  select(-hhld) %>%
+  arrange(id, v942)
+
+tbl36_clean <- tbl36_clean[, names(section9f2_clean)]
+
+all.equal(section9f2_clean, tbl36_clean)
+
+rm(section9f2_clean, tbl36_clean)
+
 ############################################ SECTION 10 (TABLE 37) #############################################
+
+tbl37 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl37.dta")
 
 s10 <- read.xlsx("misc/clean data1/section10.xlsx")
 
@@ -5762,7 +5827,23 @@ tbl37 <- tbl37 %>%
 
 rm(s10)
 
+tbl37_clean <- tbl37 %>%
+  select(-hhld) %>%
+  arrange(id)
+
+section10_clean <- section10 %>%
+  select(-hhld) %>%
+  arrange(id)
+
+tbl37_clean <- tbl37_clean[, names(section10_clean)]
+
+all.equal(section10_clean, tbl37_clean)
+
+rm(section10_clean, tbl37_clean)
+
 ############################################ SECTION 11.1 (TABLE 38) #############################################
+
+tbl38 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl38.dta")
 
 hh_head <- tbl02 %>%
   filter(v107 == 1) %>%
@@ -5817,7 +5898,23 @@ tbl38 <- tbl38 %>%
   ) %>%
   select(-personid_1a, -v101)
 
+tbl38_clean <- tbl38 %>%
+  select(-hhld) %>%
+  arrange(personid, v1102)
+
+section11a_clean <- section11a %>%
+  select(-hhld) %>%
+  arrange(personid, v1102)
+
+tbl38_clean <- tbl38_clean[, names(section11a_clean)]
+
+all.equal(section11a_clean, tbl38_clean)
+
+rm(section11a_clean, tbl38_clean)
+
 ############################################ SECTION 11.2 (TABLE 39) #############################################
+
+tbl39 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl39.dta")
 
 tbl39 <- tbl39 %>%
   mutate(
@@ -5863,7 +5960,23 @@ tbl39 <- tbl39 %>%
   ) %>%
   select(-personid_1a, -v101)
 
+tbl39_clean <- tbl39 %>%
+  select(-hhld) %>%
+  arrange(personid, v1112)
+
+section11b_clean <- section11b %>%
+  select(-hhld) %>%
+  arrange(personid, v1112)
+
+tbl39_clean <- tbl39_clean[, names(section11b_clean)]
+
+all.equal(section11b_clean, tbl39_clean)
+
+rm(section11b_clean, tbl39_clean)
+
 ############################################ SECTION 11.3 (TABLE 40) #############################################
+
+tbl40 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl40.dta")
 
 tbl40 <- tbl40 %>%
   mutate(
@@ -5897,7 +6010,23 @@ tbl40 <- tbl40 %>%
     )
   )
 
+tbl40_clean <- tbl40 %>%
+  select(-hhld) %>%
+  arrange(id)
+
+section11c_clean <- section11c %>%
+  select(-hhld) %>%
+  arrange(id)
+
+tbl40_clean <- tbl40_clean[, names(section11c_clean)]
+
+all.equal(section11c_clean, tbl40_clean)
+
+rm(section11c_clean, tbl40_clean)
+
 ############################################ SECTION 12.1 (TABLE 41) #############################################
+
+tbl41 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl41.dta")
 
 tbl41 <- tbl41 %>%
   mutate(
@@ -5917,62 +6046,11 @@ remittance_qualified <- tbl02 %>%
 tbl41 <- tbl41 %>%
   filter(personid %in% remittance_qualified$personid)
 
-remittance_missing <- read.xlsx("misc/remittance_missing.xlsx")
-
-remittance_missing <- merge(
-  remittance_missing, 
-  tbl02[, c("personid", "v109", "v101")],
-  by = "personid"
-)
+remittance_missing <- read.xlsx("/Users/sobaakun/NHIPsurvey/remittance_missing.xlsx")
 
 remittance_missing <- remittance_missing %>%
-  mutate(
-    v1204 = case_when(
-      v1203 <= 10 ~ v1203, 
-      v1203 <= 18 & v1203 > 10 ~ sample(1:6, n(), replace = TRUE), 
-      v1203 > 18 ~ sample(1:10, n(), replace = TRUE),
-      TRUE ~ v1204
-    ),
-    v1205 = case_when(
-      v1203 <= 15 ~ 1, 
-      v1203 > 15 & v1203 <= 18 ~ sample(1:2, n(), replace = TRUE),
-      v1203 > 50 & v109 == 3 ~ 1,
-      v1203 > 18 ~ sample(1:4, n(), replace = TRUE),
-      TRUE ~ v1205
-    ),
-    v1207 = case_when(
-      v1203 <= 15 ~ 5,
-      v1203 >= 16 & v1203 <= 18 ~ 4, 
-      v1203 > 18 & v1205 == 2 ~ 4,
-      v1203 > 18 & v1205 %in% c(3, 4) ~ 1,
-      v1203 > 18 & v1205 == 5 ~ 2, 
-      v1203 > 50 & v109 == 3 ~ 3, 
-      v1203 %in% c(20:30) & v109 == 4 ~ sample(c(1, 4), n(), replace = TRUE),
-      TRUE ~ 1
-    ),
-    v1208 = 2  
-  ) 
+  mutate(v1206 = as.character(v1206)) 
 
-districts <- toupper(unique(haven::as_factor(tbl02$district)))
-
-countries <- c("QATAR", "UAE", "UK", "SPAIN", "GERMANY", "SAUDI", "JORDAN", "KUWAIT", "BAHRAIN", "AUSTRALIA", "US", "CROATIA", "HUNGARY")
-
-remittance_missing <- remittance_missing %>%
-  mutate(v1206 = as.character(v1206)) %>%
-  mutate(
-    v1206 = if_else(
-      v109 == 3,
-      sample(districts, n(), replace = TRUE),
-      as.character(v1206)
-    ),
-    v1206 = if_else(
-      v109 == 4,
-      sample(countries, n(), replace = TRUE),
-      as.character(v1206)
-    )
-  ) %>%
-  rename(v1202 = v101) %>%
-  select(-v109, -v102) 
 
 for (i in setdiff(1:ncol(remittance_missing), c(11, 13, 16, 25))) { 
   remittance_missing[[i]] <- as.numeric(gsub("[^0-9]", "", remittance_missing[[i]]))
@@ -5980,6 +6058,7 @@ for (i in setdiff(1:ncol(remittance_missing), c(11, 13, 16, 25))) {
 
 tbl41 <- tbl41 %>%
   rows_append(remittance_missing)
+
 
 tbl41 <- tbl41 %>%
   mutate(
@@ -6004,7 +6083,23 @@ sum(remittance_qualified$personid %in% tbl41$personid)
 
 rm(remittance_missing, remittance_qualified, hh_head)
 
+tbl41_clean <- tbl41 %>%
+  select(-hhld) %>%
+  arrange(personid)
+
+section12a_clean <- section12a %>%
+  select(-hhld) %>%
+  arrange(personid)
+
+tbl41_clean <- tbl41_clean[, names(section12a_clean)]
+
+all.equal(section12a_clean, tbl41_clean)
+
+rm(section12a_clean, tbl41_clean)
+
 ############################################ SECTION 12.2 (TABLE 42) #############################################
+
+tbl42 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl42.dta")
 
 tbl42 <- tbl42 %>%
   mutate(
@@ -6028,7 +6123,23 @@ tbl42 <- tbl42 %>%
     )
   )
 
+tbl42_clean <- tbl42 %>%
+  select(-hhld) %>%
+  arrange(id)
+
+section12b_clean <- section12b %>%
+  select(-hhld) %>%
+  arrange(id)
+
+tbl42_clean <- tbl42_clean[, names(section12b_clean)]
+
+all.equal(section12b_clean, tbl42_clean)
+
+rm(section12b_clean, tbl42_clean)
+
 ############################################ SECTION 13.1 (TABLE 43) #############################################
+
+tbl43 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl43.dta")
 
 for (i in setdiff(1:ncol(tbl43), c(10, 23))) {
   tbl43[[i]] <- as.numeric(gsub("[^0-9]", "", tbl43[[i]]))
@@ -6104,7 +6215,23 @@ tbl43 <- tbl43 %>%
   ungroup() %>%
   select(-max_allowed, -p20_childgrant, -p20_aamasurakshya, -p20_other)
 
+tbl43_clean <- tbl43 %>%
+  select(-hhld) %>%
+  arrange(id, v1301)
+
+section13a_clean <- section13a %>%
+  select(-hhld) %>%
+  arrange(id, v1301)
+
+tbl43_clean <- tbl43_clean[, names(section13a_clean)]
+
+all.equal(section13a_clean, tbl43_clean)
+
+rm(section13a_clean, tbl43_clean)
+
 ############################################ SECTION 13.2 (TABLE 44) #############################################
+
+tbl44 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl44.dta")
 
 tbl44 <- tbl44 %>%
   mutate(
@@ -6114,7 +6241,23 @@ tbl44 <- tbl44 %>%
     )
   )
 
+tbl44_clean <- tbl44 %>%
+  select(-hhld) %>%
+  arrange(id, v1308)
+
+section13b_clean <- section13b %>%
+  select(-hhld) %>%
+  arrange(id, v1308)
+
+tbl44_clean <- tbl44_clean[, names(section13b_clean)]
+
+all.equal(section13b_clean, tbl44_clean)
+
+rm(section13b_clean, tbl44_clean)
+
 ############################################ SECTION 13.3 (TABLE 45) #############################################
+
+tbl45 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl45.dta")
 
 for (i in setdiff(1:ncol(tbl45), c(10, 16))) { 
   tbl45[[i]] <- as.numeric(gsub("[^0-9]", "", tbl45[[i]]))
@@ -6194,6 +6337,22 @@ tbl45 <- tbl45 %>%
     )
   ) %>%
   select(-p20_savings, -p20_fixed_deposit, -p20_stocks, -p20_cit, -p20_pension, -p20_insurance, -p20_rent)
+
+tbl45_clean <- tbl45 %>%
+  select(-hhld) %>%
+  arrange(id, v1311a)
+
+section13c_clean <- section13c %>%
+  select(-hhld) %>%
+  arrange(id, v1311a)
+
+tbl45_clean <- tbl45_clean[, names(section13c_clean)]
+
+all.equal(section13c_clean, tbl45_clean)
+
+rm(section13c_clean, tbl45_clean)
+
+##################################################################################################################
 
 rm(s6c1_add, s6c2_add, s6c3_missing, s6c3_qualified, s6c4_missing, ssf_respondent_id, s6b3_update, s6b4_updates)
 
