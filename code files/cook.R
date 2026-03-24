@@ -3355,7 +3355,7 @@ tbl17_clean <- tbl17 %>%
   arrange(disease_id) 
 
 section6b1_clean <- section6b1 %>%
-  select(-hhld) %>%
+  select(-hhld, -uniq_id) %>%
   mutate(disease_id = paste0(personid, "-", v604)) %>%
   arrange(disease_id) 
 
@@ -3498,11 +3498,11 @@ tbl19 <- tbl19 %>%
 
 tbl19_clean <- tbl19 %>%
   arrange(disease_id) %>%
-  select(-hhld)
+  select(-hhld, -uniq_id)
 
 section6b3_clean <- section6b3 %>%
   arrange(disease_id) %>%
-  select(-hhld)
+  select(-hhld, -uniq_id)
 
 tbl19_clean <- tbl19_clean[, names(section6b3_clean)]
 
@@ -3601,14 +3601,18 @@ tbl20 <- tbl20 %>%
   )
 
 tbl20_clean <- tbl20 %>%
-  select(-hhld) %>%
+  select(-hhld, -uniq_id) %>%
   mutate(disease_id = paste0(personid, "-", v604)) %>%
   arrange(disease_id)
 
 section6b4_clean <- section6b4 %>%
-  select(-hhld) %>%
+  select(-hhld, -uniq_id) %>%
   mutate(disease_id = paste0(personid, "-", v604)) %>%
   arrange(disease_id)
+
+attr(tbl20_clean$v619, "labels") <- attr(section6b4_clean$v619, "labels")
+attr(tbl20_clean$v619, "label") <- attr(section6b4_clean$v619, "label")
+class(tbl20_clean$v619) <- class(section6b4_clean$v619)
 
 tbl20_clean <- tbl20_clean[, names(section6b4_clean)]
 
@@ -4060,6 +4064,7 @@ tbl26 <- tbl26 %>%
   
 
 tbl26_clean <- tbl26 %>%
+  filter(personid %in% section6c5$personid) %>%
   arrange(personid) %>%
   select(-hhld)
 
@@ -5078,6 +5083,7 @@ tbl30 <- tbl30 %>%
   mutate(
     v901 = 1
   ) %>%
+  arrange(id) %>%
   group_by(id) %>%
   mutate(
     v902a = row_number()
@@ -5103,12 +5109,12 @@ tbl30 <- tbl30 %>%
 
 tbl30_clean <- tbl30 %>%
   mutate(uniq_id = paste0(id, "-", v902b)) %>%
-  arrange(id, v902b) %>%
+  arrange(uniq_id) %>%
   select(-hhld)
 
 section9a_clean <- section9a %>%
   mutate(uniq_id = paste0(id, "-", v902b)) %>%
-  arrange(id, v902b) %>%
+  arrange(uniq_id) %>%
   select(-hhld)
 
 tbl30_clean <- tbl30_clean[, names(section9a_clean)]
@@ -5167,7 +5173,7 @@ rm(section9b_clean, tbl31_clean)
 
 ############################################ SECTION 9.3 (TABLE 32) #############################################
 
- tbl32 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl32.dta")
+tbl32 <- read_dta("/Users/sobaakun/NHIPsurvey/OOPS_Rawdata_2026_03_17/tbl32.dta")
 
 tbl32 <- tbl32 %>%
   filter(!is.na(v914b)) %>%

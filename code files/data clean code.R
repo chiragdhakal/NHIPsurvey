@@ -4701,8 +4701,6 @@ section8 <- section8 %>%
     )
   )
 
-write.xlsx(section7, "s7_update.xlsx")
-
 ############################################ SECTION 9.1 (TABLE 30) #############################################
 
 section9a <- section9a %>%
@@ -4723,6 +4721,7 @@ section9a <- section9a %>%
   mutate(
     v901 = 1
   ) %>%
+  arrange(id) %>%
   group_by(id) %>%
   mutate(
     v902a = row_number()
