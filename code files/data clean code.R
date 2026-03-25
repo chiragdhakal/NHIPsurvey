@@ -415,6 +415,22 @@ section0 <- section0 %>%
   )
 )
 
+tbl01 <- read_dta("update_files/tbl01.dta")
+
+tbl01 <- tbl01 %>%
+  select(id, target_group)
+
+section0 <- section0 %>%
+  select(-target_group)
+
+section0 <- merge(
+  section0, 
+  tbl01, 
+  by = "id"
+)
+
+rm(tbl01)
+
 ############################################ SECTION 1.1 (TABLE 02) #############################################
 
 section1a <- section1a %>%
