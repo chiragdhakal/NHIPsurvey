@@ -1115,7 +1115,7 @@ rm(hh_majority)
 
 ############################################ SECTION 1.2 (TABLE 03) #############################################
 
-s1b <- read.xlsx("misc/rectify_sec1b_SA.xlsx")
+s1b <- read.xlsx("update_files/rectify_sec1b_SA.xlsx")
 
 s1b <- s1b %>%
   select(-chfid, -`_merge`, -sec1b_miss, -hhld_member,-v102, -v103, -v104a, -v104b, -v106, -v106a, -v105, -v107, -v108, -v109, -v110) %>%
@@ -3087,7 +3087,7 @@ section6b1 <- section6b1 %>%
     -employer_size, -disease_id
   )
 
-section6b1_added_rows <- read.xlsx("misc/health section arrangement/section6b1_added_rows.xlsx")
+section6b1_added_rows <- read.xlsx("update_files/section6b1_added_rows.xlsx")
 
 section6b1_added_rows <- section6b1_added_rows %>%
   mutate(
@@ -3246,7 +3246,7 @@ missing_outpatients <- anti_join(
 
 rm(missing_outpatients)
 
-s6b3_update <- read.xlsx("chronic_outpatient_costs 14 Feb edited.xlsx")
+s6b3_update <- read.xlsx("update_files/chronic_outpatient_costs 14 Feb edited.xlsx")
 
 s6b3_update <- s6b3_update %>%
   filter(!is.na(disease_id))
@@ -3332,7 +3332,7 @@ missing_inpatients <- anti_join(
 
 rm(missing_inpatients)
 
-s6b4_updates <- read.xlsx("chronic_inpatient_costs Chirag 10 Feb.xlsx")
+s6b4_updates <- read.xlsx("update_files/chronic_inpatient_costs Chirag 10 Feb.xlsx")
 
 s6b4_updates <- s6b4_updates %>%
   filter(!is.na(disease_id))
@@ -3427,7 +3427,7 @@ section6c1 <- section6c1 %>%
   ) 
 
 s6c1_add <- read.xlsx(
-  "misc/s6c1_add.xlsx",
+  "update_files/s6c1_add.xlsx",
   detectDates = TRUE
 )
 
@@ -3515,7 +3515,7 @@ section6c2 <- section6c2 %>%
 section6c1 <- section6c1 %>%
   select(-row_id)
 
-s6c2_add <- read.xlsx("misc/s6c2_add.xlsx")
+s6c2_add <- read.xlsx("update_files/s6c2_add.xlsx")
 
 s6c2_add <- s6c2_add %>%
   select(-v629)
@@ -3557,7 +3557,7 @@ section6c2 <- section6c2 %>%
 
 ############################################ SECTION 6.3.3 (TABLE 23) #############################################
 
-s6c3_missing <- read.xlsx("/Users/sobaakun/NHIPsurvey/s6c3_missing.xlsx")
+s6c3_missing <- read.xlsx("update_files/s6c3_missing.xlsx")
 
 for (i in setdiff(1:ncol(s6c3_missing), c(10, 15, 18:32))) {
   s6c3_missing[[i]] <- as.numeric(gsub("[^0-9]", "", s6c3_missing[[i]]))
@@ -3689,7 +3689,7 @@ rm(missing_acute, v630_replacement)
 section6c4 <- section6c4 %>%
   select(-disease_id)
 
-s6c4_missing <- read.xlsx("misc/s6c4_missing.xlsx")
+s6c4_missing <- read.xlsx("update_files/s6c4_missing.xlsx")
 
 for (i in setdiff(1:ncol(s6c4_missing), c(10, 16))) {
   s6c4_missing[[i]] <- as.numeric(gsub("[^0-9]", "", s6c4_missing[[i]]))
@@ -3854,7 +3854,7 @@ section7 <- section7 %>%
     )
   )
 
-s7_missing_import <- read.xlsx("misc/s7_missing.xlsx")
+s7_missing_import <- read.xlsx("update_files/s7_missing.xlsx")
 
 for (i in setdiff(1:ncol(s7_missing_import), c(11, 20, 38))) {
   s7_missing_import[[i]] <- as.numeric(gsub("[^0-9]", "", s7_missing_import[[i]]))
@@ -3870,7 +3870,7 @@ s7_missing <- s7_qualified %>%
 
 rm(s7_missing, s7_missing_ssf_respondents, s7_qualified, s7_missing_import)
 
-ssf_s7 <- read.xlsx("misc/ssf_s7.xlsx")
+ssf_s7 <- read.xlsx("update_files/ssf_s7.xlsx")
 
 for (i in setdiff(1:ncol(ssf_s7), c(10, 20, 38))) {
   ssf_s7[[i]] <- as.numeric(gsub("[^0-9]", "", ssf_s7[[i]]))
@@ -4005,8 +4005,8 @@ rm(ssf)
 
 ############################################ SECTION 8 (TABLE 29) ############################################# 
 
-wages <- read.xlsx("misc/wages.xlsx")
-ssf_s8_missing <- read.xlsx("misc/ssf_s8_missing.xlsx")
+wages <- read.xlsx("update_files/wages.xlsx")
+ssf_s8_missing <- read.xlsx("update_files/ssf_s8_missing.xlsx")
 
 for (i in setdiff(1:ncol(ssf_s8_missing), c(10, 17, 34))) {
   ssf_s8_missing[[i]] <- as.numeric(gsub("[^0-9]", "", ssf_s8_missing[[i]]))
@@ -4321,7 +4321,7 @@ ssf_s8 <- ssf_s8 %>%
 section8 <- section8 %>%
   rows_upsert(ssf_s8, by = "personid")
 
-s8_missing <- read.xlsx("misc/s8_missing.xlsx")
+s8_missing <- read.xlsx("update_files/s8_missing.xlsx")
 
 for (i in setdiff(1:ncol(s8_missing), c(11, 16, 34))) { 
   s8_missing[[i]] <- as.numeric(gsub("[^0-9]", "", s8_missing[[i]]))
@@ -5142,7 +5142,7 @@ section9f2 <- section9f2 %>%
 
 ############################################ SECTION 10 (TABLE 37) #############################################
 
-s10 <- read.xlsx("misc/clean data1/section10.xlsx")
+s10 <- read.xlsx("update_files/section10.xlsx")
 
 s10 <- s10 %>%
   rename(
@@ -5510,7 +5510,7 @@ remittance_qualified <- section1a %>%
 section12a <- section12a %>%
   filter(personid %in% remittance_qualified$personid)
 
-remittance_missing <- read.xlsx("/Users/sobaakun/NHIPsurvey/remittance_missing.xlsx")
+remittance_missing <- read.xlsx("update_files/remittance_missing.xlsx")
 
 remittance_missing <- remittance_missing %>%
   mutate(v1206 = as.character(v1206))
