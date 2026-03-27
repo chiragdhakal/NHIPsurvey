@@ -32,6 +32,23 @@ set.seed(123)
 
 ############################################ SECTION0 (TABLE 01) #############################################
 
+ssf_data <- read.xlsx("/Users/sobaakun/NHIPsurvey/update_files/Copy of SSF-claims-info.xlsx")
+
+ssf_data <- ssf_data %>%
+  mutate(psu = as.numeric(str_extract(uniq_id, "^[0-9]+")))
+
+section0 <- section0 %>%
+  rows_update(
+    ssf_data %>% 
+      select(psu, address_district, address_palika, address_ward) %>%
+      distinct(psu, .keep_all = TRUE),
+    by = "psu"
+  ) %>%
+  mutate(
+    address_district = toupper(address_district), 
+    address_palika = toupper(address_palika)
+  )
+
 normalize_name <- function(x) {
   x %>%
     str_to_upper() %>%
@@ -112,11 +129,37 @@ standardize_entries <- function(vec, threshold = 0.15) {
 
 section0 <- section0 %>%
   mutate(
+    employer_name = case_when(
+    employer_name == "CHHORI" ~ "CHOORI", 
+    employer_name == "AAMRUJ INTERNATIONAL" ~ "AMARUJ INTERNATIONAL", 
+    employer_name == "BIDHATA AUTO MOBILE SERVICE" ~ "VIDHATA AUTO MOBILE SERVICE",
+    employer_name == "USHNA PRADESHIYA BAGBANI KENDRA" ~ "USHNA PRADESHIY BAGAWANI KENDRA", 
+    employer_name == "SWOYAMBHU SUPPLIERS" ~ "SWAYAMBHU SUPPLIERS", 
+    employer_name == "NEST FURNITURE" ~ "NESS FURNITURE", 
+    TRUE ~ employer_name
+  )
+  )
+  
+
+most_common_combo <- section0 %>%
+  group_by(employer_name, employer_size, employer_sector, address_province, address_district, address_palika, address_ward) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(employer_name) %>%
+  slice_max(n, n = 1, with_ties = FALSE) %>% 
+  select(-n)
+
+section0 <- section0 %>%
+  select(-employer_size, -employer_sector, -address_province, -address_district, -address_palika, -address_ward) %>%
+  left_join(most_common_combo, by = "employer_name")
+
+section0 <- section0 %>%
+  mutate(
     employer_name_std = standardize_entries(employer_name),
     address_province = case_when(
       is.na(address_province) & address_district %in% c("SUNSARI", "MORANG", "UDAYAPUR") ~ 1,
       is.na(address_province) & address_district %in% c("SAPTARI", "RAUTAHAT", "SARLAHI", "MAHOTTARI", "DHANUSHA", "SIRAHA") ~ 2,
       is.na(address_province) & address_district %in% c("KAILALI") ~ 7, 
+      id == 14138 ~ 3,
       TRUE ~ address_province
     )
   ) %>%
@@ -177,7 +220,9 @@ section0 <- section0 %>%
     TRUE ~ address_district
   ),
   address_palika = case_when(
+    employer_name == "CENTER FOR KARNALI RURAL PROMOTE AND SOCIETY DEVELOPMENT" ~ "CHHAYANATH",
     employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ "POKHARA",
+    employer_name == "SUNBEAM ENGLISH SCHOOL" ~ "DUHABI",
     enrollment %in% c(1, 2) ~ "",
     TRUE ~ address_palika
   ),
@@ -194,6 +239,7 @@ section0 <- section0 %>%
   ),
   employer_size = case_when(
     is.na(employer_size) & employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ 20,
+    is.na(employer_size) & employer_name == "NEW RABI PHOTOGRAPH" ~ 2,
     TRUE ~ employer_size
   ),
   respondent = case_when(
@@ -403,33 +449,10 @@ section0 <- section0 %>%
     id == 11751 ~ "PIRTI SHARMA",
   
     TRUE ~ respondent
-  ), 
-  employer_name = case_when(
-    employer_name == "CHHORI" ~ "CHOORI", 
-    employer_name == "AAMRUJ INTERNATIONAL" ~ "AMARUJ INTERNATIONAL", 
-    employer_name == "BIDHATA AUTO MOBILE SERVICE" ~ "VIDHATA AUTO MOBILE SERVICE",
-    employer_name == "USHNA PRADESHIYA BAGBANI KENDRA" ~ "USHNA PRADESHIY BAGAWANI KENDRA", 
-    employer_name == "SWOYAMBHU SUPPLIERS" ~ "SWAYAMBHU SUPPLIERS", 
-    employer_name == "NEST FURNITURE" ~ "NESS FURNITURE", 
-    TRUE ~ employer_name
   )
 )
 
-tbl01 <- read_dta("update_files/tbl01.dta")
-
-tbl01 <- tbl01 %>%
-  select(id, target_group)
-
-section0 <- section0 %>%
-  select(-target_group)
-
-section0 <- merge(
-  section0, 
-  tbl01, 
-  by = "id"
-)
-
-rm(tbl01)
+rm(most_common_combo, ssf_data)
 
 ############################################ SECTION 1.1 (TABLE 02) #############################################
 
@@ -447,20 +470,15 @@ section1a <- section1a %>%
       v102 == "PRASANSHA BISTA" ~ 2, 
       TRUE ~ v103
     ),
-    v103 = if_else(v103 == 96, 3, v103),
+    v103 = if_else(v103 == 96, 2, v103),
     v104b = case_when(
-      v104a < 5 & v104a > 0 ~ (v104a * 12),
+      v104a < 5 & v104a > 0 ~ (v104a * 12) + 6,
       v104b == 0 ~ NA_real_, 
       TRUE ~ v104b
     ),
     v104b = case_when(
       personid == 5949012 ~ NA_real_, 
       TRUE ~ v104b
-    ),
-    v104b = if_else(
-    v104a == 0 & is.na(v104b),
-    6,
-    v104b
     ),
     v105 = case_when(
       id == 11277 ~ 3, 

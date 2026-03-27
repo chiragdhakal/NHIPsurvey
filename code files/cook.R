@@ -19,6 +19,8 @@ library(compareDF)
 
 tbl01 <- read_dta("OOPS_Rawdata_2026_03_17/tbl01.dta")
 
+section0 <- as_tibble(section0)
+
 normalize_name <- function(x) {
   x %>%
     str_to_upper() %>%
