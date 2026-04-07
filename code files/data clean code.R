@@ -981,7 +981,6 @@ section1a <- section1a %>%
       personid == 56792 ~ 6,
       personid == 60548 ~ 9, 
       personid == 5950587 ~ 6, 
-      personid == 5951820 ~ 16,
       personid == 38659 ~ 9, 
       personid == 22299 ~ 9,
       personid == 56386 ~ 1, 
@@ -1160,8 +1159,14 @@ s1b <- s1b %>%
     employer_sector = as.numeric(employer_sector)
   )
 
+s1b_1 <- s1b %>%
+  filter(!personid %in% section1b$personid)
+
+s1b_1 <- s1b_1 %>%
+  filter(personid %in% section1a$personid)
+
 section1b <- section1b %>%
-  rows_upsert(s1b, by = "personid")
+  rows_append(s1b_1)
 
 section1b <- section1b %>%
   mutate(
@@ -1434,6 +1439,8 @@ section1b <- section1b %>%
   ungroup() %>%
   select(-uniq_id, -v104a, -edu_cap, -edu_implausible, -hhid) %>%
   select(enrollment:uid, personid, v101:v115, v116, everything())
+
+rm(s1b_1)
 
 ############################################ SECTION 2.1.1 (TABLE 04) #############################################
 
@@ -3795,7 +3802,6 @@ section7 <- section7 %>%
     personid != 56798
   )
 
-
 section7 <- section7 %>%
   mutate(
     v708 = case_when(
@@ -4148,7 +4154,7 @@ section8 <- section8 %>%
       TRUE ~ v802
     ),
     across(
-      v803:employer_size,
+      v803:v810b,
       ~ if_else(personid %in% c(8036, 7468, 7176, 14210, 5949841, 1350, 5949840, 10524, 8036, 25146), NA, .x)
     ), 
     v803 = case_when(
@@ -4336,8 +4342,19 @@ ssf_s8 <- ssf_s8 %>%
     across(
       c(v805:v809), 
       ~ if_else(!is.na(v810a), NA_real_, .x)
-    ),
-    v808a = pmax(v808a, v808b, v808c, na.rm = TRUE),
+    )
+  ) 
+
+ssf_s8 <- ssf_s8 %>%
+  mutate(
+    max_val = pmax(v808a, v808b, v808c, na.rm = TRUE),
+    old_a   = v808a,
+    v808a   = max_val,
+    v808b   = if_else(!is.na(v808b) & v808b == max_val, old_a, v808b),
+    v808c   = if_else(!is.na(v808c) & v808c == max_val, old_a, v808c)
+  ) %>%
+  select(-max_val, -old_a) %>%
+  mutate(
     across(
       c(v805:v810b),
       ~ na_if(.x, 0)
@@ -4378,7 +4395,13 @@ section8 <- section8 %>%
       c(v805:v809), 
       ~ if_else(!is.na(v810a), NA_real_, .x)
     ),
-    v808a = pmax(v808a, v808b, v808c, na.rm = TRUE),
+  ) %>%
+  mutate(
+    max_val = pmax(v808a, v808b, v808c, na.rm = TRUE),
+    old_a   = v808a,
+    v808a   = max_val,
+    v808b   = if_else(!is.na(v808b) & v808b == max_val, old_a, v808b),
+    v808c   = if_else(!is.na(v808c) & v808c == max_val, old_a, v808c),
     across(
       c(v805:v810b),
       ~ na_if(.x, 0)
@@ -4575,7 +4598,6 @@ section7 <- section7 %>%
     )
   )
 
-
 section7 <- section7 %>%
   mutate(
     across(
@@ -4688,6 +4710,14 @@ section7 <- section7 %>%
     v722 = case_when(
       v721 == 1 & is.na(v722) ~ (as.integer(personid) %% 3) + 1, 
       TRUE ~ NA_real_
+    ), 
+    v714 = case_when(
+      !is.na(v708) ~ v714, 
+      TRUE ~ NA_real_
+    ), 
+    v714a = case_when(
+      !is.na(v708) ~ v714a, 
+      TRUE ~ NA_real_
     )
   )
 
@@ -4702,6 +4732,19 @@ section7 <- section7 %>%
       personid == 25994 ~ 3, 
       personid == 5953191 ~ 4,
       TRUE ~ v708
+    ),
+    v714 = case_when(
+      personid == 18223 ~ 1, 
+      personid == 21500 ~ 11, 
+      personid == 22235 ~ 18, 
+      personid == 25994 ~ 18, 
+      personid == 53970 ~ 18, 
+      personid == 55318 ~ 7, 
+      personid == 55321 ~ 18, 
+      personid == 57991 ~ 18, 
+      personid == 57988 ~ 20,
+      personid == 5953191 ~ 9, 
+      TRUE ~ v714
     )
   )
 

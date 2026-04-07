@@ -23,8 +23,7 @@ list2env(sections, .GlobalEnv)
 #SUMMARISING SECTION 3A PER HOUSEHOLD
 
 food_at_home <- section3a %>%
-  mutate(hhid = paste0(psu, "-", hhld)) %>%
-  group_by(hhid) %>%
+  group_by(id) %>%
   summarise(
     home_production   = sum(as.numeric(v303), na.rm = TRUE),
     food_purchases    = sum(as.numeric(v304), na.rm = TRUE),
@@ -41,8 +40,7 @@ food_at_home <- section3a %>%
 #SUMMARISING SECTION 3B PER HOUSEHOLD
 
 food_away_from_home <- section3b %>%
-  mutate(hhid = paste0(psu, "-", hhld)) %>%
-  group_by(hhid) %>%
+  group_by(id) %>%
   summarise(
     week_spend = sum(as.numeric(v308), na.rm = TRUE),
     week_receive = sum(as.numeric(v309), na.rm = TRUE)
@@ -57,8 +55,7 @@ food_away_from_home <- section3b %>%
 #SUMMARISING SECTION 4A PER HOUSEHOLD 
 
 non_food_expenditure <- section4a %>%
-  mutate(hhid = paste0(psu, "-", hhld)) %>%
-  group_by(hhid) %>%
+  group_by(id) %>%
   summarise(
     non_food_annual = sum(as.numeric(v403a), na.rm = TRUE),
     non_food_month = sum(as.numeric(v403b), na.rm = TRUE)

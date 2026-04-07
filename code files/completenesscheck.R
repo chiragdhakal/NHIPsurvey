@@ -763,4 +763,98 @@ hhmembers_s12a <- merge(
 
 write.xlsx(hhmembers_s12a, "completeness checks/section12a_discrepancy.xlsx")
 
+###################################################################################
 
+chronic_count <- section6b1 %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  filter(v603 == 1) %>%
+  select(hhid, id, personid, v603, v609)
+
+acute_count <- section6c1 %>%
+  mutate(hhid = paste0(psu, "-", hhld)) %>%
+  filter(v629 == 1) %>%
+  select(hhid, id, personid, v629, v634)
+
+chronic_count <- merge(
+  chronic_count, 
+  section1b[, c("personid", "v115")], 
+  by = "personid"
+)
+
+acute_count <- merge(
+  acute_count, 
+  section1b[, c("personid", "v115")], 
+  by = "personid"
+)
+
+chronic_count <- merge(
+  chronic_count, 
+  section7[, c("personid", "v714")], 
+  by = "personid", 
+  all.x = TRUE
+)
+
+acute_count <- merge(
+  acute_count, 
+  section7[, c("personid", "v714")], 
+  by = "personid", 
+  all.x = TRUE
+)
+
+chronic_count %>%
+  distinct(personid, .keep_all = TRUE) %>%
+  pull(v714) %>%
+  table()
+
+chronic_count %>%
+  distinct(personid, .keep_all = TRUE) %>%
+  filter(v609 == 1) %>%
+  pull(v714) %>%
+  table()
+
+acute_count %>%
+  distinct(personid, .keep_all = TRUE) %>%
+  pull(v714) %>%
+  table()
+
+acute_count %>%
+  distinct(personid, .keep_all = TRUE) %>%
+  filter(v634 == 1) %>%
+  pull(v714) %>%
+  table()
+
+acute_count <- merge(
+  acute_count, 
+  final_wealth_dataset[, c("id", "wealth_quintile")],
+  by = "id"
+)
+
+chronic_count <- merge(
+  chronic_count, 
+  final_wealth_dataset[, c("id", "wealth_quintile")], 
+  by = "id"
+)
+
+chronic_count %>%
+  distinct(id, .keep_all =  TRUE) %>%
+  pull(wealth_quintile) %>%
+  table()
+
+chronic_count %>%
+  group_by(id) %>%
+  filter(any(v609 == 1)) %>%
+  slice(1) %>%
+  ungroup() %>%
+  count(wealth_quintile)
+
+acute_count %>%
+  distinct(id, .keep_all =  TRUE) %>%
+  pull(wealth_quintile) %>%
+  table()
+
+acute_count %>%
+  group_by(id) %>%
+  filter(any(v634 == 1)) %>%
+  slice(1) %>%
+  ungroup() %>%
+  count(wealth_quintile)

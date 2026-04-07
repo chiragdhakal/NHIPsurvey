@@ -4527,7 +4527,7 @@ wealth_index <- section2a1 %>%
   mutate(
     hhid = paste0(psu, "-", hhld)
   ) %>%
-  select(hhid, v202, v203, v204, v205, v206)
+  select(id, v202, v203, v204, v205, v206)
 
 wealth_index <- wealth_index %>%
   mutate(
@@ -4629,8 +4629,8 @@ section2a2 <- section2a2 %>%
 
 wealth_index <- merge(
   wealth_index, 
-  section2a2[, c("hhid", "v208", "v213")],
-  by = "hhid"
+  section2a2[, c( "id", "v208", "v213")],
+  by = "id"
 )
 
 wealth_index <- wealth_index %>%
@@ -4653,8 +4653,8 @@ section2a3 <- section2a3 %>%
 
 wealth_index <- merge(
   wealth_index, 
-  section2a3[, c("hhid", "v216", "v223", "v225", "v218", "v220", "v222a", "v222b", "v222c")], 
-  by = "hhid"
+  section2a3[, c( "id", "v216", "v223", "v225", "v218", "v220", "v222a", "v222b", "v222c")], 
+  by = "id"
 )
 
 wealth_index <- wealth_index %>%
@@ -4783,7 +4783,6 @@ wealth_index <- wealth_index %>%
   select(-v216, -v223, -v225, -v218, -v220, -v222a, -v222b, -v222c)
 
 assets <- section4c %>%
-  mutate(hhid = paste0(psu, "-", hhld)) %>%
   filter(v408 %in% c(1:27)) %>%
   mutate(
     asset = recode(
@@ -4817,27 +4816,27 @@ assets <- section4c %>%
       `27` = "lpg_stove"
     )
   ) %>%
-  select(hhid, asset, v409) %>%
+  select(id, asset, v409) %>%
   pivot_wider(
     names_from = asset,
     values_from = v409
   )
 
 wealth_index <- wealth_index %>%
-  left_join(assets, by = "hhid")
+  left_join(assets, by = "id")
 
 land_ownership <- section9a %>%
   mutate(
     hhid = paste0(psu, "-", hhld)
   ) %>%
-  group_by(hhid) %>%
+  group_by(id) %>%
   slice(1) %>%
   ungroup()
 
 wealth_index <- merge(
   wealth_index, 
-  land_ownership[, c("hhid", "v901")],
-  by = "hhid", 
+  land_ownership[, c("id", "v901")],
+  by = "id", 
   all = TRUE
 )
 
@@ -4849,8 +4848,8 @@ livestock_ownership <- section9e %>%
 
 wealth_index <- merge(
   wealth_index, 
-  livestock_ownership[, c("hhid", "v934")],
-  by = "hhid", 
+  livestock_ownership[, c("id", "v934")],
+  by = "id", 
   all = TRUE
 )
 
@@ -4861,8 +4860,8 @@ section0 <- section0 %>%
 
 wealth_index <- merge(
   wealth_index, 
-  section0[, c("hhid", "hhld_member_t")], 
-  by = "hhid"
+  section0[, c("id", "hhld_member_t")], 
+  by = "id"
 )
 
 wealth_index <- wealth_index %>%
@@ -4874,7 +4873,6 @@ wealth_index <- wealth_index %>%
     hhld_member_t = as.numeric(hhld_member_t),
     hhld_member_t = if_else(is.na(hhld_member_t), 11, hhld_member_t),
     rooms_per_capita = v202 / hhld_member_t, 
-    rooms_per_capita = scale(rooms_per_capita),
     radio = if_else(
       radio == 2, 0, 1
     ),
@@ -4969,8 +4967,8 @@ wealth_index <- wealth_index %>%
 
 wealth_index <- wealth_index %>%
   left_join(
-    section0 %>% select(hhid, urban_rural),
-    by = "hhid"
+    section0 %>% select(id, urban_rural),
+    by = "id"
   )
 
 wealth_urban <- wealth_index %>%
@@ -4985,13 +4983,13 @@ pca_common <- rbind(
 )
 
 pca_common <- pca_common %>%
-  select(-hhid, -urban_rural)
+  select(-id, -urban_rural)
 
 pca_input_urban <- wealth_urban %>%
-  select(-hhid, -urban_rural) 
+  select(-id, -urban_rural) 
 
 pca_input_rural <- wealth_rural %>%
-  select(-hhid, -urban_rural) 
+  select(-id, -urban_rural) 
 
 zero_var_common <- sapply(pca_common, function(x) sd(x, na.rm = TRUE) == 0)
 zero_var_urban <- sapply(pca_input_urban, function(x) sd(x, na.rm = TRUE) == 0)
@@ -5015,10 +5013,10 @@ wealth_urban$score_urban <- pca_urban$x[, 1]
 wealth_rural$score_rural <- pca_rural$x[, 1]
 
 wealth_urban <- wealth_urban %>%
-  left_join(wealth_index %>% select(hhid, score_common), by = "hhid")
+  left_join(wealth_index %>% select(id, score_common), by = "id")
 
 wealth_rural <- wealth_rural %>%
-  left_join(wealth_index %>% select(hhid, score_common), by = "hhid")
+  left_join(wealth_index %>% select(id, score_common), by = "id")
 
 model_urb <- lm(score_common ~ score_urban, data = wealth_urban)
 model_rur <- lm(score_common ~ score_rural, data = wealth_rural)
@@ -5036,8 +5034,8 @@ wealth_rural <- wealth_rural %>%
   mutate(final_wealth_score = rur_alpha + (rur_beta * score_rural))
 
 final_wealth_dataset <- bind_rows(
-  wealth_urban %>% select(hhid, urban_rural, final_wealth_score),
-  wealth_rural %>% select(hhid, urban_rural, final_wealth_score)
+  wealth_urban %>% select(id, urban_rural, final_wealth_score),
+  wealth_rural %>% select(id, urban_rural, final_wealth_score)
 )
 
 final_wealth_dataset <- final_wealth_dataset %>%
@@ -5095,8 +5093,8 @@ ggplot(wealth_index, aes(x = wealth_quintile, y = wealth_score, fill = wealth_qu
 
 section0 <- merge(
   section0,
-  wealth_index[,c ("hhid", "wealth_score")],
-  by = "hhid"
+  wealth_index[,c ("id", "wealth_score")],
+  by = "id"
 )
 
 section2a1 <- section2a1 %>%
