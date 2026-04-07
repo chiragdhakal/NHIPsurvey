@@ -496,7 +496,6 @@ section1a <- section1a %>%
     v107 = case_when(
       v107 %in% c(11, 16) ~ 9,   #DEWAR/DEWARANI AND NANDA KEPT IN NUMERIC CODE 9 (BROTHER/SISTER-IN-LAW)
       v107 %in% c(14, 15) ~ 6,   #DIDI/FUPU KEPT IN NUMERIC CODE 6 (BROTHER/SISTER)
-      v107 %in% c(96) ~ 11,      #ALL THE OTHER CATEGORIZED WITH NO DESCRIPTION ARE KEPT IN NON-RELATIVE
       TRUE ~ v107
     ),
     v108 = case_when(
@@ -534,27 +533,26 @@ section1a <- section1a %>%
       v102 == "RADHA KC" & id == 14105 ~ 2, 
       v102 == "KARNA BDR BUDHA MAGAR" & id == 14433 ~ 2, 
       v102 == "MANISHA TAMANG" & id == 14583 ~ 3,
-      v107 == 96 ~ 11,
       TRUE ~ v107
     )
   )
 
 invalid_hhids <- section1a %>%
   filter(v107 == 1, v109 %in% c(3, 4)) %>%
-  distinct(hhid)
+  distinct(id)
 
 new_heads <- section1a %>%
-  semi_join(invalid_hhids, by = "hhid") %>%
+  semi_join(invalid_hhids, by = "id") %>%
   filter(v109 %in% c(1, 2)) %>%
-  group_by(hhid) %>%
+  group_by(id) %>%
   slice_max(v104a, n = 1, with_ties = FALSE) %>%
   ungroup() %>%
-  select(hhid, uniq_id)
+  select(id, personid)
 
 section1a <- section1a %>%
   left_join(
     new_heads %>% mutate(new_head = TRUE),
-    by = c("hhid", "uniq_id")
+    by = c("id", "personid")
   ) %>%
   mutate(
     v107 = case_when(
