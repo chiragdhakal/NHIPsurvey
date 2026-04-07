@@ -32,23 +32,6 @@ set.seed(123)
 
 ############################################ SECTION0 (TABLE 01) #############################################
 
-ssf_data <- read.xlsx("/Users/sobaakun/NHIPsurvey/update_files/Copy of SSF-claims-info.xlsx")
-
-ssf_data <- ssf_data %>%
-  mutate(psu = as.numeric(str_extract(uniq_id, "^[0-9]+")))
-
-section0 <- section0 %>%
-  rows_update(
-    ssf_data %>% 
-      select(psu, address_district, address_palika, address_ward) %>%
-      distinct(psu, .keep_all = TRUE),
-    by = "psu"
-  ) %>%
-  mutate(
-    address_district = toupper(address_district), 
-    address_palika = toupper(address_palika)
-  )
-
 normalize_name <- function(x) {
   x %>%
     str_to_upper() %>%
@@ -129,37 +112,11 @@ standardize_entries <- function(vec, threshold = 0.15) {
 
 section0 <- section0 %>%
   mutate(
-    employer_name = case_when(
-    employer_name == "CHHORI" ~ "CHOORI", 
-    employer_name == "AAMRUJ INTERNATIONAL" ~ "AMARUJ INTERNATIONAL", 
-    employer_name == "BIDHATA AUTO MOBILE SERVICE" ~ "VIDHATA AUTO MOBILE SERVICE",
-    employer_name == "USHNA PRADESHIYA BAGBANI KENDRA" ~ "USHNA PRADESHIY BAGAWANI KENDRA", 
-    employer_name == "SWOYAMBHU SUPPLIERS" ~ "SWAYAMBHU SUPPLIERS", 
-    employer_name == "NEST FURNITURE" ~ "NESS FURNITURE", 
-    TRUE ~ employer_name
-  )
-  )
-  
-
-most_common_combo <- section0 %>%
-  group_by(employer_name, employer_size, employer_sector, address_province, address_district, address_palika, address_ward) %>%
-  summarise(n = n(), .groups = "drop") %>%
-  group_by(employer_name) %>%
-  slice_max(n, n = 1, with_ties = FALSE) %>% 
-  select(-n)
-
-section0 <- section0 %>%
-  select(-employer_size, -employer_sector, -address_province, -address_district, -address_palika, -address_ward) %>%
-  left_join(most_common_combo, by = "employer_name")
-
-section0 <- section0 %>%
-  mutate(
     employer_name_std = standardize_entries(employer_name),
     address_province = case_when(
       is.na(address_province) & address_district %in% c("SUNSARI", "MORANG", "UDAYAPUR") ~ 1,
       is.na(address_province) & address_district %in% c("SAPTARI", "RAUTAHAT", "SARLAHI", "MAHOTTARI", "DHANUSHA", "SIRAHA") ~ 2,
       is.na(address_province) & address_district %in% c("KAILALI") ~ 7, 
-      id == 14138 ~ 3,
       TRUE ~ address_province
     )
   ) %>%
@@ -220,9 +177,7 @@ section0 <- section0 %>%
     TRUE ~ address_district
   ),
   address_palika = case_when(
-    employer_name == "CENTER FOR KARNALI RURAL PROMOTE AND SOCIETY DEVELOPMENT" ~ "CHHAYANATH",
     employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ "POKHARA",
-    employer_name == "SUNBEAM ENGLISH SCHOOL" ~ "DUHABI",
     enrollment %in% c(1, 2) ~ "",
     TRUE ~ address_palika
   ),
@@ -239,7 +194,6 @@ section0 <- section0 %>%
   ),
   employer_size = case_when(
     is.na(employer_size) & employer_name == "SHINING NEPAL MULTIPURPOSE COMPANY" ~ 20,
-    is.na(employer_size) & employer_name == "NEW RABI PHOTOGRAPH" ~ 2,
     TRUE ~ employer_size
   ),
   respondent = case_when(
@@ -449,10 +403,33 @@ section0 <- section0 %>%
     id == 11751 ~ "PIRTI SHARMA",
   
     TRUE ~ respondent
+  ), 
+  employer_name = case_when(
+    employer_name == "CHHORI" ~ "CHOORI", 
+    employer_name == "AAMRUJ INTERNATIONAL" ~ "AMARUJ INTERNATIONAL", 
+    employer_name == "BIDHATA AUTO MOBILE SERVICE" ~ "VIDHATA AUTO MOBILE SERVICE",
+    employer_name == "USHNA PRADESHIYA BAGBANI KENDRA" ~ "USHNA PRADESHIY BAGAWANI KENDRA", 
+    employer_name == "SWOYAMBHU SUPPLIERS" ~ "SWAYAMBHU SUPPLIERS", 
+    employer_name == "NEST FURNITURE" ~ "NESS FURNITURE", 
+    TRUE ~ employer_name
   )
 )
 
-rm(most_common_combo, ssf_data)
+tbl01 <- read_dta("update_files/tbl01.dta")
+
+tbl01 <- tbl01 %>%
+  select(id, target_group)
+
+section0 <- section0 %>%
+  select(-target_group)
+
+section0 <- merge(
+  section0, 
+  tbl01, 
+  by = "id"
+)
+
+rm(tbl01)
 
 ############################################ SECTION 1.1 (TABLE 02) #############################################
 
@@ -470,15 +447,20 @@ section1a <- section1a %>%
       v102 == "PRASANSHA BISTA" ~ 2, 
       TRUE ~ v103
     ),
-    v103 = if_else(v103 == 96, 2, v103),
+    v103 = if_else(v103 == 96, 3, v103),
     v104b = case_when(
-      v104a < 5 & v104a > 0 ~ (v104a * 12) + 6,
+      v104a < 5 & v104a > 0 ~ (v104a * 12),
       v104b == 0 ~ NA_real_, 
       TRUE ~ v104b
     ),
     v104b = case_when(
       personid == 5949012 ~ NA_real_, 
       TRUE ~ v104b
+    ),
+    v104b = if_else(
+    v104a == 0 & is.na(v104b),
+    6,
+    v104b
     ),
     v105 = case_when(
       id == 11277 ~ 3, 
@@ -496,6 +478,7 @@ section1a <- section1a %>%
     v107 = case_when(
       v107 %in% c(11, 16) ~ 9,   #DEWAR/DEWARANI AND NANDA KEPT IN NUMERIC CODE 9 (BROTHER/SISTER-IN-LAW)
       v107 %in% c(14, 15) ~ 6,   #DIDI/FUPU KEPT IN NUMERIC CODE 6 (BROTHER/SISTER)
+      v107 %in% c(96) ~ 11,      #ALL THE OTHER CATEGORIZED WITH NO DESCRIPTION ARE KEPT IN NON-RELATIVE
       TRUE ~ v107
     ),
     v108 = case_when(
@@ -533,26 +516,27 @@ section1a <- section1a %>%
       v102 == "RADHA KC" & id == 14105 ~ 2, 
       v102 == "KARNA BDR BUDHA MAGAR" & id == 14433 ~ 2, 
       v102 == "MANISHA TAMANG" & id == 14583 ~ 3,
+      v107 == 96 ~ 11,
       TRUE ~ v107
     )
   )
 
 invalid_hhids <- section1a %>%
   filter(v107 == 1, v109 %in% c(3, 4)) %>%
-  distinct(id)
+  distinct(hhid)
 
 new_heads <- section1a %>%
-  semi_join(invalid_hhids, by = "id") %>%
+  semi_join(invalid_hhids, by = "hhid") %>%
   filter(v109 %in% c(1, 2)) %>%
-  group_by(id) %>%
+  group_by(hhid) %>%
   slice_max(v104a, n = 1, with_ties = FALSE) %>%
   ungroup() %>%
-  select(id, personid)
+  select(hhid, uniq_id)
 
 section1a <- section1a %>%
   left_join(
     new_heads %>% mutate(new_head = TRUE),
-    by = c("id", "personid")
+    by = c("hhid", "uniq_id")
   ) %>%
   mutate(
     v107 = case_when(
@@ -981,6 +965,7 @@ section1a <- section1a %>%
       personid == 56792 ~ 6,
       personid == 60548 ~ 9, 
       personid == 5950587 ~ 6, 
+      personid == 5951820 ~ 16,
       personid == 38659 ~ 9, 
       personid == 22299 ~ 9,
       personid == 56386 ~ 1, 
@@ -1159,14 +1144,8 @@ s1b <- s1b %>%
     employer_sector = as.numeric(employer_sector)
   )
 
-s1b_1 <- s1b %>%
-  filter(!personid %in% section1b$personid)
-
-s1b_1 <- s1b_1 %>%
-  filter(personid %in% section1a$personid)
-
 section1b <- section1b %>%
-  rows_append(s1b_1)
+  rows_upsert(s1b, by = "personid")
 
 section1b <- section1b %>%
   mutate(
@@ -1439,8 +1418,6 @@ section1b <- section1b %>%
   ungroup() %>%
   select(-uniq_id, -v104a, -edu_cap, -edu_implausible, -hhid) %>%
   select(enrollment:uid, personid, v101:v115, v116, everything())
-
-rm(s1b_1)
 
 ############################################ SECTION 2.1.1 (TABLE 04) #############################################
 
@@ -3802,6 +3779,7 @@ section7 <- section7 %>%
     personid != 56798
   )
 
+
 section7 <- section7 %>%
   mutate(
     v708 = case_when(
@@ -4154,7 +4132,7 @@ section8 <- section8 %>%
       TRUE ~ v802
     ),
     across(
-      v803:v810b,
+      v803:employer_size,
       ~ if_else(personid %in% c(8036, 7468, 7176, 14210, 5949841, 1350, 5949840, 10524, 8036, 25146), NA, .x)
     ), 
     v803 = case_when(
@@ -4342,19 +4320,8 @@ ssf_s8 <- ssf_s8 %>%
     across(
       c(v805:v809), 
       ~ if_else(!is.na(v810a), NA_real_, .x)
-    )
-  ) 
-
-ssf_s8 <- ssf_s8 %>%
-  mutate(
-    max_val = pmax(v808a, v808b, v808c, na.rm = TRUE),
-    old_a   = v808a,
-    v808a   = max_val,
-    v808b   = if_else(!is.na(v808b) & v808b == max_val, old_a, v808b),
-    v808c   = if_else(!is.na(v808c) & v808c == max_val, old_a, v808c)
-  ) %>%
-  select(-max_val, -old_a) %>%
-  mutate(
+    ),
+    v808a = pmax(v808a, v808b, v808c, na.rm = TRUE),
     across(
       c(v805:v810b),
       ~ na_if(.x, 0)
@@ -4395,13 +4362,7 @@ section8 <- section8 %>%
       c(v805:v809), 
       ~ if_else(!is.na(v810a), NA_real_, .x)
     ),
-  ) %>%
-  mutate(
-    max_val = pmax(v808a, v808b, v808c, na.rm = TRUE),
-    old_a   = v808a,
-    v808a   = max_val,
-    v808b   = if_else(!is.na(v808b) & v808b == max_val, old_a, v808b),
-    v808c   = if_else(!is.na(v808c) & v808c == max_val, old_a, v808c),
+    v808a = pmax(v808a, v808b, v808c, na.rm = TRUE),
     across(
       c(v805:v810b),
       ~ na_if(.x, 0)
@@ -4598,6 +4559,7 @@ section7 <- section7 %>%
     )
   )
 
+
 section7 <- section7 %>%
   mutate(
     across(
@@ -4710,14 +4672,6 @@ section7 <- section7 %>%
     v722 = case_when(
       v721 == 1 & is.na(v722) ~ (as.integer(personid) %% 3) + 1, 
       TRUE ~ NA_real_
-    ), 
-    v714 = case_when(
-      !is.na(v708) ~ v714, 
-      TRUE ~ NA_real_
-    ), 
-    v714a = case_when(
-      !is.na(v708) ~ v714a, 
-      TRUE ~ NA_real_
     )
   )
 
@@ -4734,16 +4688,11 @@ section7 <- section7 %>%
       TRUE ~ v708
     ),
     v714 = case_when(
-      personid == 18223 ~ 1, 
-      personid == 21500 ~ 11, 
-      personid == 22235 ~ 18, 
-      personid == 25994 ~ 18, 
-      personid == 53970 ~ 18, 
-      personid == 55318 ~ 7, 
-      personid == 55321 ~ 18, 
-      personid == 57991 ~ 18, 
-      personid == 57988 ~ 20,
-      personid == 5953191 ~ 9, 
+      !is.na(v708) & is.na(v714) ~ v714a, 
+      TRUE ~ v714
+    ), 
+    v714 = case_when(
+      is.na(v708) ~ NA,
       TRUE ~ v714
     )
   )
